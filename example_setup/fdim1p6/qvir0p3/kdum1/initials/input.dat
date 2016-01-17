@@ -1,0 +1,7 @@
+1000                  ! Number of systems
+f                     ! mass distribution:  f=fractal, p=plummer
+1.6                   ! fractal dimension
+0.5		      ! Size unit scale
+10.                   ! Simulation length (Myrs) 
+0.01                   ! Snapshot interval
+inv_01_		      ! Filestem

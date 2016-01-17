@@ -1,0 +1,5 @@
+Remember to source Starlab before running kira script:
+'source /local/cfe/backed_up_on_astro3/starlab-4.4.4/starlab_start.csh'
+
+To run several jobs concurrently:
+'ls scr* | xargs -n 1 cat | xargs -I CMD --max-procs=20 bash -c CMD'
