@@ -86,7 +86,7 @@ for i in range(1,nfile+1):
     plt.clf()
     plt.locator_params(nbins=16)
     ax1 = fig.add_subplot(111)
-    ax1.scatter(z, y, marker='.',s=2)
+    ax1.scatter(z, y, marker='.', s=2)
     plt.xlabel('Z-Position (pc)')
     plt.ylabel('Y-Position (pc)')
     plt.title('Simulation')
