@@ -92,7 +92,7 @@ for i in range(1,nfile+1):
     plt.title('Simulation')
     plt.grid(True)
     plt.axis([-5, 5, -5, 5])
-    textstring='Time: %.2f Myr' % (round(float(time),2))
+    textstring='Time: %.2f Myr' % (round(float(time),2)) #text to appear on plot
     plt.text(3, 4, textstring)
     plt.savefig(ifname+'.xy.png', dpi=my_dpi, bbox_inches='tight')
 
