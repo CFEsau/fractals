@@ -4,8 +4,11 @@
 ! 
 ! Initial Conditions Generator for KIRA N-Body Program
 !
-! This is the fifth attempt at stealing, modifying and 
-! annotating Richard parker's code.
+! Stole, modified and annotated Richard parker's code.
+!
+! 21/01/16 Claire Esau
+!
+! Stolen from Dan, modified binary pairing method
 !
 !******************************************************************************!
 !
@@ -133,6 +136,7 @@ PROGRAM initials
 !fraction of systems that are in binaries.
 !Must be between 0. (nstars=nsys) & 1. (nstars=2*nsys)
   fbinary=0.
+  pairing=='ratio'
   
   numsingle=INT((1.-fbinary)*DBLE(nsys))
   numbinary=INT(2.*fbinary*DBLE(nsys))
@@ -158,9 +162,16 @@ PROGRAM initials
      ELSE IF (sinfo(i)==2) THEN
 !call masch for m1:
         CALL maschberger_imf(alpha,beta,mu,mLower,mUpper,kdum,m(i))
+        IF (pairing=='masch') THEN
 !add another star and call masch for m2:
-        i=i+1
-        CALL maschberger_imf(alpha,beta,mu,mLower,mUpper,kdum,m(i))
+           i=i+1
+           CALL maschberger_imf(alpha,beta,mu,mLower,mUpper,kdum,m(i))
+        ELSE IF (pairing=='ratio') THEN
+!pick random mass ratio between e.g. 0.1 & 1 for mass of secondary:
+!m(2)=(RAN2(kdum*(1.-0.1))+0.1) ---> (...kdum*0.9)+0.1
+           m(2)=(RAN2(kdum*0.9)+0.1)
+        ELSE
+           STOP 'No pairing method selected!'
 !set system mass as sum of m1 and m2:
         msys(j)=m(i-1)+m(i)
         mtotstars=mtotstars+DBLE(m(i-1))+DBLE(m(i))
@@ -177,7 +188,6 @@ PROGRAM initials
      
 !
 !******************************************************************************!
-!
 !
 !
 ! Find the positions and velocities of systems and fill arrays
@@ -241,14 +251,14 @@ PROGRAM initials
         ! Then the period (in seconds) is given by:
         asep=asep*au
         P=SQRT(((asep**3.)*(twopi**2.))/((m(nstars+1) + m(nstars+2))*msun*G))
-!
+
 ! Need to find the eccentricity of the system.
-! Going to set this to zero for now.
+! Set this to zero for now.
         ecc=0
-!
+
 ! Convert period to separation
         asep=(((P/twopi)**2.)*G*((m(nstars+1) + m(nstars+2))*msun))**(1./3.)
-!
+
 ! Add 1 to the overall binary number
         numbinary=numbinary + 1
 ! Add the system mass to the total system mass
@@ -256,15 +266,15 @@ PROGRAM initials
 ! Add the star masses to the overall stellar mass
         mtotstars=mtotstars + DBLE(m(nstars+1)) + DBLE(m(nstars+2))
 !
-! subroutine assign_binary uses the stellar masses and the eccentricity and
-! separation of the binary in order to find the positions and velocities of
-! the stars in the binary relative to the binary's centres of mass and velocity
-! Separation needs to be a Real and needs to be in parsecs.
+! subroutine assign_binary uses the stellar masses and the eccentricity &
+! separation of the binary to find the positions & velocities of
+! the stars in the binary relative to the binary's centres of mass & velocity.
+! Separation needs to be a Real and in parsecs.
         asep=asep/pc
         rsep=REAL(asep)
         CALL assign_binary(m(nstars+1),m(nstars+2),ecc,rsep,v(1:3,nstars+1), &
              &                           v(1:3,nstars+2),r(1:3,nstars+1),r(1:3,nstars+2),kdum)
-!
+
 ! Add 2 to the total number of stars
         nstars=nstars + 2
 ! Binary is created!
