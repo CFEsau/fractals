@@ -11,8 +11,8 @@ arglist = sys.argv
 sim = ''
 
 if(len(arglist) < 2):
-    sim  = str(raw_input('input the path to the simulation directory: '))
-    #sim = 'analysis_test/outputs/runinv_0100/'
+    #sim  = str(raw_input('input the path to the simulation directory: '))
+    sim = 'analysis_test/outputs/runinv_0100/'
 else:
     sim = str(arglist[1])
 
@@ -52,50 +52,49 @@ for i in range(1,nfile+1):
     m=[]
     numbers=[]
     nstars=0
-#for finding the n most massive stars in the system:
-    most_massive=[]
-    n_list=20 #number of stars to go in list
+    n_list=int(5)	# This defines the nth largest sample
     time=0. #time of snapshot in Myr
 
     for line in lines:
-        numbers.append(line.split())
-        x.append(np.float64(numbers[nstars][4]))
-        y.append(np.float64(numbers[nstars][5]))
-        z.append(np.float64(numbers[nstars][6]))
-        m.append(np.float64(numbers[nstars][3]))
-
+        numbers.append(line.split()) #This is tuple of whole table
+        
+        x = np.append(x,float(numbers[nstars][4]))
+        y = np.append(y,float(numbers[nstars][5]))
+        z = np.append(z,float(numbers[nstars][6]))
+        m = np.append(m,float(numbers[nstars][3]))
         nstars+=1
 
-#mass shouldn't change between snapshots!
-#check list of most massive is the same in first and last:
-    if ifname==sim+'/snapshots'+'/snap0001':
-        most_massive=sorted(m)
-        most_massive=most_massive[-n_list:]
-        print 'After sorting snapshot 001: ', most_massive
-        #print 'final in list: ',most_massive[-1]
-    if ifname==sim+'/snapshots'+'/snap0999':
-        most_massive=sorted(m)
-        most_massive=most_massive[-n_list-1:]
-        print 'After sorting snapshot 999: ', most_massive
-
-    time=numbers[0][2]
-    #print time
-
+    time=numbers[0][2] #time of snapshot is 1st row (any will do), 2nd col
+    print time
+    
+    #sort m in ascending order:
+    mass_srt_by_m = sorted(m)
+    #select the n most massive stars:
+    mass_selected = mass_srt_by_m[-n_list:]
+    
+    #print the n most massive stars for each snapshot:
+    print mass_selected
+    
+    #print the ID numbers for each mass
+    print "SORTED", np.where(m>=mass_selected[0])
+	
     fo.close()
 
     plt.clf()
     plt.locator_params(nbins=16)
     ax1 = fig.add_subplot(111)
-    ax1.scatter(x, y, marker='.', s=2)
+    ax1.scatter(x, y, marker='.',color='black', s=2)
+    ax1.scatter(x[np.where(m>=mass_selected[0])], y[np.where(m>=mass_selected[0])], marker='.',color='red', s=20)
     plt.xlabel('X-Position (pc)')
     plt.ylabel('Y-Position (pc)')
     plt.title('Simulation')
     plt.grid(True)
     plt.axis([-5, 5, -5, 5])
-    textstring='Time: %.2f Myr' % (round(float(time),2)) #text to appear on plot
+    textstring='Time: %.2f Myr' % (round(float(time),2))
     plt.text(3, 4, textstring)
     plt.savefig(ifname+'.xy.png', dpi=my_dpi, bbox_inches='tight')
-
+    del(mass_srt_by_m)
+    del(mass_selected)
 os.system('avconv -y -r 15 -i ' + sim + '/snapshots/snap%04d.xy.png -s 1024x800 ' + sim + '/xy.mp4')
 
 for fn in os.listdir(sim + '/snapshots/'):
