@@ -95,7 +95,7 @@ for i in range(1,nfile+1):
         nstars+=1
 
 #mass shouldn't change between snapshots!
-#check list of most massive is the same in first and last(ish):
+#check list of most massive is the same in two snapshots:
     if ifname==sim+'/snapshots'+'/snap0001': 
         print 'After sorting snapshot 001: ',most_massive
      if ifname==sim+'/snapshots'+'/snap0999': 
