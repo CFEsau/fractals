@@ -1,11 +1,5 @@
 !******************************************************************************!
 !
-! 01/12/14 Dan Griffiths
-! 
-! Initial Conditions Generator for KIRA N-Body Program
-!
-! Stole, modified and annotated Richard parker's code.
-!
 ! 21/01/16 Claire Esau
 !
 ! Stolen from Dan, modified binary pairing method
@@ -136,13 +130,15 @@ PROGRAM initials
 !fraction of systems that are in binaries.
 !Must be between 0. (nstars=nsys) & 1. (nstars=2*nsys)
   fbinary=0.
-  pairing=='ratio'
+!pairing must be 'ratio' or 'masch'
+  pairing='ratio'
   
   numsingle=INT((1.-fbinary)*DBLE(nsys))
   numbinary=INT(2.*fbinary*DBLE(nsys))
   nstars=numsingle+numbinary
   
   WRITE(2,*)'Binary fraction:',fbinary
+  write(2,*)'Pairing method: ',pairing
   WRITE(2,*)'Number of systems:',nsys
   WRITE(2,*)'Number of single stars:',numsingle
   WRITE(2,*)'Number of stars in binaries:',numbinary
@@ -169,9 +165,11 @@ PROGRAM initials
         ELSE IF (pairing=='ratio') THEN
 !pick random mass ratio between e.g. 0.1 & 1 for mass of secondary:
 !m(2)=(RAN2(kdum*(1.-0.1))+0.1) ---> (...kdum*0.9)+0.1
-           m(2)=(RAN2(kdum*0.9)+0.1)
+           i=i+1
+           m(i)=(RAN2(kdum)*0.9)+0.1
         ELSE
            STOP 'No pairing method selected!'
+        END IF
 !set system mass as sum of m1 and m2:
         msys(j)=m(i-1)+m(i)
         mtotstars=mtotstars+DBLE(m(i-1))+DBLE(m(i))
