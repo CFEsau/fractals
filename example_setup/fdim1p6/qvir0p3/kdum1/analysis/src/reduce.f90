@@ -30,7 +30,7 @@ PROGRAM reduce
 ! These include the overall properties of each individual snapshot and, for each snapshot,
 ! the properties (mass, position, velocity) of the individual stars.
 !
-  CALL read_sl_out(TRIM(inarg))
+  CALL read_sl_out(inarg)
 !
 ! Next step is to convert these masses, positions and velocities from N-body units to usable units
 ! (Solar masses, au and km/s?). Can do this here, don't need a separate subroutine.
