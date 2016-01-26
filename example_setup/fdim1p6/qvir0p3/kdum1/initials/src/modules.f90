@@ -34,6 +34,8 @@
 !
    MODULE properties_module
 !
+! nsim = the number of simulations
+     INTEGER :: nsim
 ! nstars = the total number of stars
 ! numsingle = the number of stars in single systems
 ! nmax = a guess as to the maximum possible number of stars (used to allocate arrays)
