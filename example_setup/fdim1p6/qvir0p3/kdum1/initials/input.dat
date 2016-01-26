@@ -2,6 +2,8 @@
 f                     ! mass distribution:  f=fractal, p=plummer
 1.6                   ! fractal dimension
 0.5		      ! Size unit scale
-10.                   ! Simulation length (Myrs) 
-0.01                   ! Snapshot interval
+10.                   ! Simulation length (Myr) 
+0.01                  ! Snapshot interval (Myr)
 inv_01_		      ! Filestem
+0.		      ! Fraction of systems in binaries (0 to 1)
+ratio		      ! "ratio" or "IMF" for binary pairing

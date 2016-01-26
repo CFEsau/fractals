@@ -42,6 +42,8 @@ PROGRAM initials
   READ(1,*) tend           ! simulation length (Myr)
   READ(1,*) tout           ! snapshot interval (Myr)
   READ(1,'(a)') filestem   ! used to make filenames
+  READ(1,*) fbinary        ! fraction of systems in binaries
+  READ(1,'(a)') pairing    ! binary pairing method - ratio or imf
   CLOSE(1)
 !
 ! Loop over as many simulations as you wish to create.
@@ -126,12 +128,6 @@ PROGRAM initials
   mu=0.2
   i=0
   j=0
-
-!fraction of systems that are in binaries.
-!Must be between 0. (nstars=nsys) & 1. (nstars=2*nsys)
-  fbinary=0.
-!pairing must be 'ratio' or 'masch'
-  pairing='ratio'
   
   numsingle=INT((1.-fbinary)*DBLE(nsys))
   numbinary=INT(2.*fbinary*DBLE(nsys))
@@ -158,11 +154,14 @@ PROGRAM initials
      ELSE IF (sinfo(i)==2) THEN
 !call masch for m1:
         CALL maschberger_imf(alpha,beta,mu,mLower,mUpper,kdum,m(i))
-        IF (pairing=='masch') THEN
+!Let's assume that pairing will either be in upper case, lower case, or
+!first character upper...
+        IF (pairing=='IMF' .OR. pairing=='imf' .OR. pairing=='IMF') THEN
 !add another star and call masch for m2:
            i=i+1
-           CALL maschberger_imf(alpha,beta,mu,mLower,mUpper,kdum,m(i))
-        ELSE IF (pairing=='ratio') THEN
+           CALL maschberger_imf(alpha,beta,mu,mLower,mUpper,kdum,m(i))  
+
+        ELSE IF (pairing=='ratio' .OR. pairing=='Ratio' .OR. pairing=='RATIO') THEN
 !pick random mass ratio between e.g. 0.1 & 1 for mass of secondary:
 !m(2)=(RAN2(kdum*(1.-0.1))+0.1) ---> (...kdum*0.9)+0.1
            i=i+1
