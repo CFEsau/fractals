@@ -11,22 +11,21 @@ arglist = sys.argv
 sim = ''
 
 if(len(arglist) < 2):
-    #sim  = str(raw_input('input the path to the simulation directory: '))
-    sim = 'analysis_test/outputs/runinv_0100/'
+    sim  = str(raw_input('input the path to the simulation directory: '))
 else:
     sim = str(arglist[1])
 
 print sim
 
 nfile=0
-for fname in os.listdir(sim + '/snapshots/'):
+for fname in os.listdir(sim + 'snapshots/'):
     if 'snap' in fname and not 'tmp' in fname and not 'png' in fname:
         nfile += 1
 print 'Number of files: ' + str(nfile)
 
 for i in range(1,nfile+1):
 
-    ifname = sim + '/snapshots' + '/snap'
+    ifname = sim + 'snapshots/' + 'snap'
     if i < 10:
         ifname += '000' + str(i)
     elif i < 100:
@@ -65,19 +64,34 @@ for i in range(1,nfile+1):
         nstars+=1
 
     time=numbers[0][2] #time of snapshot is 1st row (any will do), 2nd col
-    print time
+    #print time
     
     #sort m in ascending order:
+
     mass_srt_by_m = sorted(m)
     #select the n most massive stars:
     mass_selected = mass_srt_by_m[-n_list:]
     
     #print the n most massive stars for each snapshot:
-    print mass_selected
+    #print mass_selected
     
     #print the ID numbers for each mass
-    print "SORTED", np.where(m>=mass_selected[0])
-	
+    #print "SORTED", np.where(m>=mass_selected[0])
+
+    #print results. only need to do this once but do twice to be sure:
+    if ifname==sim+'snapshots/'+'snap0001' or ifname==sim+'snapshots/'+'snap0999':
+        print "Time: %.2f Myr" % (round(float(time),2))
+        print "   Masses and indices: "
+        for index in range(0,n_list):
+            #strip unwanted chars from np.where output:
+            mass_index=str(np.where(m==mass_selected[index]))
+            mass_index=mass_index.strip('(array[]),')
+            #call i in the output file i_index so it runs from 1 up,
+            #not 0 up as in mass_index
+            i_index=int(mass_index)+1
+            print "   ", mass_selected[index], "   ", i_index
+
+
     fo.close()
 
     plt.clf()
