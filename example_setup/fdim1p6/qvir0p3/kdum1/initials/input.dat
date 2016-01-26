@@ -1,3 +1,4 @@
+10		      ! Number of simulations
 1000                  ! Number of systems
 f                     ! mass distribution:  f=fractal, p=plummer
 1.6                   ! fractal dimension
