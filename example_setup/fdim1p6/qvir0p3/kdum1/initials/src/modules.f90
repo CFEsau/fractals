@@ -20,7 +20,7 @@
 ! tout = The time interval between snapshots in Myr
      REAL :: tend, tout
 ! filestem = the general filestem for one batch of runs
-     CHARACTER*6 :: filestem
+     CHARACTER*5 :: filestem
 ! runit = The conversion factor for position between pc and N-body units
      REAL :: runit
 !
@@ -126,15 +126,15 @@
 ! restartfilestem/restartfilename = 
 ! scriptname = 
      CHARACTER*2 :: id
-     CHARACTER*11 :: outfilestem
-     CHARACTER*15 :: outfilename
-     CHARACTER*10 :: icfilestem
-     CHARACTER*13 :: icfilename
-     CHARACTER*11 :: runfilestem
-     CHARACTER*14 :: runfilename
-     CHARACTER*11 :: restartfilestem
-     CHARACTER*14 :: restartfilename
-     CHARACTER*12 :: scriptname
+     CHARACTER*10 :: outfilestem
+     CHARACTER*14 :: outfilename
+     CHARACTER*9 :: icfilestem
+     CHARACTER*12 :: icfilename
+     CHARACTER*10 :: runfilestem
+     CHARACTER*13 :: runfilename
+     CHARACTER*10 :: restartfilestem
+     CHARACTER*13 :: restartfilename
+     CHARACTER*11 :: scriptname
 !
    END MODULE output_module
 !
