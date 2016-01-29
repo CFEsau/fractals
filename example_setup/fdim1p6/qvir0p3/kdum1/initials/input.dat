@@ -7,4 +7,4 @@ f                     ! mass distribution:  f=fractal, p=plummer
 0.01                  ! Snapshot interval (Myr)
 inv_k		      ! Filestem
 0.		      ! Fraction of systems in binaries (0 to 1)
-ratio		      ! "ratio" or "IMF" for binary pairing
+ratio		      ! "ratio" or "masch" for binary pairing
