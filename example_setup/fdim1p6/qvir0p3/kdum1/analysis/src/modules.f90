@@ -75,6 +75,10 @@
 ! v = velocity in km/s of each star in each snapshot
        DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: t,m
        DOUBLE PRECISION, DIMENSION(:,:,:), ALLOCATABLE :: r,v
+! totalmass = the total mass of the distribution
+! r_com = distance between each star and cluster centre of mass
+       DOUBLE PRECISION :: totalmass
+       double precision, dimension(:,:,:),allocatable :: r_com
 ! These next variables are for finding the kinetic, potential and total energy:
 ! kinetic_energy = the total kinetic energy
 ! potential_energy = the total gravitational potential energy
@@ -82,6 +86,8 @@
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: kinetic_energy,potential_energy,total_energy
 ! r_halfmass = the half mass radius of the distribution
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: r_halfmass
+! lambda = measure of mass segregation & errors
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda, l_up, l_low
 ! Time
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: time
 !

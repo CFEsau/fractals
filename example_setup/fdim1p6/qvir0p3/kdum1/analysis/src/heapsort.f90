@@ -2,7 +2,7 @@
 ! does a heapsort (by APW)
    IMPLICIT NONE
    INTEGER, INTENT(IN)  :: psort              ! number of values to be sorted.
-   REAL,    INTENT(IN)  :: measureof(1:psort) ! values to be sorted.
+   DOUBLE PRECISION, INTENT(IN)  :: measureof(1:psort) ! values to be sorted.
    INTEGER, INTENT(OUT) :: pwhichhas(1:psort) ! identifier of value.
    INTEGER              :: rank               ! rank of value.
    INTEGER              :: ranknow            ! dummy rank.

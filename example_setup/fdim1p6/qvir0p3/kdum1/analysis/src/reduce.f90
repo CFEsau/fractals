@@ -58,6 +58,20 @@ PROGRAM reduce
   m=DBLE(star_m)
   r=DBLE(star_r)
   v=DBLE(star_v)
+
+!
+!******************************************************************************!
+!
+  ! Find distance between each star and cluster centre of mass.
+  !r_com(:,1:3) gives x, y, z from com, and col 4 gives magnitude.
+  ALLOCATE(r_com(1:snapnum,1:nstars(1),1:4))
+  r_com=0.
+! Loop over all snapshots
+! Calculate com in each case and populate the array
+  DO i=1, snapnum
+     CALL c_of_m(i,nstars(i))
+  END DO
+  
 !
 !******************************************************************************!
 !
@@ -73,7 +87,8 @@ PROGRAM reduce
 !
 !******************************************************************************!
 !
-! Find the Half mass radius.
+  ! Find the Half mass radius.
+
   ALLOCATE(r_halfmass(1:snapnum))
   r_halfmass=0.
 ! Loop over all snapshots
@@ -81,6 +96,24 @@ PROGRAM reduce
      CALL find_halfmass(i,nstars(i))
 !!$     PRINT *, i, r_halfmass(i)
   END DO
+!
+!******************************************************************************!
+!
+! Find the degree of mass segregation (lambda).
+  ALLOCATE(lambda(1:snapnum))
+  ALLOCATE(l_low(1:snapnum))
+  ALLOCATE(l_up(1:snapnum))
+  lambda=0.
+  l_up=0.
+  l_low=0.
+! Loop over all snapshots
+  DO i=1,snapnum
+     CALL find_lambda(i,nstars(i))
+     if ((i==1).or.(i==900)) then
+        !PRINT *, 'Lambda:', i, lambda(i)
+     end if
+  END DO
+
 !
 !******************************************************************************!
 ! Make a directory for this simulation data
@@ -113,7 +146,7 @@ PROGRAM reduce
 ! Write out the half mass radius and energy data
   OPEN(4,file=TRIM(outarg)//'/macro',status='new')
   DO i=1,snapnum
-     WRITE(4,*) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i)
+     WRITE(4,*) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i),lambda(i),l_low(i),l_up(i)
   END DO
   CLOSE(4)
 !
@@ -151,11 +184,17 @@ SUBROUTINE DEALLOCATE
   DEALLOCATE(r)
   DEALLOCATE(v)
 
+  DEALLOCATE(r_com)
+  
   DEALLOCATE(kinetic_energy)
   DEALLOCATE(potential_energy)
   DEALLOCATE(total_energy)
 
   DEALLOCATE(r_halfmass)
+  
+  DEALLOCATE(lambda)
+  DEALLOCATE(l_up)
+  DEALLOCATE(l_low)
   
 END SUBROUTINE DEALLOCATE
 
