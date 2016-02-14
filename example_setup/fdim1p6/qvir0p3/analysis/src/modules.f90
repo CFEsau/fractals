@@ -65,7 +65,9 @@
 ! the individual stars per snapshot, in non-N-body units, hopefully making it a bit
 ! easier to use by breaking the program up a bit more. Plus we want double precision.
      MODULE parameters_module
-!
+!====================
+! Stellar parameters
+!====================
 ! munit,runit,vunit,tunit = conversion factors between N-Body units and
 ! solar masses,pc,km/s and Myr
        DOUBLE PRECISION :: munit,runit,vunit,tunit
@@ -75,19 +77,33 @@
 ! v = velocity in km/s of each star in each snapshot
        DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: t,m
        DOUBLE PRECISION, DIMENSION(:,:,:), ALLOCATABLE :: r,v
+
+!====================
+! Cluster parameters
+!====================
 ! totalmass = the total mass of the distribution
 ! r_com = distance between each star and cluster centre of mass
        DOUBLE PRECISION :: totalmass
        double precision, dimension(:,:,:),allocatable :: r_com
+! r_halfmass = the half mass radius of the distribution
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: r_halfmass
+! this_incluster = logical array, star has escaped cluster if F
+! (One for 2D with z=0, one for 3D)
+       logical, dimension(:,:), allocatable :: this_in2Dcluster, this_in3Dcluster
+
+!===============
+! Calculations
+!===============
 ! These next variables are for finding the kinetic, potential and total energy:
 ! kinetic_energy = the total kinetic energy
 ! potential_energy = the total gravitational potential energy
 ! total_energy = the total energy
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: kinetic_energy,potential_energy,total_energy
-! r_halfmass = the half mass radius of the distribution
-       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: r_halfmass
 ! lambda = measure of mass segregation & errors
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda, l_up, l_low
+! nmst = number of stars in the minimum spanning tree
+       integer :: nmst
+       double precision, dimension(:,:), allocatable :: obj_mass
 ! Time
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: time
 !

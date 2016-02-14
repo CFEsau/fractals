@@ -23,7 +23,8 @@ SUBROUTINE find_halfmass(snapshoti,ni)
   ri(1:ni,1:3)=r(snapshoti,1:ni,1:3)
   ri_com(1:ni,1:3)=r_com(snapshoti,1:ni,1:3)
 ! use a separate array for magnitude as we'll be doing a heapsort
-  rmag(1:ni)=r_com(snapshoti,1:ni,4)
+! (column 5 of r_com is 3D distance magnitude)
+  rmag(1:ni)=r_com(snapshoti,1:ni,5)
   rlist=0
   
 ! assign IDs to c of m list in prep for heapsort

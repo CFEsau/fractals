@@ -15,6 +15,8 @@ PROGRAM reduce
 ! Declare variables:
 ! iterators
   INTEGER :: i,j,k,l
+! ignore certain stars?
+  logical :: ignore
 ! Name and path of runfile
   CHARACTER*150 :: inarg, outarg
   CHARACTER*4 :: ofilen
@@ -60,18 +62,63 @@ PROGRAM reduce
   v=DBLE(star_v)
 
 !
+! Make a directory for this simulation data
+  CALL SYSTEM('mkdir -p '//TRIM(outarg))
+ 
+ 
+!
 !******************************************************************************!
 !
-  ! Find distance between each star and cluster centre of mass.
-  !r_com(:,1:3) gives x, y, z from com, and col 4 gives magnitude.
-  ALLOCATE(r_com(1:snapnum,1:nstars(1),1:4))
+! Find distance between each star and cluster centre of mass.
+! r_com(:,1:3) gives x, y, z from com.
+! col 4 gives 2D distance magnitude & 5 gives 3D.
+  ALLOCATE(r_com(1:snapnum,1:nstars(1),1:5))
   r_com=0.
+
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
   DO i=1, snapnum
      CALL c_of_m(i,nstars(i))
   END DO
+
+!
+!******************************************************************************!
+!
+  ! Find the Half mass radius.
+
+  ALLOCATE(r_halfmass(1:snapnum))
+  r_halfmass=0.
+! Loop over all snapshots
+  DO i=1,snapnum
+     CALL find_halfmass(i,nstars(i))
+!!$     PRINT *, i, r_halfmass(i)
+  END DO  
+!
+!******************************************************************************!
+!
+! If stars beyond a certain distance should be ignore from following calculations,
+! call the 'in_cluster' subroutine to populate a 'logical' array,
+! setting 'true' for stars in cluster and 'false' if it has escaped.
   
+  allocate(this_in2Dcluster(1:snapnum,1:nstars(1)))
+  allocate(this_in3Dcluster(1:snapnum,1:nstars(1)))
+! All stars start off in the cluster
+  this_in2Dcluster=.true.
+  this_in3Dcluster=.true.
+
+! Should I ignore certain stars? (currently ignores outliers)
+  ignore=.true.
+  
+  if (ignore) then
+  open(10,file=TRIM(outarg)//'/2Dignored.txt')
+  open(11,file=TRIM(outarg)//'/3Dignored.txt')
+     do i=1,snapnum
+        call in_cluster(i,nstars(i))
+     end do
+  close(10)
+  close(11)
+  end if
+
 !
 !******************************************************************************!
 !
@@ -87,37 +134,32 @@ PROGRAM reduce
 !
 !******************************************************************************!
 !
-  ! Find the Half mass radius.
-
-  ALLOCATE(r_halfmass(1:snapnum))
-  r_halfmass=0.
-! Loop over all snapshots
-  DO i=1,snapnum
-     CALL find_halfmass(i,nstars(i))
-!!$     PRINT *, i, r_halfmass(i)
-  END DO
-!
-!******************************************************************************!
-!
 ! Find the degree of mass segregation (lambda).
+! Define the number of stars in the MST:
+  nmst=10
+! IDs of the most massive stars in the cluster:
+  allocate(obj_mass(1:2,1:nmst))
+
   ALLOCATE(lambda(1:snapnum))
   ALLOCATE(l_low(1:snapnum))
   ALLOCATE(l_up(1:snapnum))
   lambda=0.
   l_up=0.
   l_low=0.
+  open(20,file=TRIM(outarg)//'/obj_masses.txt')
+  open(21,file=TRIM(outarg)//'/escaped.txt')
 ! Loop over all snapshots
   DO i=1,snapnum
      CALL find_lambda(i,nstars(i))
-     if ((i==1).or.(i==900)) then
+     !if ((i==1).or.(i==snapnum)) then
         !PRINT *, 'Lambda:', i, lambda(i)
-     end if
+     !end if
   END DO
+  close(20)
+  close(21)
 
 !
 !******************************************************************************!
-! Make a directory for this simulation data
-  CALL SYSTEM('mkdir -p '//TRIM(outarg))
 !
 ! Write out data from snapshots. One file for each snapshot.
 !
@@ -138,7 +180,7 @@ PROGRAM reduce
      END IF
      OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='new')
      DO j=1,nstars(i)
-        WRITE(4,*) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3)
+        WRITE(4,*) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3),this_in2Dcluster(i,j),this_in3Dcluster(i,j)
      END DO
      CLOSE(4)
   END DO
@@ -185,13 +227,17 @@ SUBROUTINE DEALLOCATE
   DEALLOCATE(v)
 
   DEALLOCATE(r_com)
-  
-  DEALLOCATE(kinetic_energy)
-  DEALLOCATE(potential_energy)
-  DEALLOCATE(total_energy)
 
   DEALLOCATE(r_halfmass)
   
+  deallocate(this_in2Dcluster)
+  deallocate(this_in3Dcluster)
+
+  DEALLOCATE(kinetic_energy)
+  DEALLOCATE(potential_energy)
+  DEALLOCATE(total_energy)
+  
+  deallocate(obj_mass)
   DEALLOCATE(lambda)
   DEALLOCATE(l_up)
   DEALLOCATE(l_low)

@@ -33,9 +33,14 @@ SUBROUTINE c_of_m(snapshoti,ni)
      r_com(snapshoti,i,1)=ri(i,1)-com_dist(1)
      r_com(snapshoti,i,2)=ri(i,2)-com_dist(2)
      r_com(snapshoti,i,3)=ri(i,3)-com_dist(3)
-!magnitude:
+!Distance magnitude
+!2D (observer), ignore z:
      r_com(snapshoti,i,4)=SQRT(r_com(snapshoti,i,1)**2 + &
+          &         r_com(snapshoti,i,2)**2)
+!3D:
+     r_com(snapshoti,i,5)=SQRT(r_com(snapshoti,i,1)**2 + &
           &         r_com(snapshoti,i,2)**2 + r_com(snapshoti,i,3)**2)
+     
   END DO
 
 ! Deallocate arrays

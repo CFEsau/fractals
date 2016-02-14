@@ -19,12 +19,15 @@ etotal = macro[:,3]
 lagrange = macro[:,4]
 time = (nsnap/nsnap[-1])*duration
 qvir = ekinetic/-epotential
+lam = macro[:,5]
+lam_low = macro[:,6]
+lam_up = macro[:,7]
 
 number = 0
-while number <=0 or number > 4:
-    print "Pick a graph:\n1 = energies\n2 = virial ratio\n3 = lagrangian radii\n4 = all of the above"
+while number <=0 or number > 5:
+    print "Pick a graph:\n1 = energies\n2 = virial ratio\n3 = lagrangian radii\n4 = lambda\n5 = all of the above"
     number = int(input('Pick a number: '))
-    if  number <=0 or number > 4:
+    if  number <=0 or number > 5:
         print "\n Wrong number.\n"
     
 my_dpi=96
@@ -62,6 +65,16 @@ elif number == 3:
     plt.savefig(path + saveplot, bbox_inches='tight')
     print "Graph saved at " + path + saveplot
 elif number == 4:
+    plt.ylabel('Lambda')
+    plt.title('Mass segregation')
+    plt.plot(time, lam)
+    plt.ylim((0,15))
+    saveplot = '/lambda.pdf'
+    plt.tight_layout()
+    plt.savefig(path + saveplot, bbox_inches='tight')
+    print "Graph saved at " + path + saveplot
+    
+elif number == 5:
     plt.figure(1)
     plt.ylabel('Energy (J)')
     plt.title('Energies over Time')
@@ -90,6 +103,16 @@ elif number == 4:
     plt.plot(time, lagrange, label = 'r = ' + label)
     plt.legend(loc=2)
     saveplot = '/lagrangian.pdf'
+    plt.tight_layout()
+    plt.savefig(path + saveplot, bbox_inches='tight')
+    print "Graph saved at " + path + saveplot
+
+    plt.figure(4)
+    plt.ylabel('Lambda')
+    plt.title('Mass segregation')
+    plt.plot(time, lam)
+    plt.ylim((0,15))
+    saveplot = '/lambda.pdf'
     plt.tight_layout()
     plt.savefig(path + saveplot, bbox_inches='tight')
     print "Graph saved at " + path + saveplot

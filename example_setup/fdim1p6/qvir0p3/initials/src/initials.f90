@@ -44,7 +44,7 @@ PROGRAM initials
   READ(1,*) tout           ! snapshot interval (Myr)
   READ(1,'(a)') filestem   ! used to make filenames
   READ(1,*) fbinary        ! fraction of systems in binaries
-  READ(1,'(a)') pairing    ! binary pairing method - ratio or masch imf
+  READ(1,'(a)') pairing    ! binary pairing method - ratio or imf
   CLOSE(1)
 !
 ! Loop over as many simulations as you wish to create.
@@ -166,7 +166,7 @@ PROGRAM initials
            CALL maschberger_imf(alpha,beta,mu,mLower,mUpper,kdum,m(i))
 !Let's assume that pairing will either be in upper case, lower case, or
 !first character upper...
-           IF (pairing=='masch' .OR. pairing=='Masch' .OR. pairing=='MASCH') THEN
+           IF (pairing=='IMF' .OR. pairing=='imf' .OR. pairing=='IMF') THEN
 !add another star and call masch for m2:
               i=i+1
               CALL maschberger_imf(alpha,beta,mu,mLower,mUpper,kdum,m(i))  
@@ -177,7 +177,7 @@ PROGRAM initials
               i=i+1
               m(i)=(RAN2(kdum)*0.9)+0.1
            ELSE
-              STOP 'No pairing method selected! ''',pairing,''' is not an option.'
+              STOP 'No pairing method selected!'
            END IF
 !set system mass as sum of m1 and m2:
            msys(j)=m(i-1)+m(i)

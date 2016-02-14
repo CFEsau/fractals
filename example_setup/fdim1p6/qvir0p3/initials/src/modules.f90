@@ -62,9 +62,9 @@
 ! fbinary = the fraction of systems that are binaries
      REAL :: fbinary
 ! pairing = the method by which binaries are paired
-! e.g. both masses randomly selected from IMF ('masch'),
-! or mass of secondry is a given fraction of mass of primary ('ratio')
-     CHARACTER*5 :: pairing
+! e.g. both masses randomly selected from IMF,
+! or mass of secondry is a given fraction of mass of primary
+     CHARACTER :: pairing
 ! fmult = the multiple fraction parameter, used so see if a system is a binary
 ! asep = the binary separation (double precision)
 ! rsep = the binary separation (real)

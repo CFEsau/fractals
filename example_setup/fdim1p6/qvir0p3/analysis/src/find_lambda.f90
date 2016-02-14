@@ -1,5 +1,5 @@
 !***Modifications***
-!-Ignore stars a certain distance from the com
+!-Ignore stars a certain distance from the com / beyond n*half-mass-radius
 
 !This subroutine finds the value of mass segregation and its significance
 !for the set of OBJECT STARS that you provide it.
@@ -14,14 +14,15 @@ subroutine find_lambda(snapshoti,ni)
   use parameters_module
   implicit none
   integer, intent(in) :: snapshoti, ni !Snapshot number and star number
-! mi,ri,vi = mass, position and velocity of stars
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi !masses of all stars
-  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri !positions of all stars
+! mi,ri= mass, position & distance from com of stars
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi, rcom_i
+  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri
+  real :: ti !time of snapshot
   integer, dimension(:), allocatable :: mlist !ID numbers for heapsort
+  logical, dimension(:), allocatable :: i_incluster !has this star escaped?
 
   integer :: ndim !2D or 3D analysis
   
-  integer :: nmst !Number of stars in each MST
   double precision, dimension(:), allocatable :: length !length of each MST edge
   double precision :: obj_mst !Length of object tree (e.g. most massive stars)
   double precision, dimension(:,:), allocatable :: obj_r !positions of obj stars
@@ -39,27 +40,34 @@ subroutine find_lambda(snapshoti,ni)
   
   integer :: i,j,k !generic counters
 
-!Allocate memory for arrays
+! Allocate memory for arrays
   ALLOCATE(mi(1:ni))
   ALLOCATE(ri(1:ni,1:3))
+  ALLOCATE(rcom_i(1:ni))
   ALLOCATE(mlist(1:ni))
   ALLOCATE(done(1:ni))
-!And fill arrays 
+  allocate(i_incluster(1:ni))
+! And fill arrays 
   mi(1:ni)=m(snapshoti,1:ni)
   ri(1:ni,1:3)=r(snapshoti,1:ni,1:3)
+  ti=t(snapshoti,1)
 
-!Set number of stars in MST:
-  nmst = 10
-!and allocate memory for associated arrays:
-  allocate(length(1:nmst-1))
+!arrays are allocated later, in case some stars have escaped
+!except obj_r, which we need now. this is split up later.
   allocate(obj_r(1:nmst,1:3))
-  allocate(x(1:nmst))
-  allocate(y(1:nmst))
-  allocate(z(1:nmst))
-  allocate(node(1:nmst-1,1:2))
-  
+! first entry stores old IDs, second stores new
+  !allocate(obj_mass(1:2,1:nmst))
+  if (snapshoti==1) obj_mass(1,1:nmst)=0
+
 !2D or 3D analysis?
   ndim = 2
+  if (ndim==2) then
+     rcom_i(1:ni)=r_com(snapshoti,1:ni,4)
+     i_incluster(1:ni)=this_in2Dcluster(snapshoti,1:ni)
+  else if (ndim==3) then
+     rcom_i(1:ni)=r_com(snapshoti,1:ni,5)
+     i_incluster(1:ni)=this_in3Dcluster(snapshoti,1:ni)
+  end if
 
 !======================================================================
 !Sort stars in order of mass & make selection
@@ -76,9 +84,19 @@ subroutine find_lambda(snapshoti,ni)
   call heapsort(ni,mi,mlist)
   
 !select nmst most massive stars:
-  !(heapsort orders from smallest to largest, so invert)
+!(while checking whether star should be ignored)
+  j=0 !j tracks with i but changes with each *attempted* iteration,
+      ! even if i does not change
+
   do i = 1,nmst
-     k = mlist(ni+1-i) !heapsort orders from small to large - invert
+5    j=j+1
+     k = mlist(ni+1-j) !heapsort orders from small to large - invert
+     
+! if star has escaped cluster, leave it out of the list
+     if (.not. i_incluster(k)) then
+        write(21,*) i, k, mi(k), rcom_i(k), i_incluster(k)
+        goto 5
+     end if
      obj_r(i,1) = ri(k,1) !x position
      obj_r(i,2) = ri(k,2) !y position
 !For 2D set z to 0
@@ -89,8 +107,27 @@ subroutine find_lambda(snapshoti,ni)
      else
         stop 'ndim must be 2 or 3'
      end if
+! track masses selected after each snapshot for output file:
+     obj_mass(2,i) = mi(mlist(ni+1-j))
   end do
-  
+
+! write snapshot, time, and list of object masses to output file
+! when IDs of most massive stars change
+  do i=1, nmst
+     if(obj_mass(1,i) /= obj_mass(2,i)) then
+        write(20,*) snapshoti, ti, obj_mass(2,1:nmst)
+        goto 12
+     end if
+  end do
+12     obj_mass(1,1:nmst)=obj_mass(2,1:nmst)
+
+!Allocate memory for arrays of length nmst:
+  allocate(length(1:nmst-1))
+  allocate(x(1:nmst))
+  allocate(y(1:nmst))
+  allocate(z(1:nmst))
+  allocate(node(1:nmst-1,1:2))
+
 !======================================================================
 !Find the MST length for the OBJECT stars
 !======================================================================
@@ -127,10 +164,11 @@ subroutine find_lambda(snapshoti,ni)
       x = 0. ; y = 0. ; z = 0.
       done = .FALSE.          
       DO i = 1,nmst        !Select nmst random stars
-5        CALL RANDOM_NUMBER(rand) !random number between 0. and 1.
+6        CALL RANDOM_NUMBER(rand) !random number between 0. and 1.
          k = NINT(rand*ni)
-         IF (k == 0) GOTO 5    !There is no star with id=0
-         IF (done(k)) GOTO 5    !Don't chose the same star twice
+         IF (k == 0) GOTO 6    !There is no star with id=0
+         IF (done(k)) GOTO 6    !Don't chose the same star twice
+         if (.not. i_incluster(k)) goto 6 !Don't use escaped stars
          done(k) = .TRUE.       !You're selected
          x(i) = ri(k,1)
          y(i) = ri(k,2)
@@ -184,6 +222,7 @@ subroutine find_lambda(snapshoti,ni)
 !Deallocate arrays:
    DEALLOCATE(mi)
    DEALLOCATE(ri)
+   deallocate(i_incluster)
    DEALLOCATE(mlist)
    DEALLOCATE(done)
    deallocate(length)
