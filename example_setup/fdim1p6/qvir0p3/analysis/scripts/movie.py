@@ -104,6 +104,8 @@ def generate_snapshot(ifname,snapname,projection):
 	textstring='Time: %.2f Myr' % (round(float(time),2))
 	plt.title(textstring)
 	plt.grid(True)
+        plt.text(0.75*xy_box,0.95*xy_box,"qvir = 0.3")
+        plt.text(0.75*xy_box,0.9*xy_box,"fdim = 1.6")
 
 
 	if projection =="3D":
