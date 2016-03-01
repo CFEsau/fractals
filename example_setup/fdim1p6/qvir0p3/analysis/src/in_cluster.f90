@@ -51,7 +51,7 @@ SUBROUTINE in_cluster(snapshoti,ni)
 
 !Write out number of ignored stars (if any have been ignored)
   if (ni-n_2Dcluster>0) write(10,*) fac,'* r_halfmass:',real(fac)*r_halfmass(snapshoti)
-     write(11,*) 'Ignored stars:',ni-n_2Dcluster
+     write(10,*) 'Ignored stars:',ni-n_2Dcluster
 
   if (ni-n_3Dcluster>0) write(11,*) fac,'* r_halfmass:',real(fac)*r_halfmass(snapshoti)
      write(11,*) 'Ignored stars:',ni-n_3Dcluster
