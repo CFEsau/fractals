@@ -29,6 +29,7 @@ SUBROUTINE in_cluster(snapshoti,ni)
   fac = 2
 
   write(10,*) 'Snapshot',snapshoti
+  write(11,*) 'Snapshot',snapshoti
 ! Loop over all stars
   DO i=1,ni
 
