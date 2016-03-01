@@ -13,7 +13,7 @@ picture_count = int(0)
 ncores = int(0)
 projection=str('2D')
 
-def generate_snapshot(ifname,snapname,projection):
+def generate_snapshot(ifname,snapname,projection,qvir,fdim):
         import matplotlib.pyplot as plt
 	from mpl_toolkits.mplot3d import Axes3D
 	import numpy as np
@@ -104,8 +104,8 @@ def generate_snapshot(ifname,snapname,projection):
 	textstring='Time: %.2f Myr' % (round(float(time),2))
 	plt.title(textstring)
 	plt.grid(True)
-        plt.text(0.75*xy_box,0.95*xy_box,"qvir = 0.3")
-        plt.text(0.75*xy_box,0.9*xy_box,"fdim = 1.6")
+        plt.text(0.75*xy_box,0.95*xy_box,"qvir" + qvir)
+        plt.text(0.75*xy_box,0.9*xy_box,"fdim" + fdim)
 
 
 	if projection =="3D":
@@ -129,6 +129,8 @@ else:
 
 picture_count = int(0)
 nfile=0
+fdim = raw_input("fdim: ")
+qvir = raw_input("qvir: ")
 
 ncores = int(raw_input("Enter number of cores (Enter -1 to turn off parallisation, 0 to autodetect system cores): "))
 
@@ -181,15 +183,15 @@ for i in range(1,nfile+1):
 	del zeros
 	
 	if ncores==-1:
-   		generate_snapshot(ifname[i-1],snapname[i-1],projection)
+   		generate_snapshot(ifname[i-1],snapname[i-1],projection,qvir,fdim)
 
 if ncores!=-1:   	
 	irange = np.arange(0, i-1, 1)
-	jobs = [(ix, job_server.submit(generate_snapshot,args=(ifname[ix],snapname[ix],projection),depfuncs=(), modules=("matplotlib","numpy","mpl_toolkits"), globals=globals())) for ix in irange]
+	jobs = [(ix, job_server.submit(generate_snapshot,args=(ifname[ix],snapname[ix],projection,qvir,fdim),depfuncs=(), modules=("matplotlib","numpy","mpl_toolkits"), globals=globals())) for ix in irange]
 	for ix, job in jobs:
            px=job()
            del(px)
-	   print snapname[ix], "is generating snapshot"
+	   print snapname[ix]
 	   #print "Snapshot", ifname[ix], "is", job()
 
 os.system('avconv -y -r 24 -i ' + sim + '/snapshots/snap%04d.xy.png -s 1024x800 ' + sim + '/xy.mp4')
