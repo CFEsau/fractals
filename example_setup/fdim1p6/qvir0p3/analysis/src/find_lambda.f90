@@ -115,11 +115,13 @@ subroutine find_lambda(snapshoti,ni)
 ! when IDs of most massive stars change
   do i=1, nmst
      if(obj_mass(1,i) /= obj_mass(2,i)) then
-        write(20,*) snapshoti, ti, obj_mass(2,1:nmst)
-        goto 12
+        write(20,99) snapshoti, ti, obj_mass(2,1:nmst)
+        exit
      end if
   end do
-12     obj_mass(1,1:nmst)=obj_mass(2,1:nmst)
+99   FORMAT(1X,I4,2X,E9.3,*(2X,F8.3))
+
+  obj_mass(1,1:nmst)=obj_mass(2,1:nmst)
 
 !Allocate memory for arrays of length nmst:
   allocate(length(1:nmst-1))
