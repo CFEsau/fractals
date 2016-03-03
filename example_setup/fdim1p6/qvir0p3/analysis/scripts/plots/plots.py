@@ -37,6 +37,8 @@ for simname in os.listdir(path + '/'):
         lam = macro[:,5]
         lam_low = macro[:,6]
         lam_up = macro[:,7]
+        yerr_low=lam-lam_low
+        yerr_up=lam_up-lam
         
         my_dpi=96
         #plt.figure(figsize=(11.7,8.3), dpi=my_dpi) # A4 sheet is 8.3 x 11.7 (portrait)
@@ -95,6 +97,7 @@ for simname in os.listdir(path + '/'):
             plt.ylabel("Lambda")
             plt.title("Mass segregation")
             plt.plot(time, lam)
+            plt.errorbar(time,lam,yerr=[yerr_low,yerr_up],errorevery=5)
             plt.ylim(0,15)
             plt.text(8.8,13.8,"fdim = " + str(fdim_val),fontsize=10)
             plt.text(8.8,14.4,"qvir = " + str(qvir_val),fontsize=10)
@@ -157,6 +160,7 @@ for simname in os.listdir(path + '/'):
             plt.ylabel("Lambda")
             plt.title("Mass segregation")
             plt.plot(time, lam)
+            plt.errorbar(time,lam,yerr=[yerr_low,yerr_up],errorevery=5)
             plt.ylim(0,15)
             plt.text(8.8,13.8,"fdim = " + str(fdim_val),fontsize=10)
             plt.text(8.8,14.4,"qvir = " + str(qvir_val),fontsize=10)
