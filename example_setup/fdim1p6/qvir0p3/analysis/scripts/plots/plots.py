@@ -23,6 +23,7 @@ while number <=0 or number > 5:
 for simname in os.listdir(path + '/'):
     if 'runinv' in simname:
 
+        kval = simname.split("_")[1] #get k01, k02, etc
         filename = path + '/' + simname + '/macro'
 
         macro = np.loadtxt(filename)
@@ -51,9 +52,9 @@ for simname in os.listdir(path + '/'):
             plt.plot(time, etotal, label = 'Total Energy')
             plt.legend(loc=2,fontsize=11)
             plt.ylim(ymax = 0.5e41, ymin = -0.6e41)
+            plt.text(8.8,0.41e41,"fdim = " + str(fdim_val),fontsize=10)
             plt.text(8.8,0.45e41,"qvir = " + str(qvir_val),fontsize=10)
-            plt.text(8.8,0.4e41,"fdim = " + str(fdim_val),fontsize=10)
-            saveplot = path + '/' + simname + '/energies.pdf'
+            saveplot = path + '/' + kval + '_energies.pdf'
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
             print "Graph saved at " + saveplot
@@ -64,10 +65,10 @@ for simname in os.listdir(path + '/'):
             plt.ylabel("Qvir")
             plt.title("Virial Ratio over Time")
             plt.plot(time, qvir)
-            plt.ylim((0,1))
-            plt.text(8.8,0.96,"qvir = " + str(qvir_val),fontsize=10)
+            plt.ylim(0,1)
             plt.text(8.8,0.92,"fdim = " + str(fdim_val),fontsize=10)
-            saveplot = path + '/' + simname + '/virial.pdf'
+            plt.text(8.8,0.96,"qvir = " + str(qvir_val),fontsize=10)
+            saveplot = path + '/' + kval + '_virial.pdf'
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
             print "Graph saved at " + saveplot
@@ -81,9 +82,9 @@ for simname in os.listdir(path + '/'):
             plt.plot(time, lagrange, label = 'r = ' + label)
             plt.legend(loc=2,fontsize=11)
             plt.ylim(0,4)
-            plt.text(8.8,3.86,"qvir = " + str(qvir_val),fontsize=10)
             plt.text(8.8,3.7,"fdim = " + str(fdim_val),fontsize=10)
-            saveplot = path + '/' + simname + '/lagrangian.pdf'
+            plt.text(8.8,3.86,"qvir = " + str(qvir_val),fontsize=10)
+            saveplot = path + '/' + kval + '_lagrangian.pdf'
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
             print "Graph saved at " + saveplot
@@ -95,9 +96,9 @@ for simname in os.listdir(path + '/'):
             plt.title("Mass segregation")
             plt.plot(time, lam)
             plt.ylim(0,15)
-            plt.text(8.8,14.4,"qvir = " + str(qvir_val),fontsize=10)
             plt.text(8.8,13.8,"fdim = " + str(fdim_val),fontsize=10)
-            saveplot = path + '/' + simname + '/lambda.pdf'
+            plt.text(8.8,14.4,"qvir = " + str(qvir_val),fontsize=10)
+            saveplot = path + '/' + kval + '_lambda.pdf'
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
             print "Graph saved at " + saveplot
@@ -113,9 +114,9 @@ for simname in os.listdir(path + '/'):
             plt.plot(time, etotal, label = 'Total Energy')
             plt.legend(loc=2,fontsize=11)
             plt.ylim(ymax = 0.5e41, ymin = -0.6e41)
+            plt.text(8.8,0.41e41,"fdim = " + str(fdim_val),fontsize=10)
             plt.text(8.8,0.45e41,"qvir = " + str(qvir_val),fontsize=10)
-            plt.text(8.8,0.4e41,"fdim = " + str(fdim_val),fontsize=10)
-            saveplot = path + '/' + simname + '/energies.pdf'
+            saveplot = path + '/' + kval + '_energies.pdf'
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
             print "Graph saved at " + saveplot
@@ -127,9 +128,9 @@ for simname in os.listdir(path + '/'):
             plt.title("Virial Ratio over Time")
             plt.plot(time, qvir)
             plt.ylim(0,1)
-            plt.text(8.8,0.96,"qvir = " + str(qvir_val),fontsize=10)
             plt.text(8.8,0.92,"fdim = " + str(fdim_val),fontsize=10)
-            saveplot = path + '/' + simname + '/virial.pdf'
+            plt.text(8.8,0.96,"qvir = " + str(qvir_val),fontsize=10)
+            saveplot = path + '/' + kval + '_virial.pdf'
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
             print "Graph saved at " + saveplot
@@ -143,9 +144,9 @@ for simname in os.listdir(path + '/'):
             plt.plot(time, lagrange, label = 'r = ' + label)
             plt.legend(loc=2,fontsize=11)
             plt.ylim(0,4)
-            plt.text(8.8,3.86,"qvir = " + str(qvir_val),fontsize=10)
             plt.text(8.8,3.7,"fdim = " + str(fdim_val),fontsize=10)
-            saveplot = path + '/' + simname + '/lagrangian.pdf'
+            plt.text(8.8,3.86,"qvir = " + str(qvir_val),fontsize=10)
+            saveplot = path + '/' + kval + '_lagrangian.pdf'
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
             print "Graph saved at " + saveplot
@@ -156,16 +157,11 @@ for simname in os.listdir(path + '/'):
             plt.ylabel("Lambda")
             plt.title("Mass segregation")
             plt.plot(time, lam)
-            plt.ylim((0,15))
-            plt.text(8.8,14.4,"qvir = " + str(qvir_val),fontsize=10)
+            plt.ylim(0,15)
             plt.text(8.8,13.8,"fdim = " + str(fdim_val),fontsize=10)
-            saveplot = path + '/' + simname + '/lambda.pdf'
+            plt.text(8.8,14.4,"qvir = " + str(qvir_val),fontsize=10)
+            saveplot = path + '/' + kval + '_lambda.pdf'
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
             print "Graph saved at " + saveplot
             plt.close()
-            
-#plt.tight_layout()
-#plt.savefig(saveplot, bbox_inches='tight')
-            
-#print "Graph saved at " + saveplot
