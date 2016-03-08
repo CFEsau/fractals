@@ -110,13 +110,13 @@ PROGRAM reduce
   ignore=.true.
   
   if (ignore) then
-  open(10,file=TRIM(outarg)//'/2Dignored.txt')
-  open(11,file=TRIM(outarg)//'/3Dignored.txt')
+     open(10,file=TRIM(outarg)//'/2Dignored.txt')
+     open(11,file=TRIM(outarg)//'/3Dignored.txt')
      do i=1,snapnum
         call in_cluster(i,nstars(i))
      end do
-  close(10)
-  close(11)
+     close(10)
+     close(11)
   end if
 
 !
@@ -133,12 +133,18 @@ PROGRAM reduce
   END DO
 !
 !******************************************************************************!
-!
+! Mass segratation
+!******************************************************************************!
 ! Find the degree of mass segregation (lambda).
+
 ! Define the number of stars in the MST:
   nmst=10
+
 ! IDs of the most massive stars in the cluster:
   allocate(obj_mass(1:2,1:nmst))
+
+!*****************
+! Lambda:
 
   ALLOCATE(lambda(1:snapnum))
   ALLOCATE(l_low(1:snapnum))
@@ -159,6 +165,70 @@ PROGRAM reduce
   close(21)
 
 !
+!*****************
+! Lambda_bar:
+
+  ALLOCATE(lambda_bar(1:snapnum))
+  ALLOCATE(l_low_bar(1:snapnum))
+  ALLOCATE(l_up_bar(1:snapnum))
+  lambda_bar=0.
+  l_up_bar=0.
+  l_low_bar=0.
+  !open(20,file=TRIM(outarg)//'/obj_masses_lambar.txt')
+  !open(21,file=TRIM(outarg)//'/escaped_lambar.txt')
+! Loop over all snapshots
+  DO i=1,snapnum
+     CALL find_lambda_bar(i,nstars(i))
+  END DO
+  !close(20)
+  !close(21)
+
+!
+!*****************
+! Lambda_tilde:
+
+  ALLOCATE(lambda_tilde(1:snapnum))
+  ALLOCATE(l_low_tilde(1:snapnum))
+  ALLOCATE(l_up_tilde(1:snapnum))
+  lambda_tilde=0.
+  l_up_tilde=0.
+  l_low_tilde=0.
+! Loop over all snapshots
+  DO i=1,snapnum
+     CALL find_lambda_tilde(i,nstars(i))
+  END DO
+
+!
+!*****************
+! Lambda_star:
+
+  ALLOCATE(lambda_star(1:snapnum))
+  ALLOCATE(l_low_star(1:snapnum))
+  ALLOCATE(l_up_star(1:snapnum))
+  lambda_star=0.
+  l_up_star=0.
+  l_low_star=0.
+! Loop over all snapshots
+  DO i=1,snapnum
+     CALL find_lambda_star(i,nstars(i))
+  END DO
+
+!
+!*****************
+! Gamma:
+
+  ALLOCATE(gamm(1:snapnum))
+  ALLOCATE(g_low(1:snapnum))
+  ALLOCATE(g_up(1:snapnum))
+  gamm=0.
+  g_up=0.
+  g_low=0.
+! Loop over all snapshots
+  DO i=1,snapnum
+     CALL find_gamma(i,nstars(i))
+  END DO
+
+
 !******************************************************************************!
 !
 ! Write out data from snapshots. One file for each snapshot.
@@ -186,11 +256,19 @@ PROGRAM reduce
   END DO
 !
 ! Write out the half mass radius and energy data
+! Lambda given its own separate file, given there are 5 different calculations
   OPEN(4,file=TRIM(outarg)//'/macro',status='new')
+  OPEN(5,file=TRIM(outarg)//'/lambda',status='new')
   DO i=1,snapnum
-     WRITE(4,*) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i),lambda(i),l_low(i),l_up(i)
+     WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i)
+     WRITE(5,50) i,lambda(i),l_low(i),l_up(i),lambda_bar(i),l_low_bar(i),l_up_bar(i), &
+          & lambda_tilde(i),l_low_tilde(i),l_up_tilde(i),lambda_star(i),l_low_star(i),l_up_star(i), &
+          & gamm(i),g_low(i),g_up(i)
   END DO
+40 FORMAT(1X,I4,3(2X,E9.3),2X,F7.3)
+50 FORMAT(1X,I4,15(2X,F8.3))
   CLOSE(4)
+  CLOSE(5)
 !
 !  
 !******************************************************************************!
@@ -241,6 +319,18 @@ SUBROUTINE DEALLOCATE
   DEALLOCATE(lambda)
   DEALLOCATE(l_up)
   DEALLOCATE(l_low)
+  DEALLOCATE(lambda_bar)
+  DEALLOCATE(l_up_bar)
+  DEALLOCATE(l_low_bar)
+  DEALLOCATE(lambda_tilde)
+  DEALLOCATE(l_up_tilde)
+  DEALLOCATE(l_low_tilde)
+  DEALLOCATE(lambda_star)
+  DEALLOCATE(l_up_star)
+  DEALLOCATE(l_low_star)
+  DEALLOCATE(gamm)
+  DEALLOCATE(g_up)
+  DEALLOCATE(g_low)
   
 END SUBROUTINE DEALLOCATE
 
