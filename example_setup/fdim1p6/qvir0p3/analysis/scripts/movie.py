@@ -13,7 +13,7 @@ picture_count = int(0)
 ncores = int(0)
 projection=str('2D')
 
-def generate_snapshot(ifname,snapname,projection,qvir,fdim):
+def generate_snapshot(ifname,snapname,projection,qvir,fdim,kval):
         import matplotlib.pyplot as plt
 	from mpl_toolkits.mplot3d import Axes3D
 	import numpy as np
@@ -106,6 +106,7 @@ def generate_snapshot(ifname,snapname,projection,qvir,fdim):
 	plt.grid(True)
         plt.text(0.75*xy_box,0.95*xy_box,"qvir = " + qvir)
         plt.text(0.75*xy_box,0.9*xy_box,"fdim = " + fdim)
+        plt.text(0.94*xy_box,-1.1*xy_box,kval,fontsize=10)
 
 
 	if projection =="3D":
@@ -122,10 +123,12 @@ sim = ''
 if(len(arglist) < 2):
 
 	sim = raw_input("Enter file path: ")
-	#sim = 'analysis_test/outputs/runinv_0100/'
+	#sim = 'analysis_test/outputs/runinv_k01'
 else:
 
 	sim = str(arglist[1])
+kval = sim.split("_")[1] #get k01, k02, etc
+
 
 picture_count = int(0)
 nfile=0
@@ -183,11 +186,11 @@ for i in range(1,nfile+1):
 	del zeros
 	
 	if ncores==-1:
-   		generate_snapshot(ifname[i-1],snapname[i-1],projection,qvir,fdim)
+   		generate_snapshot(ifname[i-1],snapname[i-1],projection,qvir,fdim,kval)
 
 if ncores!=-1:   	
 	irange = np.arange(0, i-1, 1)
-	jobs = [(ix, job_server.submit(generate_snapshot,args=(ifname[ix],snapname[ix],projection,qvir,fdim),depfuncs=(), modules=("matplotlib","numpy","mpl_toolkits"), globals=globals())) for ix in irange]
+	jobs = [(ix, job_server.submit(generate_snapshot,args=(ifname[ix],snapname[ix],projection,qvir,fdim,kval),depfuncs=(), modules=("matplotlib","numpy","mpl_toolkits"), globals=globals())) for ix in irange]
 	for ix, job in jobs:
            px=job()
            del(px)
