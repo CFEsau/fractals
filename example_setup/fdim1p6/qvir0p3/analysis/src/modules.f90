@@ -99,8 +99,20 @@
 ! potential_energy = the total gravitational potential energy
 ! total_energy = the total energy
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: kinetic_energy,potential_energy,total_energy
+
+!============== Lambda ===============
 ! lambda = measure of mass segregation & errors
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda, l_up, l_low
+! lambda_bar uses mean length of MST (basically same as lambda)
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_bar, l_up_bar, l_low_bar
+! lambda_tilde uses median length of MST
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_tilde, l_up_tilde, l_low_tilde
+! lambda_star uses median length of MST,
+! and adds this to the actual length of the MST
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_star, l_up_star, l_low_star
+! gamma uses the geometric mean
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: gamm, g_up, g_low
+
 ! nmst = number of stars in the minimum spanning tree
        integer :: nmst
        double precision, dimension(:,:), allocatable :: obj_mass
