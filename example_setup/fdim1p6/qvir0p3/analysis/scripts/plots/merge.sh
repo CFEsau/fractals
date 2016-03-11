@@ -126,3 +126,18 @@ echo "Saved in all_gamma.pdf"
 pdfunite ${flist} ${outpath}/all_gamma.pdf
 echo ""
 sleep 0.6
+
+
+flist=''
+tot=0
+for file in ${outpath}'/'k*differentlambda.pdf; do
+    echo ${file}
+    flist="${flist} ${file}"
+    let 'tot+=1'
+    #echo "flist is ${flist}"
+done
+
+echo "Saved in all_differentlambda.pdf"
+pdfunite ${flist} ${outpath}/all_differentlambda.pdf
+echo ""
+sleep 0.6

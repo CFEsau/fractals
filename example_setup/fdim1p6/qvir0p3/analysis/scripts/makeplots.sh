@@ -20,15 +20,6 @@ echo "       ... done."
 
 
 echo ""
-echo "**************************"
-echo "*     Merging plots      *"
-echo "**************************"
-plots/merge.sh
-echo ""
-echo "       ... done."
-
-
-echo ""
 echo "***************************"
 echo "* Making comparison plots *"
 echo "***************************"
@@ -44,4 +35,22 @@ sleep 0.6
 plots/comparelambda.py ${fbin} ${fdim} ${qvir}
 echo ""
 sleep 0.6
+echo "       ... done."
+
+
+echo ""
+echo "****************************"
+echo "* Comparing lambda methods *"
+echo "****************************"
+plots/differentlambda.py ${fbin} ${fdim} ${qvir}
+echo ""
+echo "       ... done."
+
+
+echo ""
+echo "**************************"
+echo "*     Merging plots      *"
+echo "**************************"
+plots/merge.sh
+echo ""
 echo "       ... done."
