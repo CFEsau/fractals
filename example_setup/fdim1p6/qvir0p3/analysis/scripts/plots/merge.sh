@@ -126,5 +126,3 @@ echo "Saved in all_gamma.pdf"
 pdfunite ${flist} ${outpath}/all_gamma.pdf
 echo ""
 sleep 0.6
-
-echo "       ... done."

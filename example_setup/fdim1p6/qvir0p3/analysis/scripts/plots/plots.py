@@ -4,12 +4,17 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from sys import argv
 
-path = str(raw_input('input the path to the simulation directory: '))
-print path
+#print len(argv)
+fbin, fdim_val, qvir_val = argv[1:4] #use when defining parameters inline
 
-fdim_val = raw_input("fdim: ")
-qvir_val = raw_input("qvir: ")
+#path = str(raw_input('input the path to the simulation directory: '))
+path = '../outputs'
+#print path
+
+#fdim_val = raw_input("fdim: ")
+#qvir_val = raw_input("qvir: ")
 #duration = float(input('input the duration of the simulation (Myr): '))
 duration = 10
 
@@ -87,6 +92,9 @@ for simname in os.listdir(path + '/'):
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
@@ -109,6 +117,9 @@ for simname in os.listdir(path + '/'):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
@@ -137,6 +148,9 @@ for simname in os.listdir(path + '/'):
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
@@ -160,6 +174,9 @@ for simname in os.listdir(path + '/'):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
@@ -186,6 +203,9 @@ for simname in os.listdir(path + '/'):
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
@@ -208,6 +228,9 @@ for simname in os.listdir(path + '/'):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
@@ -234,6 +257,9 @@ for simname in os.listdir(path + '/'):
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
@@ -256,6 +282,9 @@ for simname in os.listdir(path + '/'):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
@@ -285,6 +314,9 @@ for simname in os.listdir(path + '/'):
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
@@ -306,6 +338,9 @@ for simname in os.listdir(path + '/'):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
@@ -333,6 +368,9 @@ for simname in os.listdir(path + '/'):
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
@@ -355,6 +393,9 @@ for simname in os.listdir(path + '/'):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
@@ -381,6 +422,9 @@ for simname in os.listdir(path + '/'):
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
@@ -403,6 +447,9 @@ for simname in os.listdir(path + '/'):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
@@ -429,6 +476,9 @@ for simname in os.listdir(path + '/'):
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
@@ -451,6 +501,9 @@ for simname in os.listdir(path + '/'):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate("qvir = " + str(qvir_val), xy=(0.99, 0.92),
+                         xycoords='axes fraction', horizontalalignment='right',
+                         verticalalignment='bottom', fontsize=10)
+            plt.annotate("fbin = " + str(fbin), xy=(0., -0.09),
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             plt.annotate(str(kval), xy=(0.99, -0.08),
