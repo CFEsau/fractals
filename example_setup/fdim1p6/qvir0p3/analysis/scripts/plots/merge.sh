@@ -55,7 +55,7 @@ sleep 0.6
 
 flist=''
 tot=0
-for file in ${outpath}'/'k*lambda.pdf; do
+for file in ${outpath}'/'k*_lambda.pdf; do
     echo ${file}
     flist="${flist} ${file}"
     let 'tot+=1'
