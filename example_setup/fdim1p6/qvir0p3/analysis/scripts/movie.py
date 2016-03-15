@@ -106,6 +106,7 @@ def generate_snapshot(ifname,snapname,projection,qvir,fdim,kval):
 	plt.grid(True)
         plt.text(0.75*xy_box,0.95*xy_box,"qvir = " + qvir)
         plt.text(0.75*xy_box,0.9*xy_box,"fdim = " + fdim)
+        plt.text(-1.1*xy_box,-1.1*xy_box,"fbin = 0%",fontsize=11)
         plt.text(0.94*xy_box,-1.1*xy_box,kval,fontsize=10)
 
 
@@ -127,8 +128,8 @@ if(len(arglist) < 2):
 else:
 
 	sim = str(arglist[1])
-kval = sim.split("_")[1] #get k01, k02, etc
 
+kval = sim.split("_")[1] #get k01, k02, etc
 
 picture_count = int(0)
 nfile=0
@@ -197,7 +198,7 @@ if ncores!=-1:
 	   print snapname[ix]
 	   #print "Snapshot", ifname[ix], "is", job()
 
-os.system('avconv -y -r 24 -i ' + sim + '/snapshots/snap%04d.xy.png -s 1024x800 ' + sim + '/xy.mp4')
+os.system('avconv -y -r 24 -i ' + sim + '/snapshots/snap%04d.xy.png -s 1024x800 ' + sim + '/xy_' + kval + '.mp4')
 
 for fn in os.listdir(sim + '/snapshots/'):
     if '.xy.png' in fn or '.xyz.png' in fn:
