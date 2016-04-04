@@ -86,10 +86,18 @@
        DOUBLE PRECISION :: totalmass
        double precision, dimension(:,:,:),allocatable :: r_com
 ! r_halfmass = the half mass radius of the distribution
-       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: r_halfmass
-! this_incluster = logical array, star has escaped cluster if F
-! (One for 2D with z=0, one for 3D)
-       logical, dimension(:,:), allocatable :: this_in2Dcluster, this_in3Dcluster
+       DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: r_halfmass
+! incluster = logical array, star has escaped cluster if F
+       logical, dimension(:,:,:), allocatable :: incluster
+! limittype = condition in which stars are in cluster.
+! Currently either field of view (=FoV) or half-mass radius (=rhalf)
+       CHARACTER*20 :: limittype
+! Fov_lim = the limit of field of view in pc
+! rfac = the factor by which half-mass radius is multiplied by
+! to establish the boundary of stars that are still in  the cluster
+       integer :: FoV_lim, rfac
+!projection of cluster (2D axis/3D)
+       character*2 :: projection
 
 !===============
 ! Calculations
@@ -118,7 +126,16 @@
        double precision, dimension(:,:), allocatable :: obj_mass
 ! Time
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: time
+
+!===============
+! Outputs
+!===============
 !
+! unit# = unit numbers for output files
+       integer :: unit1, unit2
+! outarg = destination directory (e.g. 'outputs')
+  CHARACTER*150 :: outarg
+
      END MODULE parameters_module
 !
 !******************************************************************************!

@@ -4,10 +4,11 @@ SUBROUTINE find_energy(snapshoti,ni)
   USE parameters_module
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: snapshoti,ni
-! mi,ri,vi = mass, position and velocity of stars
+! mi = mass of star i
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi
-  logical, dimension(:), allocatable :: i_incluster !has this star escaped?
+! ri, vi = position & velocity of star i
   DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri, vi
+  !logical, dimension(:), allocatable :: i_incluster !has this star escaped?
 ! ke = the total kinetic energy
 ! rij = the magnitude of the separation between two stars
 ! epoti = the gravitational potential energy between two stars
@@ -19,11 +20,11 @@ SUBROUTINE find_energy(snapshoti,ni)
   ALLOCATE(mi(1:ni))
   ALLOCATE(ri(1:ni,1:3))
   ALLOCATE(vi(1:ni,1:3))
-  allocate(i_incluster(1:ni))
+  !allocate(i_incluster(1:ni))
   mi(1:ni)=m(snapshoti,1:ni)
   ri(1:ni,1:3)=r(snapshoti,1:ni,1:3)
   vi(1:ni,1:3)=v(snapshoti,1:ni,1:3)
-  i_incluster(1:ni)=this_in3Dcluster(snapshoti,1:ni)
+  !i_incluster(1:ni)=incluster_FoV(snapshoti,1:ni,4) !in 3D cluster
 
 ! First convert to SI units
   mi=mi*msun
@@ -33,7 +34,7 @@ SUBROUTINE find_energy(snapshoti,ni)
 ! Loop over all stars
   DO i=1,ni
      ! Find kinetic energy
-     if (.not. i_incluster(i)) cycle
+     !if (.not. i_incluster(i)) cycle
      ekin = ekin + (0.5*mi(i)*(vi(i,1)**2+vi(i,2)**2+vi(i,3)**2))
   END DO
   
@@ -41,10 +42,10 @@ SUBROUTINE find_energy(snapshoti,ni)
   rij=0.
 ! Loop over all stars
   DO i=1,ni-1
-     if (.not. i_incluster(i)) cycle
+     !if (.not. i_incluster(i)) cycle
      epoti=0.d0
      DO j=i+1,ni
-        if (.not. i_incluster(j)) cycle
+        !if (.not. i_incluster(j)) cycle
 ! Find separation between two stars
         rij=(ri(i,1)-ri(j,1))**2 + (ri(i,2)-ri(j,2))**2 + & 
              &              (ri(i,3)-ri(j,3))**2
@@ -65,6 +66,6 @@ SUBROUTINE find_energy(snapshoti,ni)
   DEALLOCATE(mi)
   DEALLOCATE(ri)
   DEALLOCATE(vi)
-  deallocate(i_incluster)
+  !deallocate(i_incluster)
 !!$  Print *, ekin, -epot, etot
 END SUBROUTINE find_energy

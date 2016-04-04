@@ -15,16 +15,24 @@ SUBROUTINE find_lambda(snapshoti,ni)
 
   IMPLICIT NONE
 
+!-----------
+! star data
+!-----------
   INTEGER, INTENT(in) :: snapshoti, ni !Snapshot number and star number
-! mi,ri= mass, position & distance from com of stars
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi, rcom_i
+! mi = mass of star i
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi
+! ri = position of star i
   DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri
+! rcom_i = distance of star i from centre of mass
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: rcom_i
   REAL :: ti !time of snapshot
   INTEGER, DIMENSION(:), ALLOCATABLE :: mlist !ID numbers for heapsort
-  LOGICAL, DIMENSION(:), ALLOCATABLE :: i_incluster !has this star escaped?
+ !i_cluster = is star i still in the cluster?
+  LOGICAL, DIMENSION(:), ALLOCATABLE :: i_cluster
 
-  INTEGER :: ndim !2D or 3D analysis
-  
+!-----------
+! MST stuff
+!----------- 
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: length !length of each MST edge
   DOUBLE PRECISION :: obj_mst !Length of object tree (e.g. most massive stars)
   DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: obj_r !positions of obj stars
@@ -35,7 +43,7 @@ SUBROUTINE find_lambda(snapshoti,ni)
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: rand_mst !total lengths of random MSTs
   INTEGER, DIMENSION(:), ALLOCATABLE :: rand_list !IDs of rand_mst list
   REAL :: avranmst !Average length of random trees
-  REAL ::ranup, ranlow !Upper & lower boundaries, 1 sigma
+  REAL :: ranup, ranlow !Upper & lower boundaries, 1 sigma
 
   LOGICAL, DIMENSION(:), ALLOCATABLE :: done !record which stars have been randomly selected
   REAL :: rand
@@ -66,22 +74,30 @@ SUBROUTINE find_lambda(snapshoti,ni)
 !For when outliers are being ignored
 !====================================
 !
-  ALLOCATE(i_incluster(1:ni))
+  ALLOCATE(i_cluster(1:ni))
 ! first entry of obj_mass stores IDs of original most massive stars,
 ! second stores new most-massive stars
   IF (snapshoti==1) obj_mass(1,1:nmst)=0
 !=====================================
 
 
-!2D or 3D analysis?
-  ndim = 2
-  IF (ndim==2) THEN
+  IF (projection=='xy') THEN
+     ri(1:ni,3)=0.
      rcom_i(1:ni)=r_com(snapshoti,1:ni,4)
-     i_incluster(1:ni)=this_in2Dcluster(snapshoti,1:ni)
-  ELSE IF (ndim==3) THEN
+     i_cluster(1:ni)=incluster(snapshoti,1:ni,1)
+  ELSE IF (projection=='yz') THEN
+     ri(1:ni,1)=0.
      rcom_i(1:ni)=r_com(snapshoti,1:ni,5)
-     i_incluster(1:ni)=this_in3Dcluster(snapshoti,1:ni)
+     i_cluster(1:ni)=incluster(snapshoti,1:ni,2)
+  ELSE IF (projection=='xz') THEN
+     ri(1:ni,2)=0.
+     rcom_i(1:ni)=r_com(snapshoti,1:ni,6)
+     i_cluster(1:ni)=incluster(snapshoti,1:ni,3)
+  ELSE IF (projection=='3D') THEN
+     rcom_i(1:ni)=r_com(snapshoti,1:ni,7)
+     i_cluster(1:ni)=incluster(snapshoti,1:ni,4)
   END IF
+
 
 !============================================================
 !Sort stars in order of mass & make selection of 'obj' stars
@@ -107,20 +123,14 @@ SUBROUTINE find_lambda(snapshoti,ni)
      k = mlist(ni+1-j) !heapsort orders from small to large - invert
      
 ! if star has escaped cluster, leave it out of the list
-     IF (.NOT. i_incluster(k)) THEN
-        WRITE(21,*) snapshoti, i, k, mi(k), rcom_i(k), i_incluster(k)
+     IF (.NOT. i_cluster(k)) THEN
+        WRITE(unit2,*) snapshoti, i, k, mi(k), rcom_i(k), i_cluster(k)
         GOTO 5 !don't use 'cycle' as we don't want i to inrease
      END IF
+
      obj_r(i,1) = ri(k,1) !x position
      obj_r(i,2) = ri(k,2) !y position
-!For 2D set z to 0
-     IF (ndim == 2) THEN
-        obj_r(i,3) = 0. !z position
-     ELSE IF (ndim == 3) THEN
-        obj_r(i,3) = ri(k,3) !z position 
-     ELSE
-        STOP 'ndim must be 2 or 3'
-     END IF
+     obj_r(i,3) = ri(k,3) !z position
 
 ! track masses selected after each snapshot for output file:
      obj_mass(2,i) = mi(mlist(ni+1-j))
@@ -130,7 +140,7 @@ SUBROUTINE find_lambda(snapshoti,ni)
 ! when IDs of most massive stars change
   DO i=1, nmst
      IF(obj_mass(1,i) /= obj_mass(2,i)) THEN
-        WRITE(20,99) snapshoti, ti, obj_mass(2,1:nmst)
+        WRITE(unit1,99) snapshoti, ti, obj_mass(2,1:nmst)
         EXIT
      END IF
   END DO
@@ -179,16 +189,11 @@ SUBROUTINE find_lambda(snapshoti,ni)
          k = NINT(rand*ni)
          IF (k == 0) GOTO 6    !There is no star with id=0
          IF (done(k)) GOTO 6    !Don't chose the same star twice
-         IF (.NOT. i_incluster(k)) GOTO 6 !Don't use escaped stars
+         IF (.NOT. i_cluster(k)) GOTO 6 !Don't use escaped stars
          done(k) = .TRUE.       !You're selected
          x(i) = ri(k,1)
          y(i) = ri(k,2)
          z(i) = ri(k,3)
-
-!============================================
-!For 2D set z to 0
-         IF (ndim == 2) z(i) = 0.
-!============================================
       END DO
 
       CALL mst(nmst,x,y,z,node,length)
@@ -196,6 +201,7 @@ SUBROUTINE find_lambda(snapshoti,ni)
       DO i = 1,nmst - 1
          rand_mst(j) = rand_mst(j) + length(i)    !Add the edges of the mst
       END DO                                  !to find the total length
+
    END DO
 
 !======================================================================
@@ -210,11 +216,10 @@ SUBROUTINE find_lambda(snapshoti,ni)
       rand_list(j) = j
    END DO
    
-   
 !Sort random MST lengths:
    CALL heapsort(nloop,rand_mst,rand_list)
    
-   avranmst = rand_mst(rand_list(NINT(REAL(nloop)/2.))) !Mean MST.
+   avranmst = rand_mst(rand_list(NINT(REAL(nloop)/2.))) !Median MST.
    ranlow = rand_mst(rand_list(NINT(REAL(nloop)/6.)))
    ranup = rand_mst(rand_list(NINT(5.*REAL(nloop)/6.)))
 
@@ -228,17 +233,21 @@ SUBROUTINE find_lambda(snapshoti,ni)
   !    print*,"ranup",ranup
   !    print*,"obj_mst",obj_mst
   ! end if
+
 !Deallocate arrays:
    DEALLOCATE(mi)
    DEALLOCATE(ri)
-   DEALLOCATE(i_incluster)
+   DEALLOCATE(rcom_i)
    DEALLOCATE(mlist)
    DEALLOCATE(done)
+   DEALLOCATE(i_cluster)
    DEALLOCATE(length)
-   DEALLOCATE(obj_r)
    DEALLOCATE(x)
    DEALLOCATE(y)
    DEALLOCATE(z)
    DEALLOCATE(node)
+   DEALLOCATE(obj_r)
+   DEALLOCATE(rand_mst)   
+   DEALLOCATE(rand_list)
 
  END SUBROUTINE find_lambda

@@ -34,11 +34,17 @@ SUBROUTINE c_of_m(snapshoti,ni)
      r_com(snapshoti,i,2)=ri(i,2)-com_dist(2)
      r_com(snapshoti,i,3)=ri(i,3)-com_dist(3)
 !Distance magnitude
-!2D (observer), ignore z:
+!2D (observer), xy plane:
      r_com(snapshoti,i,4)=SQRT(r_com(snapshoti,i,1)**2 + &
           &         r_com(snapshoti,i,2)**2)
+!yz plane:
+     r_com(snapshoti,i,5)=SQRT(r_com(snapshoti,i,2)**2 + &
+          &         r_com(snapshoti,i,3)**2)
+!xz plane:
+     r_com(snapshoti,i,6)=SQRT(r_com(snapshoti,i,1)**2 + &
+          &         r_com(snapshoti,i,3)**2)
 !3D:
-     r_com(snapshoti,i,5)=SQRT(r_com(snapshoti,i,1)**2 + &
+     r_com(snapshoti,i,7)=SQRT(r_com(snapshoti,i,1)**2 + &
           &         r_com(snapshoti,i,2)**2 + r_com(snapshoti,i,3)**2)
      
   END DO

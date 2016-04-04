@@ -7,6 +7,10 @@
 !******************************************************************************!
 PROGRAM reduce
 
+!
+!TODO: parallelise!
+!
+
 ! Declare modules used
   USE sl_input_module
   USE parameters_module
@@ -18,7 +22,7 @@ PROGRAM reduce
 ! ignore certain stars?
   logical :: ignore
 ! Name and path of runfile
-  CHARACTER*150 :: inarg, outarg
+  CHARACTER*150 :: inarg
   CHARACTER*4 :: ofilen
   CHARACTER*8 :: outfile
 ! Get the name and path of the runfile from the command line
@@ -71,12 +75,14 @@ PROGRAM reduce
 !
 ! Find distance between each star and cluster centre of mass.
 ! r_com(:,1:3) gives x, y, z from com.
-! col 4 gives 2D distance magnitude & 5 gives 3D.
-  ALLOCATE(r_com(1:snapnum,1:nstars(1),1:5))
+! 4:6 gives 2D distance magnitude xy, yz, xz
+! column 7 gives 3D distance magnitude
+  ALLOCATE(r_com(1:snapnum,1:nstars(1),1:7))
   r_com=0.
 
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
+  write(6,*)"       Calculating centre of mass..."
   DO i=1, snapnum
      CALL c_of_m(i,nstars(i))
   END DO
@@ -86,38 +92,16 @@ PROGRAM reduce
 !
   ! Find the Half mass radius.
 
-  ALLOCATE(r_halfmass(1:snapnum))
+! 1:3 gives halfmass radius in xy, yz, and xz
+! column 4 gives 3D halfmass radius
+  ALLOCATE(r_halfmass(1:snapnum,1:4))
   r_halfmass=0.
+  write(6,*)"       Calculating half-mass radius..."
 ! Loop over all snapshots
   DO i=1,snapnum
      CALL find_halfmass(i,nstars(i))
 !!$     PRINT *, i, r_halfmass(i)
-  END DO  
-!
-!******************************************************************************!
-!
-! If stars beyond a certain distance should be ignore from following calculations,
-! call the 'in_cluster' subroutine to populate a 'logical' array,
-! setting 'true' for stars in cluster and 'false' if it has escaped.
-  
-  allocate(this_in2Dcluster(1:snapnum,1:nstars(1)))
-  allocate(this_in3Dcluster(1:snapnum,1:nstars(1)))
-! All stars start off in the cluster
-  this_in2Dcluster=.true.
-  this_in3Dcluster=.true.
-
-! Should I ignore certain stars? (currently ignores outliers)
-  ignore=.true.
-  
-  if (ignore) then
-     open(10,file=TRIM(outarg)//'/2Dignored.txt')
-     open(11,file=TRIM(outarg)//'/3Dignored.txt')
-     do i=1,snapnum
-        call in_cluster(i,nstars(i))
-     end do
-     close(10)
-     close(11)
-  end if
+  END DO
 
 !
 !******************************************************************************!
@@ -126,11 +110,26 @@ PROGRAM reduce
   ALLOCATE(kinetic_energy(1:snapnum))
   ALLOCATE(potential_energy(1:snapnum))
   ALLOCATE(total_energy(1:snapnum))
+  write(6,*)"       Calculating cluster energies..."
 ! Loop over all snapshots
   DO i=1, snapnum
      CALL find_energy(i,nstars(i))
 !!$     PRINT *, kinetic_energy(i),potential_energy(i),total_energy(i)
   END DO
+
+
+!
+! Write out the half mass radius and energy data
+!
+!TODO: calculate different planes for energy and write out all data;
+! currently rhalf is calculated for all planes but just written out for 3D
+  OPEN(4,file=TRIM(outarg)//'/macro',status='new')
+  DO i=1,snapnum
+     WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i,4)
+  END DO
+40 FORMAT(1X,I4,3(2X,E9.3),2X,F7.3)
+  CLOSE(4)
+
 !
 !******************************************************************************!
 ! Mass segratation
@@ -140,93 +139,21 @@ PROGRAM reduce
 ! Define the number of stars in the MST:
   nmst=10
 
-! IDs of the most massive stars in the cluster:
-  allocate(obj_mass(1:2,1:nmst))
+! All lambda in all planes with all stars in cluster
+  call reduce_cluster(i,nstars(i))
 
-!*****************
-! Lambda:
+! All lambda in all planes with 5 pc field of view
+  FoV_lim = 5
+  call reduce_FoV(i,nstars(i))
 
-  ALLOCATE(lambda(1:snapnum))
-  ALLOCATE(l_low(1:snapnum))
-  ALLOCATE(l_up(1:snapnum))
-  lambda=0.
-  l_up=0.
-  l_low=0.
-  open(20,file=TRIM(outarg)//'/obj_masses.txt')
-  open(21,file=TRIM(outarg)//'/escaped.txt')
-! Loop over all snapshots
-  DO i=1,snapnum
-     CALL find_lambda(i,nstars(i))
-     !if ((i==1).or.(i==snapnum)) then
-        !PRINT *, 'Lambda:', i, lambda(i)
-     !end if
-  END DO
-  close(20)
-  close(21)
+!TODO: change reduce_half so it uses only rhalf at final snapshot
+! All lambda in all planes where cluster within  2*r_half
+  rfac = 2
+  call reduce_rhalf(i,nstars(i))
 
-!
-!*****************
-! Lambda_bar:
-
-  ALLOCATE(lambda_bar(1:snapnum))
-  ALLOCATE(l_low_bar(1:snapnum))
-  ALLOCATE(l_up_bar(1:snapnum))
-  lambda_bar=0.
-  l_up_bar=0.
-  l_low_bar=0.
-  !open(20,file=TRIM(outarg)//'/obj_masses_lambar.txt')
-  !open(21,file=TRIM(outarg)//'/escaped_lambar.txt')
-! Loop over all snapshots
-  DO i=1,snapnum
-     CALL find_lambda_bar(i,nstars(i))
-  END DO
-  !close(20)
-  !close(21)
-
-!
-!*****************
-! Lambda_tilde:
-
-  ALLOCATE(lambda_tilde(1:snapnum))
-  ALLOCATE(l_low_tilde(1:snapnum))
-  ALLOCATE(l_up_tilde(1:snapnum))
-  lambda_tilde=0.
-  l_up_tilde=0.
-  l_low_tilde=0.
-! Loop over all snapshots
-  DO i=1,snapnum
-     CALL find_lambda_tilde(i,nstars(i))
-  END DO
-
-!
-!*****************
-! Lambda_star:
-
-  ALLOCATE(lambda_star(1:snapnum))
-  ALLOCATE(l_low_star(1:snapnum))
-  ALLOCATE(l_up_star(1:snapnum))
-  lambda_star=0.
-  l_up_star=0.
-  l_low_star=0.
-! Loop over all snapshots
-  DO i=1,snapnum
-     CALL find_lambda_star(i,nstars(i))
-  END DO
-
-!
-!*****************
-! Gamma:
-
-  ALLOCATE(gamm(1:snapnum))
-  ALLOCATE(g_low(1:snapnum))
-  ALLOCATE(g_up(1:snapnum))
-  gamm=0.
-  g_up=0.
-  g_low=0.
-! Loop over all snapshots
-  DO i=1,snapnum
-     CALL find_gamma(i,nstars(i))
-  END DO
+! All lambda in all planes where cluster within  3*r_half
+  rfac = 3
+  call reduce_rhalf(i,nstars(i))
 
 
 !******************************************************************************!
@@ -250,25 +177,25 @@ PROGRAM reduce
      END IF
      OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='new')
      DO j=1,nstars(i)
-        WRITE(4,*) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3),this_in2Dcluster(i,j),this_in3Dcluster(i,j)
+        WRITE(4,*) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3)
      END DO
      CLOSE(4)
   END DO
 !
 ! Write out the half mass radius and energy data
 ! Lambda given its own separate file, given there are 5 different calculations
-  OPEN(4,file=TRIM(outarg)//'/macro',status='new')
-  OPEN(5,file=TRIM(outarg)//'/lambda',status='new')
-  DO i=1,snapnum
-     WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i)
-     WRITE(5,50) i,lambda(i),l_low(i),l_up(i),lambda_bar(i),l_low_bar(i),l_up_bar(i), &
-          & lambda_tilde(i),l_low_tilde(i),l_up_tilde(i),lambda_star(i),l_low_star(i),l_up_star(i), &
-          & gamm(i),g_low(i),g_up(i)
-  END DO
-40 FORMAT(1X,I4,3(2X,E9.3),2X,F7.3)
-50 FORMAT(1X,I4,15(2X,F8.3))
-  CLOSE(4)
-  CLOSE(5)
+  !OPEN(4,file=TRIM(outarg)//'/macro',status='new')
+  !OPEN(5,file=TRIM(outarg)//'/lambda',status='new')
+  !DO i=1,snapnum
+     !WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i,4)
+     !WRITE(5,50) i,lambda(i),l_low(i),l_up(i),lambda_bar(i),l_low_bar(i),l_up_bar(i), &
+          !& lambda_tilde(i),l_low_tilde(i),l_up_tilde(i),lambda_star(i),l_low_star(i),l_up_star(i), &
+          !& gamm(i),g_low(i),g_up(i)
+  !END DO
+!40 FORMAT(1X,I4,3(2X,E9.3),2X,F7.3)
+!50 FORMAT(1X,I4,15(2X,F8.3))
+  !CLOSE(4)
+  !CLOSE(5)
 !
 !  
 !******************************************************************************!
@@ -307,30 +234,10 @@ SUBROUTINE DEALLOCATE
   DEALLOCATE(r_com)
 
   DEALLOCATE(r_halfmass)
-  
-  deallocate(this_in2Dcluster)
-  deallocate(this_in3Dcluster)
 
   DEALLOCATE(kinetic_energy)
   DEALLOCATE(potential_energy)
   DEALLOCATE(total_energy)
-  
-  deallocate(obj_mass)
-  DEALLOCATE(lambda)
-  DEALLOCATE(l_up)
-  DEALLOCATE(l_low)
-  DEALLOCATE(lambda_bar)
-  DEALLOCATE(l_up_bar)
-  DEALLOCATE(l_low_bar)
-  DEALLOCATE(lambda_tilde)
-  DEALLOCATE(l_up_tilde)
-  DEALLOCATE(l_low_tilde)
-  DEALLOCATE(lambda_star)
-  DEALLOCATE(l_up_star)
-  DEALLOCATE(l_low_star)
-  DEALLOCATE(gamm)
-  DEALLOCATE(g_up)
-  DEALLOCATE(g_low)
-  
+
 END SUBROUTINE DEALLOCATE
 

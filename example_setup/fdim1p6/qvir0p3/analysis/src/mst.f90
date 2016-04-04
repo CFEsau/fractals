@@ -119,7 +119,9 @@ end if
    END DO
 !
 
-
    RETURN
 !
+   deallocate(sep)
+   deallocate(list)
+   deallocate(idents)
    END SUBROUTINE mst
