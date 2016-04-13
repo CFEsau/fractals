@@ -20,11 +20,13 @@ PROGRAM reduce
 ! iterators
   INTEGER :: i,j,k,l
 ! ignore certain stars?
-  logical :: ignore
+  LOGICAL :: ignore
 ! Name and path of runfile
   CHARACTER*150 :: inarg
   CHARACTER*4 :: ofilen
   CHARACTER*8 :: outfile
+
+
 ! Get the name and path of the runfile from the command line
   CALL GETARG(1,inarg)
   PRINT *, 'Input file: ',TRIM(inarg)
@@ -68,94 +70,50 @@ PROGRAM reduce
 !
 ! Make a directory for this simulation data
   CALL SYSTEM('mkdir -p '//TRIM(outarg))
- 
- 
-!
-!******************************************************************************!
-!
-! Find distance between each star and cluster centre of mass.
-! r_com(:,1:3) gives x, y, z from com.
-! 4:6 gives 2D distance magnitude xy, yz, xz
-! column 7 gives 3D distance magnitude
-  ALLOCATE(r_com(1:snapnum,1:nstars(1),1:7))
-  r_com=0.
 
-! Loop over all snapshots
-! Calculate com in each case and populate the array
-  write(6,*)"       Calculating centre of mass..."
-  DO i=1, snapnum
-     CALL c_of_m(i,nstars(i))
-  END DO
+! Allocate arrays for calculations.
 
-!
-!******************************************************************************!
-!
-  ! Find the Half mass radius.
+! logical array: is the star in the cluster
+  ALLOCATE(incluster(1:snapnum,1:nstars(1)))
 
-! 1:3 gives halfmass radius in xy, yz, and xz
-! column 4 gives 3D halfmass radius
-  ALLOCATE(r_halfmass(1:snapnum,1:4))
-  r_halfmass=0.
-  write(6,*)"       Calculating half-mass radius..."
-! Loop over all snapshots
-  DO i=1,snapnum
-     CALL find_halfmass(i,nstars(i))
-!!$     PRINT *, i, r_halfmass(i)
-  END DO
+! x, y, z positions of centre of mass:
+  ALLOCATE(com_cluster(1:snapnum,1:3))
 
-!
-!******************************************************************************!
-!
-! Find total kinetic, gravitational potential and total energy.
+! x, y, z distances of each star from com:
+  ALLOCATE(ri_com(1:snapnum,1:nstars(1),1:3))
+
+! halfmass radius of cluster:
+  ALLOCATE(r_halfmass(1:snapnum))
+
+! Energy of each snapshot
   ALLOCATE(kinetic_energy(1:snapnum))
   ALLOCATE(potential_energy(1:snapnum))
   ALLOCATE(total_energy(1:snapnum))
-  write(6,*)"       Calculating cluster energies..."
-! Loop over all snapshots
-  DO i=1, snapnum
-     CALL find_energy(i,nstars(i))
-!!$     PRINT *, kinetic_energy(i),potential_energy(i),total_energy(i)
-  END DO
 
-
-!
-! Write out the half mass radius and energy data
-!
-!TODO: calculate different planes for energy and write out all data;
-! currently rhalf is calculated for all planes but just written out for 3D
-  OPEN(4,file=TRIM(outarg)//'/macro',status='new')
-  DO i=1,snapnum
-     WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i,4)
-  END DO
-40 FORMAT(1X,I4,3(2X,E9.3),2X,F7.3)
-  CLOSE(4)
-
-!
-!******************************************************************************!
-! Mass segratation
-!******************************************************************************!
-! Find the degree of mass segregation (lambda).
 
 ! Define the number of stars in the MST:
   nmst=10
+ 
+! Find energy, c of m, rhalf, mass segregation for all stars in cluster:
 
-! All lambda in all planes with all stars in cluster
-  call reduce_cluster(i,nstars(i))
+  CALL reduce_cluster(i,nstars(i))
 
-! All lambda in all planes with 5 pc field of view
+! Find energy, c of m, rhalf, mass segregation for stars
+! within a field of view of FoV_lim pc:
+
   FoV_lim = 5
-  call reduce_FoV(i,nstars(i))
+  CALL reduce_FoV(i,nstars(i))
 
-!TODO: change reduce_half so it uses only rhalf at final snapshot
-! All lambda in all planes where cluster within  2*r_half
+! Find energy, c of m, rhalf, mass segregation for stars
+! within rfac*r_halfmass(snapnum,1:4) of all stars:
+
   rfac = 2
-  call reduce_rhalf(i,nstars(i))
+  CALL reduce_rhalf(i,nstars(i))
 
-! All lambda in all planes where cluster within  3*r_half
   rfac = 3
-  call reduce_rhalf(i,nstars(i))
+  CALL reduce_rhalf(i,nstars(i))
 
-
+!
 !******************************************************************************!
 !
 ! Write out data from snapshots. One file for each snapshot.
@@ -177,25 +135,11 @@ PROGRAM reduce
      END IF
      OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='new')
      DO j=1,nstars(i)
-        WRITE(4,*) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3)
+        WRITE(4,104) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3)
      END DO
+104  FORMAT (2(2X,I4),2X,F8.4,2X,F7.3,6(2X,F8.3))
      CLOSE(4)
   END DO
-!
-! Write out the half mass radius and energy data
-! Lambda given its own separate file, given there are 5 different calculations
-  !OPEN(4,file=TRIM(outarg)//'/macro',status='new')
-  !OPEN(5,file=TRIM(outarg)//'/lambda',status='new')
-  !DO i=1,snapnum
-     !WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i),r_halfmass(i,4)
-     !WRITE(5,50) i,lambda(i),l_low(i),l_up(i),lambda_bar(i),l_low_bar(i),l_up_bar(i), &
-          !& lambda_tilde(i),l_low_tilde(i),l_up_tilde(i),lambda_star(i),l_low_star(i),l_up_star(i), &
-          !& gamm(i),g_low(i),g_up(i)
-  !END DO
-!40 FORMAT(1X,I4,3(2X,E9.3),2X,F7.3)
-!50 FORMAT(1X,I4,15(2X,F8.3))
-  !CLOSE(4)
-  !CLOSE(5)
 !
 !  
 !******************************************************************************!
@@ -231,7 +175,10 @@ SUBROUTINE DEALLOCATE
   DEALLOCATE(r)
   DEALLOCATE(v)
 
-  DEALLOCATE(r_com)
+  DEALLOCATE(incluster)
+
+  DEALLOCATE(com_cluster)
+  DEALLOCATE(ri_com)
 
   DEALLOCATE(r_halfmass)
 

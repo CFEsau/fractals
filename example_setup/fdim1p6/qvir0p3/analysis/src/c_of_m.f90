@@ -6,50 +6,57 @@ SUBROUTINE c_of_m(snapshoti,ni)
 ! mi,ri,vi = mass, position and velocity of stars
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi
   DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri
-  DOUBLE PRECISION, DIMENSION(3) :: com_dist
+! com x, y, z positions
+  DOUBLE PRECISION :: com_x,com_y,com_z
   INTEGER :: i
+  LOGICAL, DIMENSION(:), ALLOCATABLE :: i_incluster
 
 ! Allocate memory for arrays
   ALLOCATE(mi(1:ni))
   ALLOCATE(ri(1:ni,1:3))
+  ALLOCATE(i_incluster(1:ni))
+
+! Initialise variables
   mi(1:ni)=m(snapshoti,1:ni)
   ri(1:ni,1:3)=r(snapshoti,1:ni,1:3)
-  
-! First find the com of the cluster.
-! initialise variables
+  i_incluster(1:ni)=incluster(snapshoti,1:ni)
   totalmass=0.
-  com_dist=0.
+  com_x=0.
+  com_y=0.
+  com_z=0.
+
+! First find the centre of mass of the cluster.
 ! Loop over all stars
+
   DO i=1,ni
-     totalmass=totalmass+mi(i)
-     com_dist(1:3)=com_dist(1:3)+(mi(i)*ri(i,1:3))
+     IF (i_incluster(i)) THEN
+        totalmass = totalmass + mi(i)
+        com_x = com_x + (mi(i)*ri(i,1))
+        com_y = com_y + (mi(i)*ri(i,2))
+        com_z = com_z + (mi(i)*ri(i,3))
+     END IF
   END DO
-  
-  com_dist(1:3)=com_dist(1:3)/totalmass
+
+! divide all by total mass of cluster:
+  com_x = com_x / totalmass
+  com_y = com_y / totalmass
+  com_z = com_z / totalmass
+
+  com_cluster(snapshoti,1) = com_x
+  com_cluster(snapshoti,2) = com_y
+  com_cluster(snapshoti,3) = com_z
 
 !Then find the distance between each star and the com of the cluster
   DO i=1,ni
 !x, y, z distances:
-     r_com(snapshoti,i,1)=ri(i,1)-com_dist(1)
-     r_com(snapshoti,i,2)=ri(i,2)-com_dist(2)
-     r_com(snapshoti,i,3)=ri(i,3)-com_dist(3)
-!Distance magnitude
-!2D (observer), xy plane:
-     r_com(snapshoti,i,4)=SQRT(r_com(snapshoti,i,1)**2 + &
-          &         r_com(snapshoti,i,2)**2)
-!yz plane:
-     r_com(snapshoti,i,5)=SQRT(r_com(snapshoti,i,2)**2 + &
-          &         r_com(snapshoti,i,3)**2)
-!xz plane:
-     r_com(snapshoti,i,6)=SQRT(r_com(snapshoti,i,1)**2 + &
-          &         r_com(snapshoti,i,3)**2)
-!3D:
-     r_com(snapshoti,i,7)=SQRT(r_com(snapshoti,i,1)**2 + &
-          &         r_com(snapshoti,i,2)**2 + r_com(snapshoti,i,3)**2)
-     
+     ri_com(snapshoti,i,1) = ri(i,1) - com_x
+     ri_com(snapshoti,i,2) = ri(i,2) - com_y
+     ri_com(snapshoti,i,3) = ri(i,3) - com_z
   END DO
 
 ! Deallocate arrays
   DEALLOCATE(mi)
   DEALLOCATE(ri)
+  DEALLOCATE(i_incluster)
+
 END SUBROUTINE c_of_m

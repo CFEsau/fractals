@@ -82,13 +82,15 @@
 ! Cluster parameters
 !====================
 ! totalmass = the total mass of the distribution
-! r_com = distance between each star and cluster centre of mass
+! com_cluster = the centre of mass of the cluster (x, y, z positions)
+! ri_com = distance between each star and cluster centre of mass
        DOUBLE PRECISION :: totalmass
-       double precision, dimension(:,:,:),allocatable :: r_com
+       double precision, dimension(:,:),allocatable :: com_cluster
+       double precision, dimension(:,:,:),allocatable :: ri_com
 ! r_halfmass = the half mass radius of the distribution
-       DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: r_halfmass
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: r_halfmass
 ! incluster = logical array, star has escaped cluster if F
-       logical, dimension(:,:,:), allocatable :: incluster
+       logical, dimension(:,:), allocatable :: incluster
 ! limittype = condition in which stars are in cluster.
 ! Currently either field of view (=FoV) or half-mass radius (=rhalf)
        CHARACTER*20 :: limittype
@@ -96,8 +98,13 @@
 ! rfac = the factor by which half-mass radius is multiplied by
 ! to establish the boundary of stars that are still in  the cluster
        integer :: FoV_lim, rfac
-!projection of cluster (2D axis/3D)
-       character*2 :: projection
+! save the final value of half-mass radius calculated from 
+! whole cluster for use in the rfac*rhalf cluster calculation
+       double precision, dimension(4) :: rhalf_all
+! projection of cluster (2D axis/3D)
+! projnum = integer representing projection type
+       character*2 :: proj
+       integer :: projnum
 
 !===============
 ! Calculations
@@ -114,7 +121,7 @@
 ! lambda_bar uses mean length of MST (basically same as lambda)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_bar, l_up_bar, l_low_bar
 ! lambda_tilde uses median length of MST
-       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_tilde, l_up_tilde, l_low_tilde
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_til, l_up_til, l_low_til
 ! lambda_star uses median length of MST,
 ! and adds this to the actual length of the MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_star, l_up_star, l_low_star
@@ -122,7 +129,9 @@
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: gamm, g_up, g_low
 
 ! nmst = number of stars in the minimum spanning tree
+! nloop = number of random MSTs calculated in loop
        integer :: nmst
+       INTEGER :: nloop
        double precision, dimension(:,:), allocatable :: obj_mass
 ! Time
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: time
@@ -134,7 +143,8 @@
 ! unit# = unit numbers for output files
        integer :: unit1, unit2
 ! outarg = destination directory (e.g. 'outputs')
-  CHARACTER*150 :: outarg
+! newpath = output path with cluster type appended (e.g. all, FoV)
+  CHARACTER*150 :: outarg, newpath
 
      END MODULE parameters_module
 !
