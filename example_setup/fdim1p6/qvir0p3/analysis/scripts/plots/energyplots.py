@@ -6,24 +6,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sys import argv
 
-#print len(argv)
 fbin, fdim_val, qvir_val = argv[1:4]
 
-#path = str(raw_input('input the path to the simulation directory: '))
 path = '../outputs'
-#print path
 
-#fdim_val = raw_input("fdim: ")
-#qvir_val = raw_input("qvir: ")
-#duration = float(input('input the duration of the simulation (Myr): '))
-duration = 10
+duration = 10. #Duration of simulation (Myr)
 
 
 for simname in os.listdir(path + '/'):
     if 'runinv' in simname:
 
         kval = simname.split("_")[1] #get k01, k02, etc
-        filename = path + '/' + simname + '/macro'
+        ctype = 'all'
+        filename = path + '/' + simname + '/energies.dat'
 
         macro = np.loadtxt(filename)
         nsnap =  macro[:,0]
@@ -59,7 +54,8 @@ for simname in os.listdir(path + '/'):
         plt.annotate(str(kval), xy=(0.99, -0.08),
                      xycoords='axes fraction', horizontalalignment='right',
                      verticalalignment='bottom', fontsize=10)
-        saveplot = path + '/' + kval + '_energies.pdf'
+
+        saveplot = path + '/plots/' + kval + '_' + ctype + '_E.pdf'
         plt.tight_layout()
         plt.savefig(saveplot, bbox_inches='tight')
         print "Graph saved at " + saveplot
