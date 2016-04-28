@@ -91,6 +91,7 @@ SUBROUTINE reduce_cluster(snapshoti,ni)
      END DO
 
 ! save final half-mass radius value for each projection:
+! (needed for reduce_rhalf)
      rhalf_all(projnum) = r_halfmass(snapnum)
 
 
@@ -99,7 +100,7 @@ SUBROUTINE reduce_cluster(snapshoti,ni)
 !
 ! Centre of mass and half-mass radius:
 ! output: i 2(xy yz xz) xyz
-     OPEN(3,file=TRIM(newPath)//'/distances_'//proj,status='new')
+     OPEN(3,file=TRIM(newPath)//'/distances_'//proj//'.dat',status='new')
      DO i=1,snapnum
         WRITE(3,30) i,com_cluster(i,1),com_cluster(i,2),com_cluster(i,3), &
              & r_halfmass(i)
@@ -139,7 +140,9 @@ SUBROUTINE reduce_cluster(snapshoti,ni)
 !*******************************************
 ! Write out energy data
 !
-  OPEN(4,file=TRIM(newPath)//'/energies',status='new')
+! Save in 'outarg' as this is the same for all cluster types
+! (don't need to call from FoV / rhalf cluster types)
+  OPEN(4,file=TRIM(outarg)//'/energies.dat',status='new')
   DO i=1,snapnum
      WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i)
   END DO

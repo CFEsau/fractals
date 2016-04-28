@@ -92,16 +92,13 @@ SUBROUTINE reduce_rhalf(snapshoti,ni)
 !!$     PRINT *, i, r_halfmass(i)
      END DO
 
-! save final half-mass radius value for each projection:
-     rhalf_all(projnum) = r_halfmass(snapnum)
-
 
 !*******************************************
 ! Write out distance data
 !
 ! Centre of mass and half-mass radius:
 ! output: i 2(xy yz xz) xyz
-     OPEN(3,file=TRIM(newPath)//'/distances_'//proj,status='new')
+     OPEN(3,file=TRIM(newPath)//'/distances_'//proj//'.dat',status='new')
      DO i=1,snapnum
         WRITE(3,30) i,com_cluster(i,1),com_cluster(i,2),com_cluster(i,3), &
              & r_halfmass(i)
@@ -126,27 +123,29 @@ SUBROUTINE reduce_rhalf(snapshoti,ni)
 !******************************************************************************!
 !
 ! Find total kinetic, gravitational potential and total energy.
+! (don't need if it's been called from 'reduce_cluster'
+! as all stars are used for this calculation)
 
-  WRITE(6,*)""
-  WRITE(6,*)"   Calculating cluster energy..."
+  !WRITE(6,*)""
+  !WRITE(6,*)"   Calculating cluster energy..."
 ! Loop over all snapshots
-  DO i=1, snapnum
-     CALL find_energy(i,nstars(i))
+  !DO i=1, snapnum
+  !   CALL find_energy(i,nstars(i))
 !!$     PRINT *, kinetic_energy(i),potential_energy(i),total_energy(i)
-  END DO
-  WRITE(6,*)"   ...done"
-  WRITE(6,*)""
+  !END DO
+  !WRITE(6,*)"   ...done"
+  !WRITE(6,*)""
 
 
 !*******************************************
 ! Write out energy data
 !
-  OPEN(4,file=TRIM(newPath)//'/energies',status='new')
-  DO i=1,snapnum
-     WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i)
-  END DO
-40 FORMAT(1X,I4,3(2X,E9.3))
-  CLOSE(4)
+  !OPEN(4,file=TRIM(newPath)//'/energies.dat',status='new')
+  !DO i=1,snapnum
+  !   WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i)
+  !END DO
+!40 FORMAT(1X,I4,3(2X,E9.3))
+  !CLOSE(4)
 
 
 END SUBROUTINE reduce_rhalf
