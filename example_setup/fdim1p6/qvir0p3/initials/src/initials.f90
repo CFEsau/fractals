@@ -139,8 +139,8 @@ PROGRAM initials
      i=0
      j=0
   
-     numsingle=INT((1.-fbinary)*DBLE(nsys))
-     numbinary=INT(2.*fbinary*DBLE(nsys))
+     numsingle=NINT((1.-fbinary)*DBLE(nsys))
+     numbinary=NINT(2.*fbinary*DBLE(nsys))
      nstars=numsingle+numbinary
   
      WRITE(2,*)'Binary fraction:',fbinary
