@@ -63,9 +63,20 @@ subroutine lambda_setup(snapshoti,ni)
   !open(51,file=trim(newPath)//'/objescaped_lam_'//proj//'.txt')
 !(only need this if you want to check distances of escaped object stars)
 
+
+!Record any stars that fall on top of each other &
+!need their separation changing for the mst
+  open(4,file=TRIM(newPath)//'/sep_obj.dat',position='append')
+  open(5,file=TRIM(newPath)//'/sep.dat',position='append')
+  write(4,*) "**** ",proj," ****"
+  write(5,*) "**** ",proj," ****"
+
   do i=1,snapnum
      call find_lambda_all(i,nstars(i))
   end do
+
+  close(4)
+  close(5)
 
   write(6,*)"       ...done"
 
@@ -85,7 +96,7 @@ subroutine lambda_setup(snapshoti,ni)
 !e.g. if calclambda; values=values + lambda(i) + lambdalow(i) + lambdaup(i);
 ! form = form + 2X,F8.3; end if
 
-150 FORMAT(1X,I4,12(2X,F8.3))
+150 FORMAT(1X,I4,12(2X,F9.3))
 
 !===========================================
   deallocate(obj_mass)

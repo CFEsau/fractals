@@ -71,6 +71,37 @@ PROGRAM reduce
 ! Make a directory for this simulation data
   CALL SYSTEM('mkdir -p '//TRIM(outarg))
 
+!
+!******************************************************************************!
+!
+! Write out data from snapshots. One file for each snapshot.
+!
+  CALL SYSTEM('mkdir -p '//TRIM(outarg)//'/snapshots')
+  DO i=1,snapnum
+     IF (i<10) THEN
+        WRITE(ofilen,'(i1)')i
+        outfile='snap'//'000'//ofilen
+     ELSE IF (i<100) THEN
+        WRITE(ofilen,'(i2)')i
+        outfile='snap'//'00'//ofilen
+     ELSE IF (i<1000) THEN
+        WRITE(ofilen,'(i3)')i
+        outfile='snap'//'0'//ofilen
+     ELSE
+        WRITE(ofilen,'(i4)')i
+        outfile='snap'//ofilen
+     END IF
+     OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='new')
+     DO j=1,nstars(i)
+        WRITE(4,104) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3)
+     END DO
+104  FORMAT (2(2X,I4),2X,F8.4,2X,F7.3,6(2X,F8.3))
+     CLOSE(4)
+  END DO
+!
+!
+!******************************************************************************!
+!
 ! Allocate arrays for calculations.
 
 ! logical array: is the star in the cluster
@@ -112,34 +143,6 @@ PROGRAM reduce
 
   rfac = 3
   CALL reduce_rhalf(i,nstars(i))
-
-!
-!******************************************************************************!
-!
-! Write out data from snapshots. One file for each snapshot.
-!
-  CALL SYSTEM('mkdir -p '//TRIM(outarg)//'/snapshots')
-  DO i=1,snapnum
-     IF (i<10) THEN
-        WRITE(ofilen,'(i1)')i
-        outfile='snap'//'000'//ofilen
-     ELSE IF (i<100) THEN
-        WRITE(ofilen,'(i2)')i
-        outfile='snap'//'00'//ofilen
-     ELSE IF (i<1000) THEN
-        WRITE(ofilen,'(i3)')i
-        outfile='snap'//'0'//ofilen
-     ELSE
-        WRITE(ofilen,'(i4)')i
-        outfile='snap'//ofilen
-     END IF
-     OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='new')
-     DO j=1,nstars(i)
-        WRITE(4,104) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3)
-     END DO
-104  FORMAT (2(2X,I4),2X,F8.4,2X,F7.3,6(2X,F8.3))
-     CLOSE(4)
-  END DO
 !
 !  
 !******************************************************************************!

@@ -1,12 +1,13 @@
 ! ======================================================================
 ! ======================================================================
 !
-   SUBROUTINE mst(n,x,y,z,node,length)
+   SUBROUTINE mst(n,x,y,z,node,length,snapi)
+     use parameters_module
 ! generates a minimum spanning tree
 ! if 2d one of the x,y,z arrays must be a zero array
    IMPLICIT NONE
 ! inputs
-   INTEGER, INTENT(in) :: n
+   INTEGER, INTENT(in) :: n,snapi
    double precision, INTENT(in) :: x(1:n),y(1:n),z(1:n)
 ! outputs
    INTEGER, INTENT(out) :: node(1:n-1,1:2) ! node connections
@@ -39,11 +40,19 @@
      DO j=i+1,n
        nlist=nlist + 1
        sep(nlist)=SQRT((x(i)-x(j))**2 + (y(i)-y(j))**2 + (z(i)-z(j))**2)
-if(sep(nlist)<=0.) then
-   write(6,*) 'balls'
-   write(6,*) i,x(i),y(i),j,x(j),y(j)
-stop
-end if
+
+!If two stars end up with same coordinates, introduce a tiny separation
+       if(sep(nlist)<=0.) then
+          write(6,*) 'Two object positions equal... writing info to sep.dat'
+          write(unit1,*) "Snapshot:",snapi
+          write(unit1,*) i,x(i),y(i),z(i)
+          write(unit1,*) j,x(j),y(j),z(j)
+          write(unit1,*) "Old separatation:",sep(nlist)
+          sep(nlist)=SQRT((x(i)-x(j))**2 + (y(i)-y(j))**2 + (z(i)-z(j))**2) + 1.e-10
+          write(unit1,*) "New separatation:",sep(nlist)
+          write(unit1,*) ""
+       end if
+
        list(nlist)=nlist
        idents(1,nlist)=i  !every sep gets an identity, idicating included 
        idents(2,nlist)=j  !particle (nodes?)

@@ -181,7 +181,9 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
   y(1:nmst)=obj_r(1:nmst,2)
   z(1:nmst)=obj_r(1:nmst,3)
 
-  CALL mst(nmst,x,y,z,node,length)
+!set unit for output to file
+  unit1=4
+  CALL mst(nmst,x,y,z,node,length,snapshoti)
 
 !Lambda MST:
   DO i = 1,nmst-1
@@ -251,6 +253,10 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
 
   ALLOCATE(rand_list(1:nloop))
 
+
+!set unit for output to file
+  unit1=5
+
   DO j = 1,nloop          !Do nloop random MSTs
      x = 0. ; y = 0. ; z = 0.
      done = .FALSE.          
@@ -267,7 +273,6 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
      END DO
 
      CALL mst(nmst,x,y,z,node,length)
-
 
 !Lambda MST:
      DO i = 1,nmst-1
