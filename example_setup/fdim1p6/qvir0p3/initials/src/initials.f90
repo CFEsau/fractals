@@ -189,7 +189,8 @@ PROGRAM initials
      END DO
 
 !check i=nstars and j=nsys
-     !PRINT *,nstars, i, nsys, j
+     !PRINT *,numsingle, numbinary, nstars, i, nsys, j
+     !stop
      IF(i/=nstars)STOP 'i is not equal to number of stars'
      IF(j/=nsys)STOP 'j is not equal to number of systems'
      

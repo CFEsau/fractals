@@ -155,7 +155,7 @@
        END DO
      END DO
 ! exit if enough particles
-     IF (nsmax>3.5*nstar) EXIT
+     IF (nsmax>10.*nstar) EXIT
 !     WRITE(6,*) 'done', delta, nsmax
    END DO
    WRITE(6,*) 'Made initial cubic distribution'
@@ -181,7 +181,10 @@
      IF (ndo==nsnow) EXIT
    END DO
    nsmax=ndo - 1
-   IF (nsmax<nstar) STOP 'ARSE!'
+   IF (nsmax<nstar) then
+      print*, nsmax,nstar
+      STOP 'ARSE!'
+   end if
 !
 ! we now have a fractal of nsmax stars
 ! need to randomly remove stars until we get nstar
