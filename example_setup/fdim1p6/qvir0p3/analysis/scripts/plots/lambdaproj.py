@@ -145,7 +145,10 @@ for simname in os.listdir(path + '/'):
                 my_dpi=96
                 #plt.figure(figsize=(11.7,8.3), dpi=my_dpi) # A4 sheet is 8.3 x 11.7 (portrait)
                 
-
+                #==================================================
+                #                   Make the plots!
+                #==================================================
+                #
                 #------------#
                 # Lambda bar #
                 #------------#
