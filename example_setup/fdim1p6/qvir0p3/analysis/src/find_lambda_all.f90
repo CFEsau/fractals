@@ -257,7 +257,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
 !set unit for output to file
   unit1=5
 
-  DO j = 1,nloop          !Do nloop random MSTs
+  DO j = 1,nloop          !Find nloop random MSTs
      x = 0. ; y = 0. ; z = 0.
      done = .FALSE.          
      DO i = 1,nmst        !Select nmst random stars

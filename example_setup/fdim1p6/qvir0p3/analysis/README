@@ -1,0 +1,34 @@
+Analysis code for cluster evolution calculated using Kira.
+
+User inputs location of simulation data (the runinv file)
+and desired location of outputs (e.g. ../outputs)
+
+Structure of outputs: runinv_k##/cluster_(type)/(text files)
+'type' is all, FoV, or rhalf.
+Text files:
+
+ distances_[proj].dat:
+      |	snapi |    c of m    |  half-mass radius |
+      |	      | xy | yz | xz |        (3D)       |
+      	        |    |    |             |
+      	        |    |    |             |
+                V    V    V             V
+  All 3 dimensions are used for these data. The 'proj' part
+  of the filename states which projection is used when defining
+  the cluster, e.g. if star 1 has coordinates (1, 2, 6) pc and
+  the cluster is defined as all stars within a 5 pc Fov then
+  this will be included in data for the distances_xy file but
+  not _yz or _xz data.
+
+ escaped_[proj].dat:
+      Gives cumulative # of stars escaped in each snapshot.
+      | star ID | distance magnitude | star mass
+
+ lambda_[proj].dat
+      | snapi | Lambda bar | + | - | Lambda tilde | + | - |
+      | Lambda * | + | - | Lambda tilde | + | - | Gamma | + | - |
+
+ objm_[proj].dat
+      Masses of the nmst object stars for each snapshot.
+      Data is written out when these values change,
+      i.e. for snapshots when an object star has been ejected.

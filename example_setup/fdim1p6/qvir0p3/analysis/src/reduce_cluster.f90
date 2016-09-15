@@ -53,7 +53,7 @@ SUBROUTINE reduce_cluster(snapshoti,ni)
      incluster = .TRUE.
 !
 !Don't need to call this here as all stars included
-!     open(10,file=trim(newPath)//'/escaped'//proj//'.txt')
+!     open(10,file=trim(newPath)//'/escaped_'//proj//'.dat')
 !
 !     do i=1,snapnum
 !       call in_cluster(i,nstars(i))

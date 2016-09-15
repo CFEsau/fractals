@@ -59,8 +59,8 @@ subroutine lambda_setup(snapshoti,ni)
   g_up=0.
   g_low=0.
 
-  open(50,file=trim(newPath)//'/objm_lam_'//proj//'.txt')
-  !open(51,file=trim(newPath)//'/objescaped_lam_'//proj//'.txt')
+  open(50,file=trim(newPath)//'/objm_'//proj//'.dat')
+  !open(51,file=trim(newPath)//'/objescaped_'//proj//'.dat')
 !(only need this if you want to check distances of escaped object stars)
 
 

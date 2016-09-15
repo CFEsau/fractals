@@ -17,7 +17,7 @@ SUBROUTINE reduce_rhalf(snapshoti,ni)
   newDir = 'cluster_r'//TRIM(rfac_char)//'rhalf'
   newPath = TRIM(outarg)//'/'//TRIM(newDir)
 
-  INQUIRE(file=TRIM(newPath)//'./', exist = dirExists)
+  INQUIRE(file = TRIM(newPath)//'./', exist = dirExists)
 !(Works for gfortran. For ifort: ...directory=newDir,exist...)
 
   IF (.NOT. dirExists) THEN
@@ -55,7 +55,7 @@ SUBROUTINE reduce_rhalf(snapshoti,ni)
 !
      incluster = .TRUE.
 
-     OPEN(10,file=TRIM(newPath)//'/escaped'//proj//'.txt')
+     OPEN(10,file=TRIM(newPath)//'/escaped_'//proj//'.dat')
 
      DO i=1,snapnum
         CALL in_cluster(i,nstars(i))
@@ -96,7 +96,7 @@ SUBROUTINE reduce_rhalf(snapshoti,ni)
 !*******************************************
 ! Write out distance data
 !
-! Centre of mass and half-mass radius:
+! Centre of mass and half-mass radius for each snapshot:
 ! output: i 2(xy yz xz) xyz
      OPEN(3,file=TRIM(newPath)//'/distances_'//proj//'.dat',status='new')
      DO i=1,snapnum
