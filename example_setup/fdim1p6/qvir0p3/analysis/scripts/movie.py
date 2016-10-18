@@ -37,7 +37,7 @@ def generate_snapshot(ifname,snapname,projection,qvir,fdim,kval,xy_box,z_box):
 	numbers=[]
 	nstars=0
 	n_list=int(10)
-	# This defines the nth largest sample
+	# This defines the sample size
 	x_cluster=[]
 	y_cluster=[]
 	z_cluster=[]
@@ -131,6 +131,7 @@ def generate_snapshot(ifname,snapname,projection,qvir,fdim,kval,xy_box,z_box):
 	del(mass_srt_by_m)
 	del(mass_selected)
         return snapname
+#end of generate_snapshot
 
 
 arglist = sys.argv
@@ -142,6 +143,8 @@ if(len(arglist) < 2):
 else:
 
 	sim = str(arglist[1])
+        
+#print 'sim:',sim
 
 kval = sim.split("_")[1] #get k01, k02, etc
 #Size of plot in pc:
@@ -215,7 +218,13 @@ if ncores!=-1:
 	   print snapname[ix]
 	   #print "Snapshot", ifname[ix], "is", job()
 
-os.system('avconv -y -r 24 -i ' + sim + '/snapshots/snap%04d.' + projection + '_' + str(xy_box) + 'pc.png -s 1024x800 ' + sim + '/' + projection + '_' + str(kval) + '_' + str(xy_box) + 'pc.mp4')
+
+#Make video from snapshot images:
+#Check to see whether 'movies' directory exists
+parentdir = sim.split("/run")[0] #e.g. '../outputs/runinv_k01', gives 'outputs'
+os.system('mkdir -p '+parentdir+'/movies')
+
+os.system('avconv -y -r 24 -i ' + sim + '/snapshots/snap%04d.' + projection + '_' + str(xy_box) + 'pc.png -s 1024x800 ' + parentdir + '/movies/' + projection + '_' + str(kval) + '_' + str(xy_box) + 'pc.mp4')
 
 #Remove png files:
 #for fn in os.listdir(sim + '/snapshots/'):
