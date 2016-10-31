@@ -10,7 +10,7 @@
 !This algorithm is presented in Allison et al, 2009, MNRAS, 395, 1449
 !
 
-SUBROUTINE find_lambda_all(snapshoti,ni)
+SUBROUTINE find_lambda_all(snapi,ni)
   USE parameters_module
 
   IMPLICIT NONE
@@ -18,7 +18,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
 !-----------
 ! star data
 !-----------
-  INTEGER, INTENT(in) :: snapshoti, ni !Snapshot number and star number
+  INTEGER, INTENT(in) :: snapi, ni !Snapshot number and star number
 ! mi = mass of star i
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi
 ! ri = position of star i
@@ -52,7 +52,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: rand_mst_til, rand_mst_star
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: rand_mst_gam
 
-  INTEGER, DIMENSION(:), ALLOCATABLE :: rand_list !IDs of rand_mst list
+  INTEGER, DIMENSION(:), ALLOCATABLE :: rand_list !IDs of _randmst list
 
 ! done = record which stars have been randomly selected
   LOGICAL, DIMENSION(:), ALLOCATABLE :: done
@@ -76,9 +76,9 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
   ALLOCATE(obj_r(1:nmst,1:3))
 
 ! And fill arrays 
-  mi(1:ni)=m(snapshoti,1:ni)
-  ri(1:ni,1:3)=r(snapshoti,1:ni,1:3)
-  ti=t(snapshoti,1)
+  mi(1:ni)=m(snapi,1:ni)
+  ri(1:ni,1:3)=r(snapi,1:ni,1:3)
+  ti=t(snapi,1)
 
 !====================================
 !For when outliers are being ignored
@@ -87,15 +87,15 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
   ALLOCATE(i_incluster(1:ni))
 ! first entry of obj_mass stores IDs of original most massive stars,
 ! second stores new most-massive stars
-  IF (snapshoti==1) obj_mass(1,1:nmst)=0
+  IF (snapi==1) obj_mass(1,1:nmst)=0
 !=====================================
 
 !Find distance of each star from centre of mass:
   DO i = 1, ni
 
-     ri_x = ri_com(snapshoti,i,1)
-     ri_y = ri_com(snapshoti,i,2)
-     ri_z = ri_com(snapshoti,i,3)
+     ri_x = ri_com(snapi,i,1)
+     ri_y = ri_com(snapi,i,2)
+     ri_z = ri_com(snapi,i,3)
 
      IF (proj=='xy') THEN
         ri(i,3) = 0.
@@ -110,7 +110,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
         rmag(i) = SQRT(ri_x**2 + ri_y**2 + ri_z**2)
      END IF
 
-     i_incluster(i) = incluster(snapshoti,i)
+     i_incluster(i) = incluster(snapi,i)
   END DO
 
 
@@ -139,7 +139,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
 
      IF (.NOT. i_incluster(k)) THEN
         !WRITE(51,'(1X,I4,1X,I5,1X,I5,1X,F7.3,1X,F8.3,1X,A1)') &
-             !& snapshoti, i, k, mi(k), rmag(k), i_incluster(k)
+             !& snapi, i, k, mi(k), rmag(k), i_incluster(k)
 
 ! if star has escaped cluster, leave it out of the list
         GOTO 5 !don't use 'cycle' as we don't want i to inrease
@@ -157,7 +157,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
 ! when IDs of most massive stars change
   DO i=1, nmst
      IF(obj_mass(1,i) /= obj_mass(2,i)) THEN
-        WRITE(50,99) snapshoti, ti, obj_mass(2,1:nmst)
+        WRITE(50,99) snapi, ti, obj_mass(2,1:nmst)
         EXIT
      END IF
   END DO
@@ -165,36 +165,32 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
 
   obj_mass(1,1:nmst)=obj_mass(2,1:nmst)
 
+!
 !======================================================================
 !Find the MST length for the OBJECT stars
 !======================================================================
 !
+
   length = 0.
-  obj_mst = 0.
-  obj_mst_bar = 0.
-  obj_mst_til = 0.
-  obj_mst_star = 0.
-  obj_mst_gam = 0.
 
 !Split obj_r across x,y,z arrays. Just helps readability in mst subroutine.
   x(1:nmst)=obj_r(1:nmst,1)
   y(1:nmst)=obj_r(1:nmst,2)
   z(1:nmst)=obj_r(1:nmst,3)
 
-!set unit for output to file
-  unit1=4
-  CALL mst(nmst,x,y,z,node,length,snapshoti)
+  CALL mst(nmst,x,y,z,node,length)
 
 !Lambda MST:
   DO i = 1,nmst-1
-     obj_mst = obj_mst + length(i)  !Add the edges of the mst to find 
+     lam_objmst(snapi) = lam_objmst(snapi) + length(i)  !Add the edges of the mst to find 
   END DO                            !the total length
 
 !Lambda bar MST:
   DO i = 1,nmst-1
-     obj_mst_bar = obj_mst_bar + length(i)  !Add the edges then find mean
+     lbar_objmst(snapi) = lbar_objmst(snapi) + length(i)  !Add the edges then find mean
   END DO
-  obj_mst_bar = obj_mst_bar/(nmst-1)
+!Use the mean of the MST:
+  lbar_objmst(snapi) = lbar_objmst(snapi)/(nmst-1)
 
 
 !Lambda tilde MST:
@@ -203,7 +199,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
      length_list(i) = i
   END DO
   CALL heapsort(nmst-1, length, length_list)
-  obj_mst_til = length(length_list( NINT(REAL(nmst-1)/2.) ) )
+  ltil_objmst(snapi) = length(length_list( NINT(REAL(nmst-1)/2.) ) )
 
 
 !Lambda star MST:
@@ -213,19 +209,19 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
   END DO
   CALL heapsort(nmst-1, length, length_list)
 ! Find the median length in the tree, & find length of a tree made from these
-  obj_mst_star = length(length_list( NINT(REAL(nmst-1)/2.) ) )
+  lstar_objmst(snapi) = length(length_list( NINT(REAL(nmst-1)/2.) ) )
 ! Then add on the actual length of the tree
   DO i = 1, nmst-1
-     obj_mst_star = obj_mst_star + length(i)  !Add the edges of the mst to
+     lstar_objmst(snapi) = lstar_objmst(snapi) + length(i)  !Add the edges of the mst to
   END DO                      !find the total length
 
 
 !Gamma MST:
   DO i = 1,nmst-1
-     obj_mst_gam = obj_mst_gam + LOG(length(i))  !Add the edges of the mst to
+     gam_objmst(snapi) = gam_objmst(snapi) + LOG(length(i))  !Add the edges of the mst to
   END DO                                 !find the total length
 !Calculate the geometric mean
-  obj_mst_gam = EXP( (1./REAL(nmst-1)) * obj_mst_gam)
+  gam_objmst(snapi) = EXP( (1./REAL(nmst-1)) * gam_objmst(snapi))
 
 
 !======================================================================
@@ -257,7 +253,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
 !set unit for output to file
   unit1=5
 
-  DO j = 1,nloop          !Find nloop random MSTs
+  DO j = 1,nloop          !Do nloop random MSTs
      x = 0. ; y = 0. ; z = 0.
      done = .FALSE.          
      DO i = 1,nmst        !Select nmst random stars
@@ -273,6 +269,7 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
      END DO
 
      CALL mst(nmst,x,y,z,node,length)
+
 
 !Lambda MST:
      DO i = 1,nmst-1
@@ -329,28 +326,28 @@ SUBROUTINE find_lambda_all(snapshoti,ni)
 
 
 !Calculate lambda:
-  CALL calc_lambda(obj_mst,rand_mst,lambda(snapshoti), &
-       & l_low(snapshoti),l_up(snapshoti))
+  CALL calc_lambda(lam_objmst(snapi),rand_mst,lambda(snapi), &
+       & l_low(snapi),l_up(snapi),lam_avranmst(snapi))
 
 
 !Calculate lambda bar:
-  CALL calc_lambda(obj_mst_bar,rand_mst_bar,lambda_bar(snapshoti), &
-       & l_low_bar(snapshoti),l_up_bar(snapshoti))
+  CALL calc_lambda(lbar_objmst(snapi),rand_mst_bar,lambda_bar(snapi), &
+       & l_low_bar(snapi),l_up_bar(snapi),lbar_avranmst(snapi))
 
 
 !Calculate lambda tilde:
-  CALL calc_lambda(obj_mst_til,rand_mst_til,lambda_til(snapshoti), &
-       & l_low_til(snapshoti),l_up_til(snapshoti))
+  CALL calc_lambda(ltil_objmst(snapi),rand_mst_til,lambda_til(snapi), &
+       & l_low_til(snapi),l_up_til(snapi),ltil_avranmst(snapi))
 
 
 !Calculate lambda star:
-  CALL calc_lambda(obj_mst_star,rand_mst_star,lambda_star(snapshoti), &
-       & l_low_star(snapshoti),l_up_star(snapshoti))
+  CALL calc_lambda(lstar_objmst(snapi),rand_mst_star,lambda_star(snapi), &
+       & l_low_star(snapi),l_up_star(snapi),lstar_avranmst(snapi))
 
 
 !Calculate gamma:
-  CALL calc_lambda(obj_mst_gam,rand_mst_gam,gamm(snapshoti), &
-       & g_low(snapshoti),g_up(snapshoti))
+  CALL calc_lambda(gam_objmst(snapi),rand_mst_gam,gamm(snapi), &
+       & g_low(snapi),g_up(snapi),gam_avranmst(snapi))
 
 
 !Deallocate arrays:

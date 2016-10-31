@@ -1,10 +1,10 @@
-SUBROUTINE reduce_rhalf(snapshoti,ni)
+SUBROUTINE reduce_rhalf(ni)
 
   USE sl_input_module
   USE constants_module
   USE parameters_module
   IMPLICIT NONE
-  INTEGER, INTENT(IN) :: snapshoti,ni
+  INTEGER, INTENT(IN) :: ni
   LOGICAL :: dirExists
   CHARACTER(len=100) :: newDir, rfac_char
   INTEGER :: i,j

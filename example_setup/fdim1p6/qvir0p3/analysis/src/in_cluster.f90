@@ -1,6 +1,6 @@
 !If certain stars are to be ignored then make a new array
 !of stars in each snapshot where nstars = n_in_cluster
-SUBROUTINE in_cluster(snapshoti,ni)
+SUBROUTINE in_cluster(snapi,ni)
   
   USE sl_input_module
   USE parameters_module
@@ -8,7 +8,7 @@ SUBROUTINE in_cluster(snapshoti,ni)
 
   IMPLICIT NONE
 
-  INTEGER, INTENT(IN) :: snapshoti,ni
+  INTEGER, INTENT(IN) :: snapi,ni
 ! n_escaped = number of escaped stars in given snapshot & projection
   INTEGER :: n_escaped
 ! ri_x, ri_y, ri_z = distance in x, y, z of star i from c of m
@@ -25,13 +25,13 @@ SUBROUTINE in_cluster(snapshoti,ni)
   ALLOCATE(rmag(1:ni))
   ALLOCATE(mi(1:ni))
 
-  mi(1:ni)=m(snapshoti,1:ni)
+  mi(1:ni)=m(snapi,1:ni)
 ! Populate distance magnitude arrays in observer planes & 3D
 ! between each star and centre of mass
   do i = 1, ni
-     ri_x = ri_com(snapshoti,i,1)
-     ri_y = ri_com(snapshoti,i,2)
-     ri_z = ri_com(snapshoti,i,3)
+     ri_x = ri_com(snapi,i,1)
+     ri_y = ri_com(snapi,i,2)
+     ri_z = ri_com(snapi,i,3)
      if (proj=='xy') then
         rmag(i) = sqrt(ri_x**2 + ri_y**2)
      else if (proj=='yz') then
@@ -55,9 +55,11 @@ SUBROUTINE in_cluster(snapshoti,ni)
 
 ! if rmag is greater than FoV_lim, it has left the cluster
      IF (limittype=='FoV' .and. rmag(i) > FoV_lim) THEN
-        incluster(snapshoti,i) = .FALSE.
+        incluster(snapi,i) = .FALSE.
         n_proj = n_proj - 1
      END IF
+! This only sets star to F in current snapshot. Initially all T so
+! if it re-enters, it should be kept as T in following snapshot.
 
 
 !=================
@@ -67,10 +69,12 @@ SUBROUTINE in_cluster(snapshoti,ni)
 ! if rmag is greater than rfac*r_halfmass, it has left the cluster
      IF (limittype=='rhalf' .and. &
           & rmag(i) > rfac*rhalf_all(projnum)) THEN
-        incluster(snapshoti,i) = .FALSE.
+        incluster(snapi,i) = .FALSE.
         n_proj = n_proj - 1
      END IF
   END DO
+! This only sets star to F in current snapshot. Initially all T so
+! if it re-enters, it should be kept as T in following snapshot.
 
 
 ! ***********
@@ -81,19 +85,21 @@ SUBROUTINE in_cluster(snapshoti,ni)
 
 ! Set an unphysical value for n_escaped in 1st snapshot
 ! so we are guaranteed to get a writeout:
-  IF (snapshoti==1) THEN
+  IF (snapi==1) THEN
      n_escaped=-1
   END IF
+! (This is actually physical if a star re-enters,
+! but this won't happen in 1st snapshot)
 
 
 ! if new stars escaped, write snapshot number
   IF (ni - n_proj /= n_escaped) THEN
      WRITE(10,'(2X,"Snapshot",I4,":",1X,I4,1X,"stars escaped")') &
-          & snapshoti, ni-n_proj
+          & snapi, ni-n_proj
 
      DO i=1,ni
 ! if star isn't in cluster, write distance magnitude & star mass
-        IF (.NOT. incluster(snapshoti,i)) WRITE(10,80) i, rmag(i), mi(i)
+        IF (.NOT. incluster(snapi,i)) WRITE(10,80) i, rmag(i), mi(i)
      END DO
 
      IF (limittype=='rhalf') THEN
@@ -102,7 +108,7 @@ SUBROUTINE in_cluster(snapshoti,ni)
 
 ! write number of stars escaped:
      n_escaped = ni - n_proj
-! For some reason need this in or the above 'if' is ignored...
+! For some reason need this in, otherwise the above 'if' is ignored...
      WRITE(10,'(30X,I4,1X,I4)') ni-n_proj, n_escaped
      WRITE(10,*)""
   END IF

@@ -1,13 +1,13 @@
 ! ======================================================================
 ! ======================================================================
 !
-   SUBROUTINE mst(n,x,y,z,node,length,snapi)
+   SUBROUTINE mst(n,x,y,z,node,length)
      use parameters_module
 ! generates a minimum spanning tree
 ! if 2d one of the x,y,z arrays must be a zero array
    IMPLICIT NONE
 ! inputs
-   INTEGER, INTENT(in) :: n,snapi
+   INTEGER, INTENT(in) :: n
    double precision, INTENT(in) :: x(1:n),y(1:n),z(1:n)
 ! outputs
    INTEGER, INTENT(out) :: node(1:n-1,1:2) ! node connections
@@ -54,7 +54,7 @@
        end if
 
        list(nlist)=nlist
-       idents(1,nlist)=i  !every sep gets an identity, idicating included 
+       idents(1,nlist)=i  !every sep gets an identity, indicating included 
        idents(2,nlist)=j  !particle (nodes?)
      END DO
    END DO

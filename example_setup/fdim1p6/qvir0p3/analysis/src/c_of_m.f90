@@ -1,12 +1,13 @@
 
-SUBROUTINE c_of_m(snapshoti,ni)
+SUBROUTINE c_of_m(snapi,ni)
   USE parameters_module
   IMPLICIT NONE
-  INTEGER, INTENT(IN) :: snapshoti,ni
-! mi,ri,vi = mass, position and velocity of stars
+  INTEGER, INTENT(IN) :: snapi,ni
+! mi,ri = mass & position of stars
+! (just m & r in 2D array, without snapi)
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi
   DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri
-! com x, y, z positions
+! com x, y, z positions of cluster after ejections
   DOUBLE PRECISION :: com_x,com_y,com_z
   INTEGER :: i
   LOGICAL, DIMENSION(:), ALLOCATABLE :: i_incluster
@@ -17,9 +18,9 @@ SUBROUTINE c_of_m(snapshoti,ni)
   ALLOCATE(i_incluster(1:ni))
 
 ! Initialise variables
-  mi(1:ni)=m(snapshoti,1:ni)
-  ri(1:ni,1:3)=r(snapshoti,1:ni,1:3)
-  i_incluster(1:ni)=incluster(snapshoti,1:ni)
+  mi(1:ni)=m(snapi,1:ni)
+  ri(1:ni,1:3)=r(snapi,1:ni,1:3)
+  i_incluster(1:ni)=incluster(snapi,1:ni)
   totalmass=0.
   com_x=0.
   com_y=0.
@@ -42,16 +43,16 @@ SUBROUTINE c_of_m(snapshoti,ni)
   com_y = com_y / totalmass
   com_z = com_z / totalmass
 
-  com_cluster(snapshoti,1) = com_x
-  com_cluster(snapshoti,2) = com_y
-  com_cluster(snapshoti,3) = com_z
+  com_cluster(snapi,1) = com_x
+  com_cluster(snapi,2) = com_y
+  com_cluster(snapi,3) = com_z
 
 !Then find the distance between each star and the com of the cluster
   DO i=1,ni
 !x, y, z distances:
-     ri_com(snapshoti,i,1) = ri(i,1) - com_x
-     ri_com(snapshoti,i,2) = ri(i,2) - com_y
-     ri_com(snapshoti,i,3) = ri(i,3) - com_z
+     ri_com(snapi,i,1) = ri(i,1) - com_x
+     ri_com(snapi,i,2) = ri(i,2) - com_y
+     ri_com(snapi,i,3) = ri(i,3) - com_z
   END DO
 
 ! Deallocate arrays

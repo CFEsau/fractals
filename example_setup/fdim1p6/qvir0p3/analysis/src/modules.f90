@@ -118,15 +118,20 @@
 !============== Lambda ===============
 ! lambda = measure of mass segregation & errors
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda, l_up, l_low
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lam_avranmst, lam_objmst
 ! lambda_bar uses mean length of MST (basically same as lambda)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_bar, l_up_bar, l_low_bar
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lbar_avranmst, lbar_objmst
 ! lambda_tilde uses median length of MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_til, l_up_til, l_low_til
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: ltil_avranmst, ltil_objmst
 ! lambda_star uses median length of MST,
 ! and adds this to the actual length of the MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_star, l_up_star, l_low_star
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lstar_avranmst, lstar_objmst
 ! gamma uses the geometric mean
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: gamm, g_up, g_low
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: gam_avranmst, gam_objmst
 
 ! nmst = number of stars in the minimum spanning tree
 ! nloop = number of random MSTs calculated in loop

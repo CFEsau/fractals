@@ -1,10 +1,10 @@
-SUBROUTINE reduce_cluster(snapshoti,ni)
+SUBROUTINE reduce_cluster(ni)
 
   USE sl_input_module
   USE constants_module
   USE parameters_module
   IMPLICIT NONE
-  INTEGER, INTENT(IN) :: snapshoti,ni
+  INTEGER, INTENT(IN) :: ni
   LOGICAL :: dirExists
   CHARACTER(len=100) :: newDir
   INTEGER :: i,j

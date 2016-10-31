@@ -1,4 +1,4 @@
-SUBROUTINE calc_lambda(obj_mst,rand_mst,lam_val,minus,plus)
+SUBROUTINE calc_lambda(obj_mst,rand_mst,lam_val,minus,plus,avranmst)
 ! A subroutine to calculate final lambda values; various different 
 ! measures of lambda (e.g. lambda bar, lambda tilde) can be passed 
 ! in to save the need for repeating this chunk of code every time 
@@ -10,9 +10,9 @@ SUBROUTINE calc_lambda(obj_mst,rand_mst,lam_val,minus,plus)
   DOUBLE PRECISION, intent(in) :: obj_mst
   DOUBLE PRECISION, dimension(1:nloop), intent(in) :: rand_mst
   double precision, intent(out) :: lam_val,minus,plus
+  double precision, intent(out) :: avranmst !Average length of random trees
   integer :: i
   INTEGER, DIMENSION(1:nloop) :: listID !IDs of rand_mst list
-  REAL :: avranmst !Average length of random trees
   REAL :: ranup, ranlow !Upper & lower boundaries, 1 sigma
 
   do i = 1,nloop
