@@ -36,8 +36,8 @@ def generate_snapshot(ifname,snapname,projection,qvir,fdim,kval,xy_box,z_box):
 	m=[]
 	numbers=[]
 	nstars=0
-	n_list=int(10)
-	# This defines the sample size
+        
+	n_list=int(10) # This defines the number of stars in the sample
 	x_cluster=[]
 	y_cluster=[]
 	z_cluster=[]
@@ -57,10 +57,14 @@ def generate_snapshot(ifname,snapname,projection,qvir,fdim,kval,xy_box,z_box):
 
 		nstars+=1
 
-	time=numbers[0][2] #time of snapshot is 1st row (any will do), 2nd col
+	time=numbers[0][2] #time of snapshot is 1st row (any will do), 3rd col
 	#print time
 	mass_srt_by_m = sorted(m_cluster)
 	mass_selected = mass_srt_by_m[-n_list:]
+        #We've got all the position & mass data for this snapshot.
+        #We can use this to calculate the centre of mass.
+        #Then we can calculate the distance of the most massive objects
+        #from the centre of mass, and ignore them if they're beyond.
 
 	#print "SORTED", np.where(m_cluster>=mass_selected[0])
 
@@ -131,8 +135,12 @@ def generate_snapshot(ifname,snapname,projection,qvir,fdim,kval,xy_box,z_box):
 	del(mass_srt_by_m)
 	del(mass_selected)
         return snapname
-#end of generate_snapshot
 
+#------------------------------------
+#
+#    End of generate_snapshot
+#
+#------------------------------------
 
 arglist = sys.argv
 sim = ''
@@ -143,7 +151,7 @@ if(len(arglist) < 2):
 else:
 
 	sim = str(arglist[1])
-        
+
 #print 'sim:',sim
 
 kval = sim.split("_")[1] #get k01, k02, etc
@@ -225,6 +233,7 @@ parentdir = sim.split("/run")[0] #e.g. '../outputs/runinv_k01', gives 'outputs'
 os.system('mkdir -p '+parentdir+'/movies')
 
 os.system('avconv -y -r 24 -i ' + sim + '/snapshots/snap%04d.' + projection + '_' + str(xy_box) + 'pc.png -s 1024x800 ' + parentdir + '/movies/' + projection + '_' + str(kval) + '_' + str(xy_box) + 'pc.mp4')
+
 
 #Remove png files:
 #for fn in os.listdir(sim + '/snapshots/'):
