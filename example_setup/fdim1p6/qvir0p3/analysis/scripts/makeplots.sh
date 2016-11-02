@@ -42,7 +42,6 @@ echo "-- Energy --"
 echo "------------"
 
 if [ "$skip" = "n" ]; then
-
     python plots/energyplots.py ${fbin} ${fdim} ${qvir}
 
     param=E
@@ -53,13 +52,13 @@ else
     echo "   Skipping plots"
 fi
 
+
 echo ""
 echo "------------------"
 echo "-- Virial Ratio --"
 echo "------------------"
 
 if [ "$skip" = "n" ]; then
-
     python plots/virialplots.py ${fbin} ${fdim} ${qvir}
 
     param=Qvir
@@ -178,11 +177,11 @@ if [ "$skip" = "n" ]; then
     plots/energy_comparek.py ${fbin} ${fdim} ${qvir}
     echo ""
     sleep 0.6
-
+    
     plots/virial_comparek.py ${fbin} ${fdim} ${qvir}
     echo ""
     sleep 0.6
-
+    
     plots/lagrange_comparek.py ${fbin} ${fdim} ${qvir}
     echo ""
     sleep 0.6

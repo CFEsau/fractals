@@ -28,7 +28,7 @@ for simname in os.listdir(path + '/'):
             if 'cluster_' in clustype:
 
                 kval = simname.split("_")[1] #get k01, k02, etc
-                filename = path + '/' + simname + '/' + clustype + '/lambda_xy'
+                filename = path + '/' + simname + '/' + clustype + '/lambda_xy.dat'
                 lambd = np.loadtxt(filename)
                 nsnap =  lambd[:,0]
                 time = (nsnap/nsnap[-1])*duration

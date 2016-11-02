@@ -22,10 +22,10 @@ for simname in os.listdir(path + '/'):
 
                 kval = simname.split("_")[1] #get k01, k02, etc
 
-                filenamexy = path + '/' + simname + '/' + clustype + '/lambda_xy'
-                filenameyz = path + '/' + simname + '/' + clustype + '/lambda_yz'
-                filenamexz = path + '/' + simname + '/' + clustype + '/lambda_xz'
-                filename3D = path + '/' + simname + '/' + clustype + '/lambda_3D'
+                filenamexy = path + '/' + simname + '/' + clustype + '/lambda_xy.dat'
+                filenameyz = path + '/' + simname + '/' + clustype + '/lambda_yz.dat'
+                filenamexz = path + '/' + simname + '/' + clustype + '/lambda_xz.dat'
+                filename3D = path + '/' + simname + '/' + clustype + '/lambda_3D.dat'
 
                 clusterstring = clustype.split("_")[1]
 

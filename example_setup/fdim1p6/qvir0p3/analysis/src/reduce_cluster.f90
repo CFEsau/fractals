@@ -51,18 +51,7 @@ SUBROUTINE reduce_cluster(ni)
 ! Initially all stars are in the cluster; none have escaped
 !
      incluster = .TRUE.
-!
-!Don't need to call this here as all stars included
-!     open(10,file=trim(newPath)//'/escaped_'//proj//'.dat')
-!
-!     do i=1,snapnum
-!       call in_cluster(i,nstars(i))
-!     end do
-!
-!     close(10)
 
-!
-!******************************************************************************!
 !
 ! Find centre of mass of cluster.
      com_cluster=0.
@@ -76,6 +65,28 @@ SUBROUTINE reduce_cluster(ni)
      DO i=1, snapnum
         CALL c_of_m(i,nstars(i))
      END DO
+
+
+!Don't need to call this here as all stars included
+!     open(10,file=trim(newPath)//'/escaped_'//proj//'.dat')
+!
+!     do i=1,snapnum
+!       call in_cluster(i,nstars(i))
+!     end do
+!
+!     close(10)
+
+!
+!******************************************************************************!
+!
+! Find new centre of mass of cluster after ejections.
+
+! Loop over all snapshots
+! Calculate com in each case and populate the array
+!     WRITE(6,*)"       Calculating new centre of mass..."
+!     DO i=1, snapnum
+!        CALL c_of_m(i,nstars(i))
+!     END DO
 
 !******************************************************************************!
 !
@@ -92,15 +103,16 @@ SUBROUTINE reduce_cluster(ni)
 
 ! save final half-mass radius value for each projection:
 ! (needed for reduce_rhalf)
-     rhalf_all(projnum) = r_halfmass(snapnum)
+!     rhalf_all(projnum) = r_halfmass(snapnum)
+! (I've now moved this to the reduce_rhalf script)
 
 
 !*******************************************
 ! Write out distance data
 !
 ! Centre of mass and half-mass radius:
-! output: i 2(xy yz xz) xyz
-     OPEN(3,file=TRIM(newPath)//'/distances_'//proj//'.dat',status='new')
+! output: i com_x com_y com_z r1/2
+     OPEN(3,file=TRIM(newPath)//'/c_of_m_'//proj//'.dat',status='new')
      DO i=1,snapnum
         WRITE(3,30) i,com_cluster(i,1),com_cluster(i,2),com_cluster(i,3), &
              & r_halfmass(i)
@@ -116,7 +128,7 @@ SUBROUTINE reduce_cluster(ni)
 
 ! All lambda in all planes with all stars in cluster:
 
-     CALL lambda_setup(i,nstars(i))
+     CALL lambda_setup
 
   END DO
 ! End of 'projection' loop

@@ -23,7 +23,7 @@ for simname in os.listdir(path + '/'):
 
                 ctype = clustype.split("_")[1] #get all, FoV, etc
                 filename = (path + '/' + simname + '/' + clustype + 
-                            '/distances_3D.dat')
+                            '/c_of_m_3D.dat')
 
                 macro = np.loadtxt(filename)
                 nsnap =  macro[:,0]

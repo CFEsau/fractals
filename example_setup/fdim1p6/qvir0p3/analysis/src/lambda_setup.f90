@@ -1,10 +1,9 @@
-subroutine lambda_setup(snapshoti,ni)
+subroutine lambda_setup
 
   USE sl_input_module
   use constants_module
   use parameters_module
   implicit none
-  INTEGER, INTENT(IN) :: snapshoti,ni
   integer :: i,j
 
 !
@@ -12,6 +11,9 @@ subroutine lambda_setup(snapshoti,ni)
 ! Mass segregation
 !*************************************************!
 !
+! Lengths of the edges of object stars:
+  ALLOCATE(edgelengths(1:nmst-1))
+
 ! Find the degree of mass segregation (lambda).
 
   ALLOCATE(lambda(1:snapnum))
@@ -82,6 +84,7 @@ subroutine lambda_setup(snapshoti,ni)
   open(50,file=trim(newPath)//'/obj_m_'//proj//'.dat')
   !open(51,file=trim(newPath)//'/objescaped_lam_'//proj//'.dat')
 !(only need this if you want to check distances of escaped object stars)
+  OPEN(52,file=trim(newPath)//'/MSTedges_'//proj//'.dat',status='new')
 
 
 !Record any stars that fall on top of each other &
@@ -102,6 +105,7 @@ subroutine lambda_setup(snapshoti,ni)
 
   close(50)
   !close(51)
+  close(52)
 
 ! Write out lambda values with errors and
 ! numerator & denominator (MST lengths) used for each lambda:
@@ -109,17 +113,17 @@ subroutine lambda_setup(snapshoti,ni)
   OPEN(5,file=trim(newPath)//'/lambda_'//proj//'.dat',status='new')
   
   DO i=1,snapnum
-     WRITE(4,140) i,lam_avranmst(i),lam_objmst(i),lbar_avranmst(i), &
+     WRITE(4,104) i,lam_avranmst(i),lam_objmst(i),lbar_avranmst(i), &
           & lbar_objmst(i),ltil_avranmst(i),ltil_objmst(i), &
           & lstar_avranmst(i),lstar_objmst(i),gam_avranmst(i),gam_objmst(i)
      
-     WRITE(5,150) i,lambda_bar(i),l_low_bar(i),l_up_bar(i), &
+     WRITE(5,105) i,lambda_bar(i),l_low_bar(i),l_up_bar(i), &
           & lambda_til(i),l_low_til(i),l_up_til(i),lambda_star(i), &
           & l_low_star(i),l_up_star(i),gamm(i),g_low(i),g_up(i)
   END DO
   
-140 FORMAT(1X,I4,10(2X,F9.4))
-150 FORMAT(1X,I4,12(2X,F8.3))
+104 FORMAT(1X,I4,10(2X,F9.4))
+105 FORMAT(1X,I4,12(2X,F8.3))
   CLOSE(4)
   CLOSE(5)
 
@@ -130,6 +134,7 @@ subroutine lambda_setup(snapshoti,ni)
 
 !===========================================
   deallocate(obj_mass)
+  deallocate(edgelengths)
 
   deALLOCATE(lambda)
   deALLOCATE(l_low)

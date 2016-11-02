@@ -116,6 +116,8 @@
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: kinetic_energy,potential_energy,total_energy
 
 !============== Lambda ===============
+! Lengths of 'object' edges in MST
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: edgelengths
 ! lambda = measure of mass segregation & errors
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda, l_up, l_low
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lam_avranmst, lam_objmst

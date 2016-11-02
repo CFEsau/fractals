@@ -41,7 +41,7 @@ for clustertype in os.listdir(path + '/runinv_k01/'):
             if 'runinv' in simname:
 
                 filename = (path + '/' + simname + '/' +
-                            clustertype + '/lambda_xy')
+                            clustertype + '/lambda_xy.dat')
                 ctype = clustertype.split("_")[1] #get all, FoV, etc
 
                 lambd = np.loadtxt(filename)
@@ -82,7 +82,7 @@ for clustertype in os.listdir(path + '/runinv_k01/'):
             if 'runinv' in simname:
 
                 filename = (path + '/' + simname + '/' +
-                            clustertype + '/lambda_xy')
+                            clustertype + '/lambda_xy.dat')
                 ctype = clustertype.split("_")[1] #get all, FoV, etc
 
                 lambd = np.loadtxt(filename)
@@ -123,7 +123,7 @@ for clustertype in os.listdir(path + '/runinv_k01/'):
             if 'runinv' in simname:
 
                 filename = (path + '/' + simname + '/' +
-                            clustertype + '/lambda_xy')
+                            clustertype + '/lambda_xy.dat')
                 ctype = clustertype.split("_")[1] #get all, FoV, etc
 
                 lambd = np.loadtxt(filename)
@@ -164,7 +164,7 @@ for clustertype in os.listdir(path + '/runinv_k01/'):
             if 'runinv' in simname:
 
                 filename = (path + '/' + simname + '/' +
-                            clustertype + '/lambda_xy')
+                            clustertype + '/lambda_xy.dat')
                 ctype = clustertype.split("_")[1] #get all, FoV, etc
 
                 lambd = np.loadtxt(filename)

@@ -124,9 +124,8 @@ PROGRAM reduce
 
 ! Define the number of stars in the MST:
   nmst=10
- 
-! Find energy, c of m, rhalf, mass segregation for all stars in cluster:
 
+! Find energy, c of m, rhalf, mass segregation for all stars in cluster:
   CALL reduce_cluster(nstars(1))
 
 ! Find energy, c of m, rhalf, mass segregation for stars

@@ -55,6 +55,17 @@ SUBROUTINE reduce_FoV(ni)
 !
      incluster = .TRUE.
 
+!
+! Set centre of mass of cluster as (0,0,0). True when all in cluster.
+     com_cluster=0.
+
+! This means the distance between each star & cluster c of m
+! is the distance between ri_com & centre of grid, i.e. r.
+! (This assumes all stars are initially in FoV.)
+     ri_com=r
+
+
+! Is the star in the cluster?
      OPEN(10,file=TRIM(newPath)//'/escaped_'//proj//'.dat')
 
      DO i=1,snapnum
@@ -66,18 +77,15 @@ SUBROUTINE reduce_FoV(ni)
 !
 !******************************************************************************!
 !
-! Find centre of mass of cluster.
-     com_cluster=0.
-
-! Find distance between each star and cluster centre of mass.
-     ri_com=0.
+! Find new centre of mass of cluster after ejections.
 
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
-     WRITE(6,*)"       Calculating centre of mass..."
-     DO i=1, snapnum
+     WRITE(6,*)"       Calculating new centre of mass..."
+     DO i=1,snapnum
         CALL c_of_m(i,nstars(i))
      END DO
+
 
 !******************************************************************************!
 !
@@ -97,8 +105,8 @@ SUBROUTINE reduce_FoV(ni)
 ! Write out distance data
 !
 ! Centre of mass and half-mass radius for each snapshot:
-! output: i 2(xy yz xz) xyz
-     OPEN(3,file=TRIM(newPath)//'/distances_'//proj//'.dat',status='new')
+! output: i com_x com_y com_z r1/2
+     OPEN(3,file=TRIM(newPath)//'/c_of_m_'//proj//'.dat',status='new')
      DO i=1,snapnum
         WRITE(3,30) i,com_cluster(i,1),com_cluster(i,2),com_cluster(i,3), &
              & r_halfmass(i)
@@ -114,7 +122,7 @@ SUBROUTINE reduce_FoV(ni)
 
 ! All lambda in all planes for stars within 5 pc of centre:
 
-     CALL lambda_setup(i,nstars(i))
+     CALL lambda_setup
 
   END DO
 ! End of 'projection' loop

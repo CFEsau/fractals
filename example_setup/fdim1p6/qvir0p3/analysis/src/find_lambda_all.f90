@@ -121,7 +121,7 @@ SUBROUTINE find_lambda_all(snapi,ni)
   obj_r=0.
   mlist=0
 
-!Assign IDs to stars
+!Assign IDs to stars for heapsort
   DO j=1,ni
      mlist(j)=j
   END DO
@@ -157,11 +157,11 @@ SUBROUTINE find_lambda_all(snapi,ni)
 ! when IDs of most massive stars change
   DO i=1, nmst
      IF(obj_mass(1,i) /= obj_mass(2,i)) THEN
-        WRITE(50,99) snapi, ti, obj_mass(2,1:nmst)
+        WRITE(50,150) snapi, ti, obj_mass(2,1:nmst)
         EXIT
      END IF
   END DO
-99   FORMAT(1X,I4,2X,E9.3,*(2X,F8.3))
+150   FORMAT(1X,I4,2X,E9.3,*(2X,F8.3))
 
   obj_mass(1,1:nmst)=obj_mass(2,1:nmst)
 
@@ -179,6 +179,19 @@ SUBROUTINE find_lambda_all(snapi,ni)
   z(1:nmst)=obj_r(1:nmst,3)
 
   CALL mst(nmst,x,y,z,node,length)
+
+!Assign IDs for heapsort to order MST edges
+  DO j=1,nmst-1
+     length_list(j)=j
+  END DO
+  CALL heapsort(nmst-1,length,length_list)
+  
+! Write out the edge lengths of the MST to plot a CDF:
+  do i=1,nmst-1
+     edgelengths(i)=length(length_list(i))
+  end do
+  write(52,152) snapi,edgelengths(1:nmst-1)
+152 FORMAT(1X,I4,*(2X,F9.5))
 
 !Lambda MST:
   DO i = 1,nmst-1
