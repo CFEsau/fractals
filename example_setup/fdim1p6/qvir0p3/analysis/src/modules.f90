@@ -147,8 +147,6 @@
 ! Outputs
 !===============
 !
-! unit# = unit numbers for output files
-       integer :: unit1, unit2
 ! outarg = destination directory (e.g. 'outputs')
 ! newpath = output path with cluster type appended (e.g. all, FoV)
   CHARACTER*150 :: outarg, newpath

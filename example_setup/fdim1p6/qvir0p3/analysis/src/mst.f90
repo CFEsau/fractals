@@ -2,7 +2,6 @@
 ! ======================================================================
 !
    SUBROUTINE mst(n,x,y,z,node,length)
-     use parameters_module
 ! generates a minimum spanning tree
 ! if 2d one of the x,y,z arrays must be a zero array
    IMPLICIT NONE
@@ -44,13 +43,13 @@
 !If two stars end up with same coordinates, introduce a tiny separation
        if(sep(nlist)<=0.) then
           write(6,*) 'Two object positions equal... writing info to sep.dat'
-          write(unit1,*) "Snapshot:",snapi
-          write(unit1,*) i,x(i),y(i),z(i)
-          write(unit1,*) j,x(j),y(j),z(j)
-          write(unit1,*) "Old separatation:",sep(nlist)
+          write(5,*) "Snapshot:",snapi
+          write(5,*) i,x(i),y(i),z(i)
+          write(5,*) j,x(j),y(j),z(j)
+          write(5,*) "Old separatation:",sep(nlist)
           sep(nlist)=SQRT((x(i)-x(j))**2 + (y(i)-y(j))**2 + (z(i)-z(j))**2) + 1.e-10
-          write(unit1,*) "New separatation:",sep(nlist)
-          write(unit1,*) ""
+          write(5,*) "New separatation:",sep(nlist)
+          write(5,*) ""
        end if
 
        list(nlist)=nlist

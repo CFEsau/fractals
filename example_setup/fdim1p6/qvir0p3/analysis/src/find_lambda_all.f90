@@ -262,10 +262,6 @@ SUBROUTINE find_lambda_all(snapi,ni)
 
   ALLOCATE(rand_list(1:nloop))
 
-
-!set unit for output to file
-  unit1=5
-
   DO j = 1,nloop          !Do nloop random MSTs
      x = 0. ; y = 0. ; z = 0.
      done = .FALSE.          
