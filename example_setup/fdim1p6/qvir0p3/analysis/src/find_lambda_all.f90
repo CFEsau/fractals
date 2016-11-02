@@ -178,7 +178,9 @@ SUBROUTINE find_lambda_all(snapi,ni)
   y(1:nmst)=obj_r(1:nmst,2)
   z(1:nmst)=obj_r(1:nmst,3)
 
-  CALL mst(nmst,x,y,z,node,length)
+!set unit for output to file (separation data)
+  fileunit=4
+  CALL mst(snapi,nmst,x,y,z,node,length)
 
 !Assign IDs for heapsort to order MST edges
   DO j=1,nmst-1
@@ -262,6 +264,9 @@ SUBROUTINE find_lambda_all(snapi,ni)
 
   ALLOCATE(rand_list(1:nloop))
 
+!set unit for output to file (separation data)
+  fileunit=5
+
   DO j = 1,nloop          !Do nloop random MSTs
      x = 0. ; y = 0. ; z = 0.
      done = .FALSE.          
@@ -277,7 +282,7 @@ SUBROUTINE find_lambda_all(snapi,ni)
         z(i) = ri(k,3)
      END DO
 
-     CALL mst(nmst,x,y,z,node,length)
+     CALL mst(snapi,nmst,x,y,z,node,length)
 
 
 !Lambda MST:

@@ -1,12 +1,13 @@
 ! ======================================================================
 ! ======================================================================
 !
-   SUBROUTINE mst(n,x,y,z,node,length)
+SUBROUTINE mst(snapi,n,x,y,z,node,length)
+  use parameters_module
 ! generates a minimum spanning tree
 ! if 2d one of the x,y,z arrays must be a zero array
    IMPLICIT NONE
 ! inputs
-   INTEGER, INTENT(in) :: n
+   INTEGER, INTENT(in) :: snapi,n
    double precision, INTENT(in) :: x(1:n),y(1:n),z(1:n)
 ! outputs
    INTEGER, INTENT(out) :: node(1:n-1,1:2) ! node connections
@@ -43,13 +44,13 @@
 !If two stars end up with same coordinates, introduce a tiny separation
        if(sep(nlist)<=0.) then
           write(6,*) 'Two object positions equal... writing info to sep.dat'
-          write(5,*) "Snapshot:",snapi
-          write(5,*) i,x(i),y(i),z(i)
-          write(5,*) j,x(j),y(j),z(j)
-          write(5,*) "Old separatation:",sep(nlist)
+          write(fileunit,*) "Snapshot:",snapi
+          write(fileunit,*) i,x(i),y(i),z(i)
+          write(fileunit,*) j,x(j),y(j),z(j)
+          write(fileunit,*) "Old separatation:",sep(nlist)
           sep(nlist)=SQRT((x(i)-x(j))**2 + (y(i)-y(j))**2 + (z(i)-z(j))**2) + 1.e-10
-          write(5,*) "New separatation:",sep(nlist)
-          write(5,*) ""
+          write(fileunit,*) "New separatation:",sep(nlist)
+          write(fileunit,*) ""
        end if
 
        list(nlist)=nlist
