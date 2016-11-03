@@ -20,10 +20,15 @@ SUBROUTINE in_cluster(snapi,ni)
   INTEGER :: n_proj
 ! masses are just for data output; nothing to do with calculations
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi
+  logical :: writeescaped
 
 ! Allocate memory for arrays
   ALLOCATE(rmag(1:ni))
   ALLOCATE(mi(1:ni))
+
+! Write out list of escaped stars?
+! This file in full is large so use only if needed.
+  writeescaped=.FALSE.
 
   mi(1:ni)=m(snapi,1:ni)
 ! Populate distance magnitude arrays in observer planes & 3D
@@ -92,25 +97,23 @@ SUBROUTINE in_cluster(snapi,ni)
 ! but this won't happen in 1st snapshot)
 
 
-! if new stars escaped, write snapshot number
-  IF (ni - n_proj /= n_escaped) THEN
+! if new stars escaped & want this in output file, write snapshot number
+  IF (ni-n_proj/=n_escaped) THEN
+     n_escaped = ni-n_proj !update number of escaped stars
+     
      WRITE(10,'(2X,"Snapshot",I4,":",1X,I4,1X,"stars escaped")') &
-          & snapi, ni-n_proj
+          & snapi, n_escaped
 
-     DO i=1,ni
+     IF (writeescaped) THEN
 ! if star isn't in cluster, write distance magnitude & star mass
-        IF (.NOT. incluster(snapi,i)) WRITE(10,80) i, rmag(i), mi(i)
-     END DO
+        DO i=1,ni
+           IF (.NOT. incluster(snapi,i)) WRITE(10,80) i, rmag(i), mi(i)
+        END DO
 
-     IF (limittype=='rhalf') THEN
-        WRITE(10,81) rfac, rfac * rhalf_all(projnum)
+        IF (limittype=='rhalf') THEN
+           WRITE(10,81) rfac, rfac * rhalf_all(projnum)
+        END IF
      END IF
-
-! write number of stars escaped:
-     n_escaped = ni - n_proj
-! For some reason need this in, otherwise the above 'if' is ignored...
-     WRITE(10,'(30X,I4,1X,I4)') ni-n_proj, n_escaped
-     WRITE(10,*)""
   END IF
 
 80   FORMAT(1X,I4,2X,F8.3,2X,F7.3)
