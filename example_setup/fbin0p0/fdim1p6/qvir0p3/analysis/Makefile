@@ -12,7 +12,7 @@ LINKER 	    := gfortran -o
 .SUFFIXES: .f90 .f .o .mod
 
 # change these to set the proper directories where each files should be
-OBJECTS  =  $(OBJDIR)/modules.o $(OBJDIR)/read_sl_out.o $(OBJDIR)/read_sl_sub.o $(OBJDIR)/reduce.o $(OBJDIR)/reduce_cluster.o $(OBJDIR)/reduce_FoV.o $(OBJDIR)/reduce_rhalf.o $(OBJDIR)/c_of_m.o $(OBJDIR)/in_cluster.o $(OBJDIR)/find_energy.o $(OBJDIR)/find_halfmass.o $(OBJDIR)/lambda_setup.o $(OBJDIR)/find_lambda_all.o $(OBJDIR)/calc_lambda.o $(OBJDIR)/heapsort.o $(OBJDIR)/mst.o
+OBJECTS  =  $(OBJDIR)/modules.o $(OBJDIR)/read_sl_out.o $(OBJDIR)/read_sl_sub.o $(OBJDIR)/reduce.o $(OBJDIR)/reduce_cluster.o $(OBJDIR)/reduce_FoV.o $(OBJDIR)/reduce_rhalf.o $(OBJDIR)/c_of_m.o $(OBJDIR)/in_cluster.o $(OBJDIR)/find_energy.o $(OBJDIR)/find_halfmass.o $(OBJDIR)/lambda_setup.o $(OBJDIR)/find_lambda.o $(OBJDIR)/calc_lambda.o $(OBJDIR)/heapsort.o $(OBJDIR)/mst.o
 
 all: $(TARGET)
 
