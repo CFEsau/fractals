@@ -13,9 +13,8 @@ SUBROUTINE reduce_cluster(ni)
   newDir = 'cluster_all'
   newPath = TRIM(outarg)//'/'//TRIM(newDir)
 
-  INQUIRE(file = TRIM(newPath)//'./', exist = dirExists)
+  INQUIRE(file = TRIM(newPath), exist = dirExists)
 !(Works for gfortran. For ifort: ...directory=newDir,exist...)
-
   IF (.NOT. dirExists) THEN
      WRITE(6,'(a)') "Creating new directory: '"//TRIM(newPath)//"'"
      CALL system('mkdir -p '//TRIM(newPath))
@@ -24,6 +23,11 @@ SUBROUTINE reduce_cluster(ni)
   WRITE(6,*)""
   WRITE(6,'(a)') "Saving data in '"//TRIM(newPath)//"'..."
 
+!also create directory for lambda data:
+  INQUIRE(file = TRIM(newPath)//'/lambda', exist = dirExists)
+   IF (.NOT. dirExists) THEN
+     CALL system('mkdir -p '//TRIM(newPath)//'/lambda')
+  END IF
 
   DO projnum = 1,4
      IF (projnum==1) THEN

@@ -42,6 +42,7 @@ SUBROUTINE mst(snapi,n,x,y,z,node,length)
        sep(nlist)=SQRT((x(i)-x(j))**2 + (y(i)-y(j))**2 + (z(i)-z(j))**2)
 
 !If two stars end up with same coordinates, introduce a tiny separation
+!(Previously gave 'balls'. Keeping this here for 'grep' purposes...)
        if(sep(nlist)<=0.) then
           write(6,*) 'Two object positions equal... writing info to sep.dat'
           write(fileunit,*) "Snapshot:",snapi

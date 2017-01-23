@@ -5,7 +5,7 @@ SUBROUTINE reduce_FoV(ni)
   USE parameters_module
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: ni
-  LOGICAL :: dirExists
+  LOGICAL :: dirExists, fileExists
   CHARACTER(len=100) :: newDir, FoV_char
   INTEGER :: i,j
 
@@ -17,7 +17,7 @@ SUBROUTINE reduce_FoV(ni)
   newDir = 'cluster_FoV'//TRIM(FoV_char)//'pc'
   newPath = TRIM(outarg)//'/'//TRIM(newDir)
 
-  INQUIRE(file = TRIM(newPath)//'./', exist = dirExists)
+  INQUIRE(file = TRIM(newPath), exist = dirExists)
 !(Works for gfortran. For ifort: ...directory=newDir,exist...)
 
   IF (.NOT. dirExists) THEN
@@ -26,6 +26,12 @@ SUBROUTINE reduce_FoV(ni)
   END IF
 
   WRITE(6,'(a)') "Saving data in '"//TRIM(newPath)//"'..."
+
+!also create directory for lambda data:
+  INQUIRE(file = TRIM(newPath)//'/lambda', exist = dirExists)
+   IF (.NOT. dirExists) THEN
+     CALL system('mkdir -p '//TRIM(newPath)//'/lambda')
+  END IF
 
 
   DO projnum = 1,4
@@ -104,9 +110,10 @@ SUBROUTINE reduce_FoV(ni)
 !*******************************************
 ! Write out distance data
 !
+
 ! Centre of mass and half-mass radius for each snapshot:
 ! output: i com_x com_y com_z r1/2
-     OPEN(3,file=TRIM(newPath)//'/c_of_m_'//proj//'.dat',status='new')
+     OPEN(3,file=TRIM(newPath)//'/c_of_m_'//proj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(3,30) i,com_cluster(i,1),com_cluster(i,2),com_cluster(i,3), &
              & r_halfmass(i)
@@ -133,27 +140,32 @@ SUBROUTINE reduce_FoV(ni)
 ! Find total kinetic, gravitational potential and total energy.
 ! (don't need if it's been called from 'reduce_cluster'
 ! as all stars are used for this calculation)
+! If these files don't exist, do them here:
+  INQUIRE(file = TRIM(outarg)//'energies.dat', exist = fileExists)
+   IF (.NOT. fileExists) THEN
 
-  !WRITE(6,*)""
-  !WRITE(6,*)"   Calculating cluster energy..."
+      WRITE(6,*)""
+      WRITE(6,*)"   Calculating cluster energy..."
 ! Loop over all snapshots
-  !DO i=1, snapnum
-  !   CALL find_energy(i,nstars(i))
+      DO i=1, snapnum
+         CALL find_energy(i,nstars(i))
 !!$     PRINT *, kinetic_energy(i),potential_energy(i),total_energy(i)
-  !END DO
-  !WRITE(6,*)"   ...done"
-  !WRITE(6,*)""
+      END DO
+      WRITE(6,*)"   ...done"
+      WRITE(6,*)""
 
 
 !*******************************************
 ! Write out energy data
 !
-  !OPEN(4,file=TRIM(newPath)//'/energies.dat',status='new')
-  !DO i=1,snapnum
-  !   WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i)
-  !END DO
-!40 FORMAT(1X,I4,3(2X,E9.3))
-  !CLOSE(4)
+      OPEN(4,file=TRIM(outarg)//'/energies.dat',status='new')
+      DO i=1,snapnum
+         WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i)
+      END DO
+40    FORMAT(1X,I4,3(2X,E9.3))
+      CLOSE(4)
+      
+   END IF
 
 
 END SUBROUTINE reduce_FoV

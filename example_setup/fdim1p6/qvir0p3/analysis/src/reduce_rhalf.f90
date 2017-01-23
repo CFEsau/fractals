@@ -17,7 +17,7 @@ SUBROUTINE reduce_rhalf(ni)
   newDir = 'cluster_r'//TRIM(rfac_char)//'rhalf'
   newPath = TRIM(outarg)//'/'//TRIM(newDir)
 
-  INQUIRE(file = TRIM(newPath)//'./', exist = dirExists)
+  INQUIRE(file = TRIM(newPath), exist = dirExists)
 !(Works for gfortran. For ifort: ...directory=newDir,exist...)
 
   IF (.NOT. dirExists) THEN
@@ -26,6 +26,12 @@ SUBROUTINE reduce_rhalf(ni)
   END IF
 
   WRITE(6,'(a)') "Saving data in '"//TRIM(newPath)//"'..."
+
+!also create directory for lambda data:
+  INQUIRE(file = TRIM(newPath)//'/lambda', exist = dirExists)
+   IF (.NOT. dirExists) THEN
+     CALL system('mkdir -p '//TRIM(newPath)//'/lambda')
+  END IF
 
 
   DO projnum = 1,4

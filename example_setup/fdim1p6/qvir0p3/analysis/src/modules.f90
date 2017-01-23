@@ -116,25 +116,43 @@
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: kinetic_energy,potential_energy,total_energy
 
 !============== Lambda ===============
-! Lengths of 'object' edges in MST
+! Lengths of 'object' edges in MST for CDFs
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: edgelengths
+! Number of CDF plots of random MSTs
+       INTEGER :: nCDF
 ! lambda = measure of mass segregation & errors
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda, l_up, l_low
-       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lam_avranmst, lam_objmst
+! mean MST length of nloop random MSTs, object MST length
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: l_avranmst, l_objmst
 ! lambda_bar uses mean length of MST (basically same as lambda)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_bar, l_up_bar, l_low_bar
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lbar_avranmst, lbar_objmst
+! lambda_rms uses root mean square length of MST (generalised mean with p=2)
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_rms, l_up_rms, l_low_rms
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lrms_avranmst, lrms_objmst
+! lambda_smr uses square mean root length of MST (generalised mean with p=1/2)
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_smr, l_up_smr, l_low_smr
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lsmr_avranmst, lsmr_objmst
+! lambda_har uses harmonic mean (generalised mean with p=-1)
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_har, l_up_har, l_low_har
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lhar_avranmst, lhar_objmst
 ! lambda_tilde uses median length of MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_til, l_up_til, l_low_til
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: ltil_avranmst, ltil_objmst
-! lambda_star uses median length of MST,
-! and adds this to the actual length of the MST
+! lambda_star uses median length of MST & adds this to the actual length of the MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_star, l_up_star, l_low_star
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lstar_avranmst, lstar_objmst
-! gamma uses the geometric mean
-       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: gamm, g_up, g_low
-       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: gam_avranmst, gam_objmst
-
+! lambda_gam uses the geometric mean
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_gam, l_up_gam, l_low_gam
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lgam_avranmst, lgam_objmst
+! lamda_ln: sum the exponents and take the log (sort of inverse of geometric mean)
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_ln, l_up_ln, l_low_ln
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lln_avranmst, lln_objmst
+! state which types of lambda you want to find, to save doing all every time
+       LOGICAL :: findlam, findlambar, findlamrms, findlamsmr, findlamhar
+       LOGICAL :: findlamtil, findlamstar, findgam, findlamln
+       
+       
 ! nmst = number of stars in the minimum spanning tree
 ! nloop = number of random MSTs calculated in loop
        integer :: nmst
@@ -147,8 +165,8 @@
 ! Outputs
 !===============
 !
-! unit# = unit numbers for output files in star separation outputs
-       integer :: fileunit
+! unit# = unit numbers for output files in star separation values
+       integer :: fileunit, unit1, unit2
 ! outarg = destination directory (e.g. 'outputs')
 ! newpath = output path with cluster type appended (e.g. all, FoV)
   CHARACTER*150 :: outarg, newpath

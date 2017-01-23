@@ -1,4 +1,4 @@
-SUBROUTINE calc_lambda(obj_mst,rand_mst,lam_val,minus,plus,avranmst)
+SUBROUTINE calc_lambda(obj_avl,ran_avl,lam_val,minus,plus,avranmstlen)
 ! A subroutine to calculate final lambda values; various different 
 ! measures of lambda (e.g. lambda bar, lambda tilde) can be passed 
 ! in to save the need for repeating this chunk of code every time 
@@ -7,27 +7,29 @@ SUBROUTINE calc_lambda(obj_mst,rand_mst,lam_val,minus,plus,avranmst)
   USE parameters_module
 
   implicit none
-  DOUBLE PRECISION, intent(in) :: obj_mst
-  DOUBLE PRECISION, dimension(1:nloop), intent(in) :: rand_mst
+  DOUBLE PRECISION, intent(in) :: obj_avl !average edge length (obj)
+  DOUBLE PRECISION, dimension(1:nloop), intent(in) :: ran_avl ! " (ran)
   double precision, intent(out) :: lam_val,minus,plus
-  double precision, intent(out) :: avranmst !Average length of random trees
+  double precision, intent(out) :: avranmstlen !Average tot length of random trees
   integer :: i
-  INTEGER, DIMENSION(1:nloop) :: listID !IDs of rand_mst list
+  INTEGER, DIMENSION(1:nloop) :: listID !IDs of ran_avl list
   REAL :: ranup, ranlow !Upper & lower boundaries, 1 sigma
-
+  
   do i = 1,nloop
      listID(i) = i
   END DO
 
-!Sort random MST lengths:
-  CALL heapsort(nloop,rand_mst,listID)
+!Sort nloop random MSTs in order of average edge length:
+  CALL heapsort(nloop,ran_avl,listID)
 
-  avranmst = rand_mst(listID(NINT(REAL(nloop)/2.))) !Median MST.
-  ranlow = rand_mst(listID(NINT(REAL(nloop)/6.)))
-  ranup = rand_mst(listID(NINT(5.*REAL(nloop)/6.)))
+!Median of the average MST edge length:
+  avranmstlen = ran_avl(listID(NINT(REAL(nloop)/2.)))
+!1/6 and 5/6 boundaries for significance:
+  ranlow = ran_avl(listID(NINT(REAL(nloop)/6.)))
+  ranup = ran_avl(listID(NINT(5.*REAL(nloop)/6.)))
 
-  lam_val = avranmst/obj_mst
-  minus = ranlow/obj_mst
-  plus = ranup/obj_mst
+  lam_val = avranmstlen/obj_avl
+  minus = ranlow/obj_avl
+  plus = ranup/obj_avl
 
 end subroutine calc_lambda
