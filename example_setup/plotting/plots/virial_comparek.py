@@ -9,9 +9,9 @@ from sys import argv
 
 print ("   Doing virial ratio...", sep="")
 
-fbin, fdim_val, qvir_val = argv[1:4] #use when defining parameters inline
+fbin, fdim_val, qvir_val, outpath = argv[1:5] #use when defining parameters inline
 
-path = '../outputs'
+path = outpath + '/outputs/'
 
 duration = 10. #Duration of simulation (Myr)
 
@@ -45,7 +45,7 @@ plt.annotate("fbin = " + fbin, xy=(0.95,-0.09),
 plt.annotate("fdim = " + fdim_val + "," + " qvir = " + qvir_val, 
              xy=(-0.06,-0.09), xycoords='axes fraction', fontsize = 10)
 
-saveplot = path + '/plots/' + 'Qvir_comparek.pdf'
+saveplot = path + '/plots/' + 'Qvir_allk.pdf'
 plt.tight_layout()
 plt.savefig(saveplot, bbox_inches='tight')
 print ("Saved in ", saveplot)

@@ -6,9 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sys import argv
 
-fbin, fdim_val, qvir_val = argv[1:4]
+fbin, fdim_val, qvir_val, outpath = argv[1:5]
 
-path = '../outputs'
+path = outpath + '/outputs/'
 
 duration = 10. #Duration of simulation (Myr)
 
@@ -57,7 +57,7 @@ for simname in os.listdir(path + '/'):
                              xycoords='axes fraction', horizontalalignment='right',
                              verticalalignment='bottom', fontsize=10)
 
-                saveplot = path + '/plots/' + kval + '_' + ctype + '_Rh.pdf'
+                saveplot = path + 'plots/' + kval + '_' + ctype + '_Rh.pdf'
                 plt.tight_layout()
                 plt.savefig(saveplot, bbox_inches='tight')
                 print "Graph saved at " + saveplot

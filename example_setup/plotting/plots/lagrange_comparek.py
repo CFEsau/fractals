@@ -9,9 +9,9 @@ from sys import argv
 
 print ("   Doing half-mass radius...", sep="")
 
-fbin, fdim_val, qvir_val = argv[1:4] #use when defining parameters inline
+fbin, fdim_val, qvir_val, outpath = argv[1:5] #use when defining parameters inline
 
-path = '../outputs'
+path = outpath + '/outputs/'
 
 duration = 10. #Duration of simulation (Myr)
 
@@ -19,7 +19,18 @@ my_dpi=96
 #plt.figure(figsize=(11.7,8.3), dpi=my_dpi) # A4 sheet is 8.3 x 11.7 (portrait)
 saveplot = ''
 
-for clustype in os.listdir(path + '/runinv_k01/'):
+#Find the different cluster types. Use the first simulation in the list.
+#First simulation:
+idir=0
+for alldir in os.listdir(path):
+    if 'runinv_k' in alldir:
+        firstk=os.listdir(path)[idir]
+        #print ("first k directory: ",firstk)
+        break
+    idir=idir+1
+
+
+for clustype in os.listdir(path + '/' + firstk + '/'):
     if 'cluster_' in clustype:
 
         plt.figure()
@@ -28,6 +39,7 @@ for clustype in os.listdir(path + '/runinv_k01/'):
         plt.title("Lagrangian Radii over Time")
         plt.ylim(ymax = 7, ymin = 0)
         label = '0.5'
+        
         #plt.legend(loc=2)
         plt.annotate("r = " + label,xy=(0.1,0.9), 
                      xycoords='axes fraction', fontsize = 12)
@@ -50,7 +62,7 @@ for clustype in os.listdir(path + '/runinv_k01/'):
                 #print ("   Doing ", simname, "...", sep="")
                 plt.plot(time, lagrange)
 
-        saveplot = path + '/plots/' + 'Rh_' + ctype + '_comparek.pdf'
+        saveplot = path + '/plots/' + 'Rh_' + ctype + '_allk.pdf'
         plt.tight_layout()
         plt.savefig(saveplot, bbox_inches='tight')
         print ("Saved in ", saveplot)

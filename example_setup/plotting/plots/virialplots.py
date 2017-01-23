@@ -6,42 +6,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sys import argv
 
-fbin, fdim_val, qvir_val = argv[1:4]
+fbin, fdim_val, qvir_val, outpath = argv[1:5]
 
-path = '../outputs'
+path = outpath + '/outputs/'
 
-duration = 10. #Duration of simulation (Myr)
+duration = 10 #Duration of simulation (Myr)
 
 
 for simname in os.listdir(path + '/'):
     if 'runinv' in simname:
 
         kval = simname.split("_")[1] #get k01, k02, etc
+        filename = path + simname + '/energies.dat'
         ctype = 'all'
-        filename = path + '/' + simname + '/energies.dat'
 
         macro = np.loadtxt(filename)
         nsnap =  macro[:,0]
         ekinetic = macro[:,1]
         epotential = macro[:,2]
-        etotal = macro[:,3]
         time = (nsnap/nsnap[-1])*duration
+        qvir = ekinetic/-epotential
+
 
         my_dpi=96
         #plt.figure(figsize=(11.7,8.3), dpi=my_dpi) # A4 sheet is 8.3 x 11.7 (portrait)
-        
+
         saveplot = ''
         plt.figure()
         plt.xlabel("Time (Myr)")
-        plt.ylabel("Energy (J)")
-        plt.title("Energies over Time")
-        plt.plot(time, ekinetic, label = 'Kinetic Energy')
-        plt.plot(time, epotential, label = 'Potential Energy')
-        plt.plot(time, etotal, label = 'Total Energy')
-        plt.legend(loc=2,fontsize=11)
-        plt.ylim(ymax = 0.5e41, ymin = -0.6e41)
-        #plt.text(8.8,0.41e41,"fdim = " + str(fdim_val),fontsize=10)
-        #plt.text(8.8,0.45e41,"qvir = " + str(qvir_val),fontsize=10)
+        plt.ylabel("Qvir")
+        plt.title("Virial Ratio over Time")
+        plt.plot(time, qvir)
+        plt.ylim(0,1)
+        #plt.text(8.8,0.92,"fdim = " + str(fdim_val),fontsize=10)
+        #plt.text(8.8,0.96,"qvir = " + str(qvir_val),fontsize=10)
         plt.annotate("fdim = " + str(fdim_val), xy=(0.99, 0.96),
                      xycoords='axes fraction', horizontalalignment='right',
                      verticalalignment='bottom', fontsize=10)
@@ -55,7 +53,7 @@ for simname in os.listdir(path + '/'):
                      xycoords='axes fraction', horizontalalignment='right',
                      verticalalignment='bottom', fontsize=10)
 
-        saveplot = path + '/plots/' + kval + '_' + ctype + '_E.pdf'
+        saveplot = path + 'plots/' + kval + '_' + ctype + '_Qvir.pdf'
         plt.tight_layout()
         plt.savefig(saveplot, bbox_inches='tight')
         print "Graph saved at " + saveplot
