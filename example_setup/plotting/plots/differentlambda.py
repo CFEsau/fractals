@@ -65,7 +65,7 @@ for simname in os.listdir(path + '/'):
                 lambda_to_plot['lamtil']= 'Y'
                 lambda_to_plot['lamstar']='N'
                 lambda_to_plot['gam']=    'Y'
-                lambda_to_plot['lamln']=  'Y'
+                lambda_to_plot['lamln']=  'N'
 
                 #dictionary for lambda data:
                 lambda_data=dict()
@@ -85,7 +85,7 @@ for simname in os.listdir(path + '/'):
                 lampath = path + '/' + simname + '/' + clustype + '/lambda/'
                 
                 for lamfile in os.listdir(lampath):
-                    if '_xy' in lamfile:
+                    if '_3D' in lamfile:
                         lamtype = lamfile.split("_")[1] #get lambda type (bar, rms, etc)
                         lam = np.loadtxt(lampath + lamfile) #load data
                         nsnap =  lam[:,0]

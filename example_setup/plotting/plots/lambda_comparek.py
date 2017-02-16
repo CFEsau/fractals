@@ -82,7 +82,7 @@ for clustertype in os.listdir(path + '/' + firstk + '/'):
                     if 'runinv' in simname:
                         
                         filename = (path + '/' + simname + '/' +
-                                    clustertype + '/lambda/MST_'+lamtype+'_xy.dat')
+                                    clustertype + '/lambda/MST_'+lamtype+'_3D.dat')
                         cstring = clustertype.split("_")[1] #get all, FoV, etc
                         
                         lambd = np.loadtxt(filename)
@@ -93,7 +93,7 @@ for clustertype in os.listdir(path + '/' + firstk + '/'):
                         print ("       Plotting ", simname, "...", sep="")
                         plt.plot(time, lamdata)
                         
-                saveplot = path + '/plots/'+lamtype+'_'+cstring+'_allk.pdf'
+                saveplot = path + 'plots/'+lamtype+'_'+cstring+'_allk.pdf'
                 plt.tight_layout()
                 plt.savefig(saveplot, bbox_inches='tight')
                 print ("Saved in ", saveplot)

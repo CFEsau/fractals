@@ -30,7 +30,6 @@ for file in ${filepath}${kval}*.pdf; do
     clustparam=${noext#*[_]} #strip string before 1st '_' to remove 'k#_'
     cluster=${clustparam%[_]*} #strip {cluster}_{param} after '_'
     param=${clustparam#*[_]} #strip {cluster}_{param} before '_'
-
     echo ""
     echo "    Merging each k for '${cluster}', parameter '${param}'"
 

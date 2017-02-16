@@ -5,8 +5,8 @@
 echo -n "Enter binary fraction: "
 while read fbin; do
     if [ "$fbin" = "0%" ]; then fbindir="fbin0p0"; break
-    elif [ "$fbin" = "0%" ]; then fbindir="fbin0p5"; break
-    elif [ "$fbin" = "0%" ]; then fbindir="fbin1p0"; break
+    elif [ "$fbin" = "50%" ]; then fbindir="fbin0p5"; break
+    elif [ "$fbin" = "100%" ]; then fbindir="fbin1p0"; break
     else
 	echo "     Warning: Binary fraction '$fbin' not recognised."
 	echo "     Options are 0%, 50%, 100%."

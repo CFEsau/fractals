@@ -5,6 +5,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import container #needed to remove error bars from legend
+from matplotlib.ticker import AutoMinorLocator #for minor ticks
 from sys import argv
 
 fbin, fdim_val, qvir_val, outpath = argv[1:5]
@@ -79,6 +80,8 @@ for simname in os.listdir(path + '/'):
                         #==================================================
                         
                         my_dpi=96
+                        #set minor tick marks:
+                        minorLocator = AutoMinorLocator(4) #this gives n-1 minor ticks
                         #plt.figure(figsize=(11.7,8.3), dpi=my_dpi) # A4 sheet is 8.3 x 11.7 (portrait)
                         
                         plt.figure()
@@ -110,6 +113,7 @@ for simname in os.listdir(path + '/'):
                         plt.errorbar(time,lam_xz,yerr=[yerr_low_xz,yerr_up_xz],errorevery=5,label='xz')
                         plt.errorbar(time,lam_3D,yerr=[yerr_low_3D,yerr_up_3D],errorevery=5,label='3D')
                         plt.ylim(0,15)
+                        plt.axes().xaxis.set_minor_locator(minorLocator)
                         
                         plt.annotate("fdim = " + str(fdim_val) + ", qvir = " + str(qvir_val), 
                                      xy=(0.98, 1.01), xycoords='axes fraction', 
