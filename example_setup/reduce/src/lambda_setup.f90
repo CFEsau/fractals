@@ -11,6 +11,9 @@ subroutine lambda_setup
   integer :: nlam !number of lambda types
   integer :: lamunit, lambarunit, lamrmsunit, lamsmrunit !output units
   integer :: lamharunit, lamtilunit, lamstarunit, gamunit, lamlnunit
+  integer :: lamNmedunit
+  character(len=100) :: CDFpath
+  LOGICAL :: dirExists
   !could just use 'lamunit' & increment but the have to keep track
   !of the order in which different lambda measures are calculated
   
@@ -24,6 +27,8 @@ subroutine lambda_setup
 !lambda star: uses mst made of median edge length, then add total MST
 !gamma: uses geometric mean
 !lambda ln: uses generalised f-mean, where f^(-1) is ln
+!lambda N median: takes the 2 or 3 median points (2 if even number in MST)
+!                 then finds the mean of these
 
 !======================================================
 ! Set # of stars in MST, # of random MSTs, & # of CDFs
@@ -33,11 +38,13 @@ subroutine lambda_setup
   
 !For large nmst it can take a while to build the MST, so reduce
 !the number of times we do the loop - higher nmst MSTs are less 
-!stochstic anyway...
+!stochastic anyway...
   nloop = 1000
   IF(nmst >= 100) nloop = 50
   
   nCDF = 20 !Number of CDFs plotted for random MSTs; must be =< nloop
+  CDFPath = TRIM(newPath)//'/CDFdata'
+  !directory for CDF data (edge lengths in MST for different subsets)
 !======================================================
 
 ! Lengths of the edges of object stars:
@@ -67,11 +74,11 @@ subroutine lambda_setup
   findlamsmr = .TRUE.
   findlamhar = .TRUE.
   findlamtil = .TRUE.
+  findlamNmed = .TRUE.
   findlamstar = .FALSE.
   findgam = .TRUE.
   findlamln = .TRUE.
   
-
   IF (findlam) THEN
      nlam = nlam + 1
      lamunit = nlam+100
@@ -161,7 +168,7 @@ subroutine lambda_setup
      lhar_avranmst=0.
      lhar_objmst=0.
   END IF
-
+  
   IF (findlamtil) THEN
      nlam = nlam + 1
      lamtilunit = nlam + 100
@@ -177,6 +184,23 @@ subroutine lambda_setup
      l_low_til=0.
      ltil_avranmst=0.
      ltil_objmst=0.
+  END IF
+  
+  IF (findlamNmed) THEN
+     nlam = nlam + 1
+     lamlnunit = nlam + 100
+     
+     ALLOCATE(lambda_Nmed(1:snapnum))
+     ALLOCATE(l_low_Nmed(1:snapnum))
+     ALLOCATE(l_up_Nmed(1:snapnum))
+     ALLOCATE(lNmed_avranmst(1:snapnum))
+     ALLOCATE(lNmed_objmst(1:snapnum))
+     
+     lambda_Nmed=0.
+     l_up_Nmed=0.
+     l_low_Nmed=0.
+     lNmed_avranmst=0.
+     lNmed_objmst=0.
   END IF
   
   IF (findlamstar) THEN
@@ -212,7 +236,7 @@ subroutine lambda_setup
      lgam_avranmst=0.
      lgam_objmst=0.
   END IF
-
+  
   IF (findlamln) THEN
      nlam = nlam + 1
      lamlnunit = nlam + 100
@@ -222,14 +246,14 @@ subroutine lambda_setup
      ALLOCATE(l_up_ln(1:snapnum))
      ALLOCATE(lln_avranmst(1:snapnum))
      ALLOCATE(lln_objmst(1:snapnum))
-
+     
      lambda_ln=0.
      l_up_ln=0.
      l_low_ln=0.
      lln_avranmst=0.
      lln_objmst=0.
   END IF
-
+  
   IF(nlam==0) THEN
      write(6,*) 'All lambda methods set to FALSE; need at least one TRUE'
      stop
@@ -240,23 +264,29 @@ subroutine lambda_setup
   
   write(6,*)"       Calculating lambda..."
   
-  
-  open(10,file=trim(newPath)//'/objm_'//proj//'.dat')
-  !open(11,file=trim(newPath)//'/objescaped_lam_'//proj//'.dat')
+  open(10,file=trim(newPath)//'/objm_'//thisproj//'.dat')
+  !open(11,file=trim(newPath)//'/objescaped_lam_'//thisproj//'.dat')
 !(only need this if you want to check distances of escaped object stars)
 
-  !Files for CDFs:  (only bother doing this in xy)
-  if(proj=='xy') then
+!Files for CDFs:  (only bother doing this in xy)
+!  if(thisproj=='xy') then
+  
+  INQUIRE(file = TRIM(CDFPath), exist = dirExists)
+!(Works for gfortran. For ifort: ...directory=newDir,exist...)
+  IF (.NOT. dirExists) THEN
+     WRITE(6,'(a)') "Creating new directory: '"//TRIM(CDFPath)//"'"
+     CALL system('mkdir -p '//TRIM(CDFPath))
+  END IF
+  
 ! open file for MST of object stars
-     OPEN(12,file=trim(newPath)//'/MSTedges.dat',status='replace')
+  OPEN(12,file=trim(CDFPath)//'/MSTedgeL_'//thisproj//'.dat',status='replace')
 ! open files for MSTs of randomly selected stars:
-     do i=1,nCDF
+  do i=1,nCDF
      write(filei,'(I6)') i
-     open(300+i,file=trim(newPath)//'/MSTedges_'//trim(adjustl(filei))&
-          & //'.dat',status='replace')
-     end do
-  end if
-
+     open(300+i,file=trim(CDFPath)//'/MSTedgeL_'//thisproj//'_'&
+          & //trim(adjustl(filei))//'.dat',status='replace')
+  end do
+ ! end if
 
 !Record any stars that fall on top of each other &
 !need their separation changing for the mst.
@@ -265,8 +295,8 @@ subroutine lambda_setup
   unit2=5
   open(unit1,file=TRIM(newPath)//'/sepchange_obj.dat',position='append')
   open(unit2,file=TRIM(newPath)//'/sepchange.dat',position='append')
-  write(unit1,*) "**** ",proj," ****"
-  write(unit2,*) "**** ",proj," ****"
+  write(unit1,*) "**** ",thisproj," ****"
+  write(unit2,*) "**** ",thisproj," ****"
 
   do i=1,snapnum
      call find_lambda(i,nstars(i))
@@ -281,12 +311,12 @@ subroutine lambda_setup
   !close(11)
 
 !close CDF files:
-  if(proj=='xy') then
+  !if(thisproj=='xy') then
      close(12)
      do i=1,nCDF
         close(300+i)
      end do
-  end if
+  !end if
 
   
 !**********************
@@ -297,7 +327,7 @@ subroutine lambda_setup
 !lamunit
 ! Median random MST edge lengths &
 ! object edge lengths used for each lambda, and lambda values with errors:
-     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lambda_'//proj//'.dat',status='replace')
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lambda_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamunit,99) i,l_avranmst(i),l_objmst(i),lambda(i),l_low(i),l_up(i)
      END DO
@@ -306,7 +336,7 @@ subroutine lambda_setup
   END IF
      
   IF (findlambar) THEN
-     OPEN(lambarunit,file=TRIM(newPath)//'/lambda/MST_lambar_'//proj//'.dat',status='replace')
+     OPEN(lambarunit,file=TRIM(newPath)//'/lambda/MST_lambar_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lambarunit,99) i,lbar_avranmst(i),lbar_objmst(i), &
              & lambda_bar(i),l_low_bar(i),l_up_bar(i)
@@ -316,7 +346,7 @@ subroutine lambda_setup
   END IF
   
   IF (findlamrms) THEN
-     OPEN(lamrmsunit,file=TRIM(newPath)//'/lambda/MST_lamrms_'//proj//'.dat',status='replace')
+     OPEN(lamrmsunit,file=TRIM(newPath)//'/lambda/MST_lamrms_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamrmsunit,99) i,lrms_avranmst(i),lrms_objmst(i), &
              & lambda_rms(i),l_low_rms(i),l_up_rms(i)
@@ -326,7 +356,7 @@ subroutine lambda_setup
   END IF
   
   IF (findlamsmr) THEN
-     OPEN(lamsmrunit,file=TRIM(newPath)//'/lambda/MST_lamsmr_'//proj//'.dat',status='replace')
+     OPEN(lamsmrunit,file=TRIM(newPath)//'/lambda/MST_lamsmr_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamsmrunit,99) i,lsmr_avranmst(i),lsmr_objmst(i), &
              & lambda_smr(i),l_low_smr(i),l_up_smr(i)
@@ -336,7 +366,7 @@ subroutine lambda_setup
   END IF
   
   IF (findlamhar) THEN
-     OPEN(lamharunit,file=TRIM(newPath)//'/lambda/MST_lamhar_'//proj//'.dat',status='replace')
+     OPEN(lamharunit,file=TRIM(newPath)//'/lambda/MST_lamhar_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamharunit,99) i,lhar_avranmst(i),lhar_objmst(i), &
              & lambda_har(i),l_low_har(i),l_up_har(i)
@@ -346,7 +376,7 @@ subroutine lambda_setup
   END IF
   
   IF (findlamtil) THEN
-     OPEN(lamtilunit,file=TRIM(newPath)//'/lambda/MST_lamtil_'//proj//'.dat',status='replace')
+     OPEN(lamtilunit,file=TRIM(newPath)//'/lambda/MST_lamtil_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamtilunit,99) i,ltil_avranmst(i),ltil_objmst(i), &
              & lambda_til(i),l_low_til(i),l_up_til(i)
@@ -355,8 +385,18 @@ subroutine lambda_setup
      CLOSE(lamtilunit)
   END IF
   
+  IF (findlamNmed) THEN
+     OPEN(lamNmedunit,file=TRIM(newPath)//'/lambda/MST_lamNmed_'//thisproj//'.dat',status='replace')
+     DO i=1,snapnum
+        WRITE(lamNmedunit,99) i,lNmed_avranmst(i),lNmed_objmst(i), &
+             & lambda_Nmed(i),l_low_Nmed(i),l_up_Nmed(i)
+     END DO
+     
+     CLOSE(lamNmedunit)
+  END IF
+  
   IF (findlamstar) THEN
-     OPEN(lamstarunit,file=TRIM(newPath)//'/lambda/MST_lamstar_'//proj//'.dat',status='replace')
+     OPEN(lamstarunit,file=TRIM(newPath)//'/lambda/MST_lamstar_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamstarunit,99) i,lstar_avranmst(i),lstar_objmst(i), &
              & lambda_star(i),l_low_star(i),l_up_star(i)
@@ -366,7 +406,7 @@ subroutine lambda_setup
   END IF
   
   IF (findgam) THEN
-     OPEN(gamunit,file=TRIM(newPath)//'/lambda/MST_gam_'//proj//'.dat',status='replace')
+     OPEN(gamunit,file=TRIM(newPath)//'/lambda/MST_gam_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(gamunit,99) i,lgam_avranmst(i),lgam_objmst(i), &
              & lambda_gam(i),l_low_gam(i),l_up_gam(i)
@@ -376,7 +416,7 @@ subroutine lambda_setup
   END IF
   
   IF (findlamln) THEN
-     OPEN(lamlnunit,file=TRIM(newPath)//'/lambda/MST_lamln_'//proj//'.dat',status='replace')
+     OPEN(lamlnunit,file=TRIM(newPath)//'/lambda/MST_lamln_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamlnunit,99) i,lln_avranmst(i),lln_objmst(i), &
              & lambda_ln(i),l_low_ln(i),l_up_ln(i)
@@ -391,7 +431,7 @@ subroutine lambda_setup
 !===========================================
   deallocate(obj_mass)
   deallocate(edgelengths)
-
+  
   IF (findlam) THEN
      deALLOCATE(lambda)
      deALLOCATE(l_low)
@@ -399,7 +439,7 @@ subroutine lambda_setup
      deallocate(l_avranmst)
      deallocate(l_objmst)
   END IF
-
+  
   IF (findlambar) THEN
      deALLOCATE(lambda_bar)
      deALLOCATE(l_low_bar)
@@ -415,7 +455,7 @@ subroutine lambda_setup
      deallocate(lrms_avranmst)
      deallocate(lrms_objmst)
   END IF
-     
+  
   IF (findlamsmr) THEN
      deALLOCATE(lambda_smr)
      deALLOCATE(l_low_smr)
@@ -423,7 +463,7 @@ subroutine lambda_setup
      deallocate(lsmr_avranmst)
      deallocate(lsmr_objmst)
   END IF
-     
+  
   IF (findlamhar) THEN
      deALLOCATE(lambda_har)
      deALLOCATE(l_low_har)
@@ -438,6 +478,14 @@ subroutine lambda_setup
      deALLOCATE(l_up_til)
      deallocate(ltil_avranmst)
      deallocate(ltil_objmst)
+  END IF
+  
+  IF (findlamNmed) THEN
+     deALLOCATE(lambda_Nmed)
+     deALLOCATE(l_low_Nmed)
+     deALLOCATE(l_up_Nmed)
+     deallocate(lNmed_avranmst)
+     deallocate(lNmed_objmst)
   END IF
   
   IF (findlamstar) THEN
@@ -455,7 +503,7 @@ subroutine lambda_setup
      deallocate(lgam_avranmst)
      deallocate(lgam_objmst)
   END IF
-     
+  
   IF (findlamln) THEN
      deALLOCATE(lambda_ln)
      deALLOCATE(l_low_ln)

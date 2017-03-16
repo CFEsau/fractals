@@ -41,9 +41,8 @@ SUBROUTINE find_lambda(snapi,ni)
   INTEGER, DIMENSION(:), ALLOCATABLE :: length_list
   double precision :: totallength !total length of mst (sum of 'length')
   double precision :: medianlength !median edge length in MST
-! Length of object tree (e.g. most massive stars) for different lambda:
-  DOUBLE PRECISION :: obj_mst, obj_mst_bar, obj_mst_til, obj_mst_star
-  DOUBLE PRECISION :: obj_mst_gam
+! Length of object tree (e.g. most massive stars):
+  DOUBLE PRECISION :: obj_mst
 ! obj_r = positions of obj stars
   DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: obj_r
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: x,y,z !split of obj_r
@@ -52,10 +51,12 @@ SUBROUTINE find_lambda(snapi,ni)
 !total lengths of random MSTs for different lambda:
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: l_ranmst, lbar_ranmst
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lrms_ranmst, lsmr_ranmst
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lhar_ranmst
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: ltil_ranmst, lstar_ranmst
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lhar_ranmst, ltil_ranmst
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lNmed_ranmst, lstar_ranmst
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lgam_ranmst, lln_ranmst
 
+  DOUBLE PRECISION :: medianp1 !next in list above median
+  DOUBLE PRECISION :: medianm1 !previous in list below median
   INTEGER, DIMENSION(:), ALLOCATABLE :: rand_list !IDs of _randmst list
 
 ! done = record which stars have been randomly selected
@@ -101,16 +102,16 @@ SUBROUTINE find_lambda(snapi,ni)
      ri_y = ri_com(snapi,i,2)
      ri_z = ri_com(snapi,i,3)
 
-     IF (proj=='xy') THEN
+     IF (thisproj=='xy') THEN
         ri(i,3) = 0.
         rmag(i) = SQRT(ri_x**2 + ri_y**2)
-     ELSE IF (proj=='yz') THEN
+     ELSE IF (thisproj=='yz') THEN
         ri(i,1) = 0.
         rmag(i) = SQRT(ri_y**2 + ri_z**2)
-     ELSE IF (proj=='xz') THEN
+     ELSE IF (thisproj=='xz') THEN
         ri(i,2) = 0.
         rmag(i) = SQRT(ri_x**2 + ri_z**2)
-     ELSE IF (proj=='3D') THEN
+     ELSE IF (thisproj=='3D') THEN
         rmag(i) = SQRT(ri_x**2 + ri_y**2 + ri_z**2)
      END IF
 
@@ -216,7 +217,7 @@ SUBROUTINE find_lambda(snapi,ni)
   END DO
   CALL heapsort(nmst-1, length, length_list)
   medianlength=length(length_list( NINT(REAL(nmst-1)/2.) ) )
-
+  
 !Lambda MST:
 ! This is just the same as lambar without 1/n
   IF (findlam) l_objmst(snapi) = totallength
@@ -260,8 +261,18 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda tilde MST:
   ! Use the median edge length
   IF (findlamtil) ltil_objmst(snapi) = medianlength
-
-
+  
+  
+!Lambda N-median MST:
+  IF (findlamNmed) THEN
+     medianp1=0.
+     medianm1=0.
+     medianp1=length(length_list( NINT(REAL(nmst-1)/2.) +1))
+     medianm1=length(length_list( NINT(REAL(nmst-1)/2.) -1))
+     lNmed_objmst(snapi)=(medianp1+medianlength+medianm1)/3.
+  END IF
+  
+  
 !Lambda star MST:
 ! Find the median length in the tree, & find length of a tree made from these
   IF (findlamstar) THEN
@@ -274,7 +285,6 @@ SUBROUTINE find_lambda(snapi,ni)
 
 !Generalised f-mean: f**(-1) * ((1/n)*SUM(f(x)) where f is some function
 !Gamma is a special case where f=ln, so f**(-1)=exp
-!Also try ln - take log of summed exponent (f=exp, f**(-1)=ln)
 
 !Gamma MST:
   IF (findgam) THEN
@@ -310,6 +320,7 @@ SUBROUTINE find_lambda(snapi,ni)
   ALLOCATE(lsmr_ranmst(1:nloop))
   ALLOCATE(lhar_ranmst(1:nloop))
   ALLOCATE(ltil_ranmst(1:nloop))
+  ALLOCATE(lNmed_ranmst(1:nloop))
   ALLOCATE(lstar_ranmst(1:nloop))
   ALLOCATE(lgam_ranmst(1:nloop))
   ALLOCATE(lln_ranmst(1:nloop))
@@ -320,6 +331,7 @@ SUBROUTINE find_lambda(snapi,ni)
   lsmr_ranmst = 0.
   lhar_ranmst = 0.
   ltil_ranmst = 0.
+  lNmed_ranmst = 0.
   lstar_ranmst = 0.
   lgam_ranmst = 0.
   lln_ranmst = 0.
@@ -346,23 +358,6 @@ SUBROUTINE find_lambda(snapi,ni)
 
      CALL mst(snapi,nmst,x,y,z,node,length)
 
-!CDFs of random stars:
-     if(proj=='xy') then
-        if (j.le.nCDF) then
-! Find edge lengths for nCDF random MSTs
-! Need to heapsort mst edge lengths for cdf data:
-           DO k=1,nmst-1
-              length_list(k)=k
-           END DO
-           CALL heapsort(nmst-1,length,length_list)
-! Write out the edge lengths of the MST to plot a CDF:
-           do k=1,nmst-1
-              edgelengths(k)=length(length_list(k))
-           end do
-           write(300+j,300) snapi,edgelengths(1:nmst-1)
-300        FORMAT(1X,I4,*(2X,F9.5))
-        end if
-     end if
 
 !######################################
 !Average edge lengths for random stars
@@ -379,8 +374,22 @@ SUBROUTINE find_lambda(snapi,ni)
         length_list(i) = i
      END DO
      CALL heapsort(nmst-1, length, length_list)
-     medianlength=length(length_list( NINT(REAL(nmst-1)/2.) ) )
+     
+!CDFs of random stars:
+     !if(thisproj=='3D') then
+        if (j.le.nCDF) then
+! Write out the edge lengths of the MST to plot a CDF:
+           do k=1,nmst-1
+              edgelengths(k)=length(length_list(k))
+           end do
+           write(300+j,300) snapi,edgelengths(1:nmst-1)
+300        FORMAT(1X,I4,*(2X,F9.5))
+        end if
+     !end if
 
+!Find the median edge length of this MST:
+     medianlength=length(length_list( NINT(REAL(nmst-1)/2.) ) )
+     
 !Lambda MST:
 ! This is just the same as lambar without 1/n
      IF (findlam) l_ranmst(j) = totallength
@@ -426,6 +435,18 @@ SUBROUTINE find_lambda(snapi,ni)
      IF (findlamtil) ltil_ranmst(j) = medianlength
 
 
+!Lambda N-median MST:
+!Find the 2 or 3 median points (depending on whether even/odd
+!number of edge lengths) and take the mean of these
+     IF (findlamNmed) THEN
+        medianp1=0.
+        medianm1=0.
+        medianp1=length(length_list( NINT(REAL(nmst-1)/2.) +1))
+        medianm1=length(length_list( NINT(REAL(nmst-1)/2.) -1))
+        lNmed_ranmst(j)=(medianp1+medianlength+medianm1)/3.
+     END IF
+
+     
 !Lambda star MST:
 ! Find the median length in the tree, & find length of a tree made from these
      IF (findlamstar) THEN
@@ -438,8 +459,6 @@ SUBROUTINE find_lambda(snapi,ni)
 
 !Generalised f-mean: f**(-1) * ((1/n)*SUM(f(x)) where f is some function
 !Gamma is a special case where f=ln, so f**(-1)=exp
-!Also try ln - take log of summed exponent (f=exp, f**(-1)=ln)
-
 
 !Gamma MST:
      IF (findgam) THEN
@@ -511,6 +530,12 @@ SUBROUTINE find_lambda(snapi,ni)
      CALL calc_lambda(ltil_objmst(snapi), ltil_ranmst, lambda_til(snapi), &
           & l_low_til(snapi), l_up_til(snapi), ltil_avranmst(snapi))
   END IF
+  
+!Calculate lambda N median:
+  IF (findlamNmed) THEN
+     CALL calc_lambda(lNmed_objmst(snapi), lNmed_ranmst, lambda_Nmed(snapi), &
+          & l_low_Nmed(snapi), l_up_Nmed(snapi), lNmed_avranmst(snapi))
+  END IF
 
 
 !Calculate lambda star:
@@ -554,6 +579,7 @@ SUBROUTINE find_lambda(snapi,ni)
   IF (findlamsmr) DEALLOCATE(lsmr_ranmst)
   IF (findlamhar) DEALLOCATE(lhar_ranmst)
   IF (findlamtil) DEALLOCATE(ltil_ranmst)
+  IF (findlamNmed) DEALLOCATE(lNmed_ranmst)
   IF (findlamstar) DEALLOCATE(lstar_ranmst)
   IF (findgam) DEALLOCATE(lgam_ranmst)
   IF (findlamln) DEALLOCATE(lln_ranmst)

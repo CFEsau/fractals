@@ -37,13 +37,13 @@ SUBROUTINE in_cluster(snapi,ni)
      ri_x = ri_com(snapi,i,1)
      ri_y = ri_com(snapi,i,2)
      ri_z = ri_com(snapi,i,3)
-     if (proj=='xy') then
+     if (thisproj=='xy') then
         rmag(i) = sqrt(ri_x**2 + ri_y**2)
-     else if (proj=='yz') then
+     else if (thisproj=='yz') then
         rmag(i) = sqrt(ri_y**2 + ri_z**2)
-     else if (proj=='xz') then
+     else if (thisproj=='xz') then
         rmag(i) = sqrt(ri_x**2 + ri_z**2)
-     else if (proj=='3D') then
+     else if (thisproj=='3D') then
         rmag(i) = sqrt(ri_x**2 + ri_y**2 + ri_z**2)
      end if
   end do

@@ -15,6 +15,7 @@ SUBROUTINE reduce_cluster(ni)
 
   INQUIRE(file = TRIM(newPath), exist = dirExists)
 !(Works for gfortran. For ifort: ...directory=newDir,exist...)
+  
   IF (.NOT. dirExists) THEN
      WRITE(6,'(a)') "Creating new directory: '"//TRIM(newPath)//"'"
      CALL system('mkdir -p '//TRIM(newPath))
@@ -31,21 +32,21 @@ SUBROUTINE reduce_cluster(ni)
 
   DO projnum = 1,4
      IF (projnum==1) THEN
-        proj='xy'
+        thisproj='xy'
         WRITE(6,*)""
-        WRITE(6,*)"   "//proj//":"
+        WRITE(6,*)"   "//thisproj//":"
      ELSE IF (projnum==2) THEN
-        proj='yz'
+        thisproj='yz'
         WRITE(6,*)""
-        WRITE(6,*)"   "//proj//":"
+        WRITE(6,*)"   "//thisproj//":"
      ELSE IF (projnum==3)  THEN
-        proj='xz'
+        thisproj='xz'
         WRITE(6,*)""
-        WRITE(6,*)"   "//proj//":"
+        WRITE(6,*)"   "//thisproj//":"
      ELSE IF (projnum==4)  THEN
-        proj='3D'
+        thisproj='3D'
         WRITE(6,*)""
-        WRITE(6,*)"   "//proj//":"
+        WRITE(6,*)"   "//thisproj//":"
      END IF
 
 !*************************************************!
@@ -72,7 +73,7 @@ SUBROUTINE reduce_cluster(ni)
 
 
 !Don't need to call this here as all stars included
-!     open(10,file=trim(newPath)//'/escaped_'//proj//'.dat')
+!     open(10,file=trim(newPath)//'/escaped_'//thisproj//'.dat')
 !
 !     do i=1,snapnum
 !       call in_cluster(i,nstars(i))
@@ -105,18 +106,13 @@ SUBROUTINE reduce_cluster(ni)
 !!$     PRINT *, i, r_halfmass(i)
      END DO
 
-! save final half-mass radius value for each projection:
-! (needed for reduce_rhalf)
-!     rhalf_all(projnum) = r_halfmass(snapnum)
-! (I've now moved this to the reduce_rhalf script)
-
 
 !*******************************************
 ! Write out distance data
 !
 ! Centre of mass and half-mass radius:
 ! output: i com_x com_y com_z r1/2
-     OPEN(3,file=TRIM(newPath)//'/c_of_m_'//proj//'.dat',status='new')
+     OPEN(3,file=TRIM(newPath)//'/c_of_m_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(3,30) i,com_cluster(i,1),com_cluster(i,2),com_cluster(i,3), &
              & r_halfmass(i)
@@ -158,7 +154,7 @@ SUBROUTINE reduce_cluster(ni)
 !
 ! Save in 'outarg' as this is the same for all cluster types
 ! (don't need to call from FoV / rhalf cluster types)
-  OPEN(4,file=TRIM(outarg)//'/energies.dat',status='new')
+  OPEN(4,file=TRIM(outarg)//'/energies.dat',status='replace')
   DO i=1,snapnum
      WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i)
   END DO

@@ -28,7 +28,8 @@ PROGRAM reduce
   LOGICAL :: writesnap !write data to snapshots? T/F
 
   writesnap=.FALSE.
-
+  
+  
 ! Get the name and path of the runfile from the command line
   CALL GETARG(1,inarg)
   PRINT *, 'Input file: ',TRIM(inarg)
@@ -130,7 +131,7 @@ PROGRAM reduce
   nmst=10
 
 ! Find energy, c of m, rhalf, mass segregation for all stars in cluster:
-  CALL reduce_cluster(nstars(1))
+!  CALL reduce_cluster(nstars(1))
 
 ! Find energy, c of m, rhalf, mass segregation for stars
 ! within a field of view of FoV_lim pc:
@@ -141,11 +142,11 @@ PROGRAM reduce
 ! Find energy, c of m, rhalf, mass segregation for stars
 ! within rfac*r_halfmass(snapnum,1:4) of all stars:
 
-  rfac = 2
-  CALL reduce_rhalf(nstars(1))
+!  rfac = 2
+!  CALL reduce_rhalf(nstars(1))
 
-  rfac = 3
-  CALL reduce_rhalf(nstars(1))
+!  rfac = 3
+!  CALL reduce_rhalf(nstars(1))
 !
 !  
 !*************************!

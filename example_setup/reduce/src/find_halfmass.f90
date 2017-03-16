@@ -30,13 +30,13 @@ SUBROUTINE find_halfmass(snapshoti,ni)
      ri_x = ri_com(snapshoti,i,1)
      ri_y = ri_com(snapshoti,i,2)
      ri_z = ri_com(snapshoti,i,3)
-     IF (proj=='xy') THEN
+     IF (thisproj=='xy') THEN
         rmag(i) = SQRT(ri_x**2 + ri_y**2)
-     ELSE IF (proj=='yz') THEN
+     ELSE IF (thisproj=='yz') THEN
         rmag(i) = SQRT(ri_y**2 + ri_z**2)
-     ELSE IF (proj=='xz') THEN
+     ELSE IF (thisproj=='xz') THEN
         rmag(i) = SQRT(ri_x**2 + ri_z**2)
-     ELSE IF (proj=='3D') THEN
+     ELSE IF (thisproj=='3D') THEN
         rmag(i) = SQRT(ri_x**2 + ri_y**2 + ri_z**2)
      END IF
   END DO

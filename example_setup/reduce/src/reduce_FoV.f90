@@ -16,10 +16,10 @@ SUBROUTINE reduce_FoV(ni)
 ! create 'FoV' directory for results:
   newDir = 'cluster_FoV'//TRIM(FoV_char)//'pc'
   newPath = TRIM(outarg)//'/'//TRIM(newDir)
-
+  
   INQUIRE(file = TRIM(newPath), exist = dirExists)
 !(Works for gfortran. For ifort: ...directory=newDir,exist...)
-
+  
   IF (.NOT. dirExists) THEN
      WRITE(6,'(a)') "Creating new directory: '"//TRIM(newPath)//"'"
      CALL system('mkdir -p '//TRIM(newPath))
@@ -36,21 +36,21 @@ SUBROUTINE reduce_FoV(ni)
 
   DO projnum = 1,4
      IF (projnum==1) THEN
-        proj='xy'
+        thisproj='xy'
         WRITE(6,*)""
-        WRITE(6,*)"   "//proj//":"
+        WRITE(6,*)"   "//thisproj//":"
      ELSE IF (projnum==2) THEN
-        proj='yz'
+        thisproj='yz'
         WRITE(6,*)""
-        WRITE(6,*)"   "//proj//":"
+        WRITE(6,*)"   "//thisproj//":"
      ELSE IF (projnum==3)  THEN
-        proj='xz'
+        thisproj='xz'
         WRITE(6,*)""
-        WRITE(6,*)"   "//proj//":"
+        WRITE(6,*)"   "//thisproj//":"
      ELSE IF (projnum==4)  THEN
-        proj='3D'
+        thisproj='3D'
         WRITE(6,*)""
-        WRITE(6,*)"   "//proj//":"
+        WRITE(6,*)"   "//thisproj//":"
      END IF
 
 !*************************************************!
@@ -72,7 +72,7 @@ SUBROUTINE reduce_FoV(ni)
 
 
 ! Is the star in the cluster?
-     OPEN(10,file=TRIM(newPath)//'/escaped_'//proj//'.dat')
+     OPEN(10,file=TRIM(newPath)//'/escaped_'//thisproj//'.dat')
 
      DO i=1,snapnum
         CALL in_cluster(i,nstars(i))
@@ -113,7 +113,7 @@ SUBROUTINE reduce_FoV(ni)
 
 ! Centre of mass and half-mass radius for each snapshot:
 ! output: i com_x com_y com_z r1/2
-     OPEN(3,file=TRIM(newPath)//'/c_of_m_'//proj//'.dat',status='replace')
+     OPEN(3,file=TRIM(newPath)//'/c_of_m_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(3,30) i,com_cluster(i,1),com_cluster(i,2),com_cluster(i,3), &
              & r_halfmass(i)
@@ -141,7 +141,7 @@ SUBROUTINE reduce_FoV(ni)
 ! (don't need if it's been called from 'reduce_cluster'
 ! as all stars are used for this calculation)
 ! If these files don't exist, do them here:
-  INQUIRE(file = TRIM(outarg)//'energies.dat', exist = fileExists)
+  INQUIRE(file = TRIM(outarg)//'/energies.dat', exist = fileExists)
    IF (.NOT. fileExists) THEN
 
       WRITE(6,*)""

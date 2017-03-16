@@ -103,7 +103,7 @@
        double precision, dimension(4) :: rhalf_all
 ! projection of cluster (2D axis/3D)
 ! projnum = integer representing projection type
-       character*2 :: proj
+       character*2 :: thisproj
        integer :: projnum
 
 !===============
@@ -139,7 +139,10 @@
 ! lambda_tilde uses median length of MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_til, l_up_til, l_low_til
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: ltil_avranmst, ltil_objmst
-! lambda_star uses median length of MST & adds this to the actual length of the MST
+! lambda_Nmed uses the mean of the N median lengths of MST (2 or 3)
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_Nmed, l_up_Nmed, l_low_Nmed
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lNmed_avranmst, lNmed_objmst
+! lambda_star uses median length of MST and adds this to the actual length of the MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_star, l_up_star, l_low_star
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lstar_avranmst, lstar_objmst
 ! lambda_gam uses the geometric mean
@@ -148,9 +151,10 @@
 ! lamda_ln: sum the exponents and take the log (sort of inverse of geometric mean)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_ln, l_up_ln, l_low_ln
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lln_avranmst, lln_objmst
+       
 ! state which types of lambda you want to find, to save doing all every time
        LOGICAL :: findlam, findlambar, findlamrms, findlamsmr, findlamhar
-       LOGICAL :: findlamtil, findlamstar, findgam, findlamln
+       LOGICAL :: findlamtil, findlamNmed, findlamstar, findgam, findlamln
        
        
 ! nmst = number of stars in the minimum spanning tree
