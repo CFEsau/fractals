@@ -96,6 +96,8 @@ for simname in os.listdir(path + '/'):
                             plt.ylabel(r"$\Lambda_{har}$")
                         elif "lamtil" in lamtype:
                             plt.ylabel(r"$\widetilde{\Lambda}$")
+                        elif "lamNmed" in lamtype:
+                            plt.ylabel(r"$\widetilde{\Lambda}_{N}$")
                         elif "lamstar" in lamtype:
                             plt.ylabel(r"$\Lambda^\star}$")
                         elif "gam" in lamtype:

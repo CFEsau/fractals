@@ -47,14 +47,15 @@ for simname in os.listdir(path + '/'):
                 
                 #make list for names of different lambda:
                 lambda_types=[]
-                lambda_types.append('lambar')
-                lambda_types.append('lamrms')
-                lambda_types.append('lamsmr')
-                lambda_types.append('lamhar')
-                lambda_types.append('lamtil')
-                lambda_types.append('lamstar')
-                lambda_types.append('gam')
-                lambda_types.append('lamln')
+                lambda_types.append('lambar') #arithmetic mean
+                lambda_types.append('lamrms') #rms
+                lambda_types.append('lamsmr') #smr
+                lambda_types.append('lamhar') #harmonic mean
+                lambda_types.append('lamtil') #median
+                lambda_types.append('lamNmed') #mean of N median (~2 or 3)
+                lambda_types.append('lamstar') #weird one... ignore
+                lambda_types.append('gam') #geometric mean
+                lambda_types.append('lamln') #log
 
                 #dictionary for Y/N logical of what to plot:
                 lambda_to_plot=dict()
@@ -63,6 +64,7 @@ for simname in os.listdir(path + '/'):
                 lambda_to_plot['lamsmr']= 'N'
                 lambda_to_plot['lamhar']= 'N'
                 lambda_to_plot['lamtil']= 'Y'
+                lambda_to_plot['lamNmed']='N'
                 lambda_to_plot['lamstar']='N'
                 lambda_to_plot['gam']=    'Y'
                 lambda_to_plot['lamln']=  'N'
@@ -77,6 +79,7 @@ for simname in os.listdir(path + '/'):
                 lambda_tex['lamsmr']='$\Lambda_{smr}$'
                 lambda_tex['lamhar']='$\Lambda_{har}$'
                 lambda_tex['lamtil']='$\widetilde{\Lambda}$'
+                lambda_tex['lamNmed']='$\widetilde{\Lambda}_N$'
                 lambda_tex['lamstar']='$\Lambda^\star$'
                 lambda_tex['gam']='$\Gamma$'
                 lambda_tex['lamln']='$\mathrm{ln}(\Lambda)$'

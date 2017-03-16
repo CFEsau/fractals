@@ -55,7 +55,7 @@ echo "**************************"
 
 defaultskip="y"
 
-echo -n "Make only lambda plots? [y/n] "
+echo -n "Skip to lambda plots? [y/n] "
 if ! read -t 6 skip; then
     echo "No response. Default is:"
     if [ "$defaultskip" = "y" ]; then

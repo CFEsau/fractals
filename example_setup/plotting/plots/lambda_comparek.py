@@ -34,6 +34,7 @@ lambda_types.append('lamrms')
 lambda_types.append('lamsmr')
 lambda_types.append('lamhar')
 lambda_types.append('lamtil')
+lambda_types.append('lamNmed')
 lambda_types.append('lamstar')
 lambda_types.append('gam')
 lambda_types.append('lamln')
@@ -45,9 +46,10 @@ lambda_to_plot['lamrms']= 'Y'
 lambda_to_plot['lamsmr']= 'N'
 lambda_to_plot['lamhar']= 'N'
 lambda_to_plot['lamtil']= 'Y'
+lambda_to_plot['lamNmed']='Y'
 lambda_to_plot['lamstar']='N'
 lambda_to_plot['gam']=    'Y'
-lambda_to_plot['lamln']=  'Y'
+lambda_to_plot['lamln']=  'N'
 
 #dictionary for tex strings:
 lambda_latex=dict()
@@ -56,6 +58,7 @@ lambda_latex['lamrms']='$\Lambda_{rms}$'
 lambda_latex['lamsmr']='$\Lambda_{smr}$'
 lambda_latex['lamhar']='$\Lambda_{har}$'
 lambda_latex['lamtil']='$\widetilde{\Lambda}$'
+lambda_latex['lamNmed']='$\widetilde{\Lambda}_{N}$'
 lambda_latex['lamstar']='$\Lambda^\star$'
 lambda_latex['gam']='$\Gamma$'
 lambda_latex['lamln']='$\mathrm{ln}(\Lambda)$'
