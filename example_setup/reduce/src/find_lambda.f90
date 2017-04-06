@@ -35,18 +35,16 @@ SUBROUTINE find_lambda(snapi,ni)
 !-----------
 ! MST stuff
 !-----------
-! length = length of each MST edge
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: length
-! length_list = IDs of 'length' entries (for heapsort)
-  INTEGER, DIMENSION(:), ALLOCATABLE :: length_list
-  double precision :: totallength !total length of mst (sum of 'length')
+  INTEGER :: nedge !number of edge lengths
+  INTEGER :: int_nedged2 !INT(REAL(nedge)/2.) - for median edge length calcs
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: length !length of each MST edge
+  INTEGER, DIMENSION(:), ALLOCATABLE :: length_list !IDs of 'length' entries
+  double precision :: totallength  !total length of mst (sum of 'length')
   double precision :: medianlength !median edge length in MST
-! Length of object tree (e.g. most massive stars):
-  DOUBLE PRECISION :: obj_mst
-! obj_r = positions of obj stars
-  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: obj_r
+  DOUBLE PRECISION :: obj_mst !Length of object tree (e.g. massive stars)
+  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: obj_r !positions of obj stars
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: x,y,z !split of obj_r
-  INTEGER, DIMENSION(:,:), ALLOCATABLE :: node !node connections for mst
+  INTEGER, DIMENSION(:,:), ALLOCATABLE :: node  !node connections for mst
 
 !total lengths of random MSTs for different lambda:
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: l_ranmst, lbar_ranmst
@@ -55,8 +53,6 @@ SUBROUTINE find_lambda(snapi,ni)
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lNmed_ranmst, lstar_ranmst
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lgam_ranmst, lln_ranmst
 
-  DOUBLE PRECISION :: medianp1 !next in list above median
-  DOUBLE PRECISION :: medianm1 !previous in list below median
   INTEGER, DIMENSION(:), ALLOCATABLE :: rand_list !IDs of _randmst list
 
 ! done = record which stars have been randomly selected
@@ -65,6 +61,10 @@ SUBROUTINE find_lambda(snapi,ni)
   
   INTEGER :: i,j,k !generic counters
 
+!Frequently used expressions:
+  nedge=nmst-1
+  int_nedged2=int(real(nedge)/2.) !for median calculations
+
 ! Allocate memory for arrays
   ALLOCATE(mi(1:ni))
   ALLOCATE(ri(1:ni,1:3))
@@ -72,19 +72,20 @@ SUBROUTINE find_lambda(snapi,ni)
   ALLOCATE(mlist(1:ni))
   ALLOCATE(done(1:ni))
 !Allocate memory for arrays of length nmst:
-  ALLOCATE(length(1:nmst-1))
-  ALLOCATE(length_list(1:nmst-1))
+  ALLOCATE(length(1:nedge))
+  ALLOCATE(length_list(1:nedge))
   ALLOCATE(x(1:nmst))
   ALLOCATE(y(1:nmst))
   ALLOCATE(z(1:nmst))
   ALLOCATE(node(1:nmst-1,1:2))
   ALLOCATE(obj_r(1:nmst,1:3))
-
-! And fill arrays 
+  
+! And populate arrays 
   mi(1:ni)=m(snapi,1:ni)
   ri(1:ni,1:3)=r(snapi,1:ni,1:3)
   ti=t(snapi,1)
-
+  
+  
 !====================================
 !For when outliers are being ignored
 !====================================
@@ -189,16 +190,16 @@ SUBROUTINE find_lambda(snapi,ni)
   CALL mst(snapi,nmst,x,y,z,node,length)
 
 !Assign IDs for heapsort to order MST edges
-  DO j=1,nmst-1
+  DO j=1,nedge
      length_list(j)=j
   END DO
-  CALL heapsort(nmst-1,length,length_list)
+  CALL heapsort(nedge,length,length_list)
   
 ! Write out the edge lengths of the MST to plot a CDF:
-  do i=1,nmst-1
+  do i=1,nedge
      edgelengths(i)=length(length_list(i))
   end do
-  write(12,112) snapi,edgelengths(1:nmst-1)
+  write(12,112) snapi,edgelengths(1:nedge)
 112 FORMAT(1X,I4,*(2X,F9.5))
 
 !######################################
@@ -211,12 +212,23 @@ SUBROUTINE find_lambda(snapi,ni)
   !END DO                                    ! to find the total length
   totallength=SUM(length)
 
+  !Median edge length:
   medianlength=0.
-  DO i = 1, nmst-1
+  DO i = 1, nedge
      length_list(i) = i
   END DO
-  CALL heapsort(nmst-1, length, length_list)
-  medianlength=length(length_list( NINT(REAL(nmst-1)/2.) ) )
+  CALL heapsort(nedge, length, length_list)
+  
+  if (.not. MOD(nedge,2)==0) then
+     !if odd no. of edge lengths, take median.
+     medianlength=length(length_list(int_nedged2))
+  else
+     ! if even no. of edge lengths, take mean of median two.
+     medianlength=length(length_list(int_nedged2 +1)) &
+          + length(length_list(int_nedged2))
+     medianlength=medianlength/2.
+  end if
+  
   
 !Lambda MST:
 ! This is just the same as lambar without 1/n
@@ -225,7 +237,7 @@ SUBROUTINE find_lambda(snapi,ni)
 
 !Lambda bar MST:
 !Use the mean MST edge length
-  IF (findlambar) lbar_objmst(snapi) = totallength/(nmst-1)
+  IF (findlambar) lbar_objmst(snapi) = totallength/(nedge)
 
 
 !Generalised mean: ((1/n)*SUM(x**p))**(1/p). Arithmetic mean p=1
@@ -233,29 +245,29 @@ SUBROUTINE find_lambda(snapi,ni)
   
 !Lambda rms MST:
   IF (findlamrms) THEN
-     DO i=1,nmst-1
+     DO i=1,nedge
         lrms_objmst(snapi) = lrms_objmst(snapi) + length(i)**2.
      END DO
   END IF
-  lrms_objmst(snapi) = ( (1./REAL(nmst-1))*lrms_objmst(snapi) )**0.5
+  lrms_objmst(snapi) = ( (1./REAL(nedge))*lrms_objmst(snapi) )**0.5
 
   
 !Lambda smr MST:
   IF (findlamsmr) THEN
-     DO i=1,nmst-1
+     DO i=1,nedge
         lsmr_objmst(snapi) = lsmr_objmst(snapi) + (length(i))**0.5
      END DO
   END IF
-  lsmr_objmst(snapi) = ( (1./REAL(nmst-1))*(lsmr_objmst(snapi)) )**2.
+  lsmr_objmst(snapi) = ( (1./REAL(nedge))*(lsmr_objmst(snapi)) )**2.
 
   
 !Lambda har MST:
   IF (findlamhar) THEN
-     DO i=1,nmst-1
+     DO i=1,nedge
         lhar_objmst(snapi) = lhar_objmst(snapi) + (length(i))**(-1.)
      END DO
   END IF
-  lhar_objmst(snapi) = ( (1./REAL(nmst-1))*(lhar_objmst(snapi)) )**(-1.)
+  lhar_objmst(snapi) = ( (1./REAL(nedge))*(lhar_objmst(snapi)) )**(-1.)
   
   
 !Lambda tilde MST:
@@ -265,18 +277,24 @@ SUBROUTINE find_lambda(snapi,ni)
   
 !Lambda N-median MST:
   IF (findlamNmed) THEN
-     medianp1=0.
-     medianm1=0.
-     medianp1=length(length_list( NINT(REAL(nmst-1)/2.) +1))
-     medianm1=length(length_list( NINT(REAL(nmst-1)/2.) -1))
-     lNmed_objmst(snapi)=(medianp1+medianlength+medianm1)/3.
+     do i=1,Nmed
+        if (i==1) then
+           lNmed_objmst(snapi)=length(length_list(int_nedged2))
+        else
+           !take values either side of median:
+           lNmed_objmst(snapi)=lNmed_objmst(snapi) &
+                + length(length_list(int_nedged2 + (i-1))) &
+                + length(length_list(int_nedged2 - (i-1)))
+        end if
+     end do
+     lNmed_objmst(snapi)=lNmed_objmst(snapi)/real(Nmed)
   END IF
   
   
 !Lambda star MST:
 ! Find the median length in the tree, & find length of a tree made from these
   IF (findlamstar) THEN
-     lstar_objmst(snapi) = (nmst-1)*medianlength
+     lstar_objmst(snapi) = (nedge)*medianlength
      
 ! Then add on the actual length of the tree
      lstar_objmst(snapi) = lstar_objmst(snapi)+totallength
@@ -288,21 +306,21 @@ SUBROUTINE find_lambda(snapi,ni)
 
 !Gamma MST:
   IF (findgam) THEN
-     DO i = 1,nmst-1
+     DO i = 1,nedge
         lgam_objmst(snapi) = lgam_objmst(snapi) + LOG(length(i))  !Add edges to
      END DO                                                  !find total length
 !Calculate the geometric mean
-     lgam_objmst(snapi) = EXP( (1./REAL(nmst-1)) * lgam_objmst(snapi))
+     lgam_objmst(snapi) = EXP( (1./REAL(nedge)) * lgam_objmst(snapi))
   END IF
 
   
 !Lambda ln MST:
   IF (findlamln) THEN
-     DO i = 1,nmst-1
+     DO i = 1,nedge
         lln_objmst(snapi) = lln_objmst(snapi) + EXP(length(i))  !Add edges to
      END DO                                                !find total length
 !Calculate the geometric mean
-     lln_objmst(snapi) = LOG( (1./REAL(nmst-1)) * lln_objmst(snapi))
+     lln_objmst(snapi) = LOG( (1./REAL(nedge)) * lln_objmst(snapi))
   END IF
 
 
@@ -370,25 +388,34 @@ SUBROUTINE find_lambda(snapi,ni)
      totallength=SUM(length)
 
      medianlength=0.
-     DO i = 1, nmst-1
+     DO i = 1, nedge
         length_list(i) = i
      END DO
-     CALL heapsort(nmst-1, length, length_list)
+     CALL heapsort(nedge, length, length_list)
      
 !CDFs of random stars:
      !if(thisproj=='3D') then
         if (j.le.nCDF) then
 ! Write out the edge lengths of the MST to plot a CDF:
-           do k=1,nmst-1
+           do k=1,nedge
               edgelengths(k)=length(length_list(k))
            end do
-           write(300+j,300) snapi,edgelengths(1:nmst-1)
+           write(300+j,300) snapi,edgelengths(1:nedge)
 300        FORMAT(1X,I4,*(2X,F9.5))
         end if
      !end if
 
-!Find the median edge length of this MST:
-     medianlength=length(length_list( NINT(REAL(nmst-1)/2.) ) )
+        !Median edge length of this MST (depends on even/odd nedge):
+        if (.not. MOD(nedge,2)==0) then
+           !if odd no. of edge lengths, take median edge length.
+           !(Use INT as always need to round up from #.5)
+           medianlength=length(length_list(int_nedged2))
+        else
+           ! if even no. of edge lengths, take mean of median 2.
+           medianlength=length(length_list(int_nedged2 +1)) &
+                + length(length_list(int_nedged2))
+           medianlength=medianlength/2.
+        end if
      
 !Lambda MST:
 ! This is just the same as lambar without 1/n
@@ -397,7 +424,7 @@ SUBROUTINE find_lambda(snapi,ni)
 
 !Lambda bar MST:
 !Use the mean MST edge length
-     IF (findlambar) lbar_ranmst(j) = totallength/(nmst-1)
+     IF (findlambar) lbar_ranmst(j) = totallength/(nedge)
 
 
 !Generalised mean: ((1/n)*SUM(x**p))**(1/p). Arithmetic mean p=1
@@ -405,29 +432,29 @@ SUBROUTINE find_lambda(snapi,ni)
   
 !Lambda rms MST:
      IF (findlamrms) THEN
-        DO i=1,nmst-1
+        DO i=1,nedge
            lrms_ranmst(j) = lrms_ranmst(j) + (length(i))**2.
         END DO
      END IF
-     lrms_ranmst(j) = ( (1./REAL(nmst-1))*(lrms_ranmst(j)) )**0.5
+     lrms_ranmst(j) = ( (1./REAL(nedge))*(lrms_ranmst(j)) )**0.5
 
   
 !Lambda smr MST:
      IF (findlamsmr) THEN
-        DO i=1,nmst-1
+        DO i=1,nedge
            lsmr_ranmst(j) = lsmr_ranmst(j) + (length(i))**0.5
         END DO
      END IF
-     lsmr_ranmst(j) = ( (1./REAL(nmst-1))*(lsmr_ranmst(j)) )**2.
+     lsmr_ranmst(j) = ( (1./REAL(nedge))*(lsmr_ranmst(j)) )**2.
 
   
 !Lambda har MST:
      IF (findlamhar) THEN
-        DO i=1,nmst-1
+        DO i=1,nedge
            lhar_ranmst(j) = lhar_ranmst(j) + (length(i))**(-1.)
         END DO
      END IF
-     lhar_ranmst(j) = ( (1./REAL(nmst-1))*(lhar_ranmst(j)) )**(-1.)
+     lhar_ranmst(j) = ( (1./REAL(nedge))*(lhar_ranmst(j)) )**(-1.)
 
 
 !Lambda tilde MST:
@@ -436,21 +463,26 @@ SUBROUTINE find_lambda(snapi,ni)
 
 
 !Lambda N-median MST:
-!Find the 2 or 3 median points (depending on whether even/odd
-!number of edge lengths) and take the mean of these
+!Find the N median points and take the mean of these
      IF (findlamNmed) THEN
-        medianp1=0.
-        medianm1=0.
-        medianp1=length(length_list( NINT(REAL(nmst-1)/2.) +1))
-        medianm1=length(length_list( NINT(REAL(nmst-1)/2.) -1))
-        lNmed_ranmst(j)=(medianp1+medianlength+medianm1)/3.
+        do i=1,Nmed
+           if (i==1) then
+              lNmed_ranmst(j)=length(length_list(int_nedged2))
+           else
+              !take values either side of median:
+              lNmed_ranmst(j)=lNmed_ranmst(j) &
+                   + length(length_list(int_nedged2 + (i-1))) &
+                   + length(length_list(int_nedged2 - (i-1)))
+           end if
+        end do
+        lNmed_ranmst(j)=lNmed_ranmst(j)/real(Nmed)
      END IF
 
-     
+
 !Lambda star MST:
 ! Find the median length in the tree, & find length of a tree made from these
      IF (findlamstar) THEN
-        lstar_ranmst(j) = (nmst-1) * medianlength
+        lstar_ranmst(j) = (nedge) * medianlength
         
 ! Then add on the actual length of the tree
         lstar_ranmst(j) = lstar_ranmst(j) + totallength
@@ -462,20 +494,20 @@ SUBROUTINE find_lambda(snapi,ni)
 
 !Gamma MST:
      IF (findgam) THEN
-        DO i = 1,nmst-1
+        DO i = 1,nedge
            lgam_ranmst(j) = lgam_ranmst(j) + LOG(length(i))  !Add edges to
         END DO                                               !find total length
-        lgam_ranmst(j) = EXP( (1./REAL(nmst-1)) * lgam_ranmst(j) )
+        lgam_ranmst(j) = EXP( (1./REAL(nedge)) * lgam_ranmst(j) )
      END IF
 
   
 !Lambda ln MST:
      IF (findlamln) THEN
-        DO i = 1,nmst-1
+        DO i = 1,nedge
            lln_ranmst(j) = lln_ranmst(j) + EXP(length(i))  !Add edges to
         END DO                                                !find total length
 !Calculate the geometric mean
-        lln_ranmst(j) = LOG( (1./REAL(nmst-1)) * lln_ranmst(j))
+        lln_ranmst(j) = LOG( (1./REAL(nedge)) * lln_ranmst(j))
      END IF
      
   END DO !end of nloop

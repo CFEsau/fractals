@@ -62,7 +62,7 @@ def plotvirial():
             plt.close()
             
 def virial_k():
-    print ("   Doing virial ratio...")
+    print ("   Comparing across k...")
 
     duration = 10. #Duration of simulation (Myr)
     my_dpi=96

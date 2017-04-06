@@ -65,7 +65,7 @@ def plotrhalfm(thiscluster):
             plt.close()
                 
 def rhalfm_k(thiscluster):
-    print ("   Doing half-mass radius...")
+    print ("   Comparing across k...")
     my_dpi=96
     duration = 10. #Duration of simulation (Myr)
     plt.figure(figsize=(11.7,8.3), dpi=my_dpi) # A4 landscape

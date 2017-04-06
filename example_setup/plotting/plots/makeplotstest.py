@@ -77,20 +77,23 @@ if not os.path.exists(plotconfig.outpath+'/plots'):
     os.makedirs(plotconfig.outpath+'/plots')
 
 if skip == 'n':
-    energy.printenergy()
-    energy.plotenergy()
-    filehandling.mergefiles()
+    energy.printenergy() #print banner
+    energy.plotenergy() #plot energies for each model
+    filehandling.mergefiles() #merge plots into one document
+    energy.energy_k() #compare simulations (k## together)
 
-    virial.printvirial()
-    virial.plotvirial()
-    filehandling.mergefiles()
+    virial.printvirial() #print banner
+    virial.plotvirial() #plot Q for each model
+    filehandling.mergefiles() #merge plots into one document
+    virial.virial_k() #compare simulations (k## together)
 
-    rhalfm.printrhalfm()
-    #do for different types of cluster:
+    rhalfm.printrhalfm() #print banner
+    #do for different cluster types:
     #print ("Cluster list:",plotconfig.clustertypes)
     for thiscluster in plotconfig.clustertypes:
-        rhalfm.plotrhalfm(thiscluster)
-        filehandling.mergefiles()
+        rhalfm.plotrhalfm(thiscluster) #plot rhalfm for each model
+        filehandling.mergefiles() #merge plots into one document
+        rhalfm.rhalfm_k(thiscluster) #compare simulations (k## together)
         print ("")
     
 else:
@@ -99,72 +102,23 @@ else:
     print("Skipping half-mass radius...")
 
     
-lambd.printlambda()
-lambd.lambdasetup()
+lambd.printlambda() #print banner
+lambd.lambdasetup() #set which lambda types to plot & y-label text
 
 #start_time = timeit.default_timer()
 #overplot projections for all types of lambda, for each cluster
 
-#compare projections for each lambda
 for thiscluster in plotconfig.clustertypes:
-    lambd.lambdaprojections(thiscluster)
+    lambd.lambdaprojections(thiscluster) #compare projections for each lambda
+    filehandling.mergefiles() #merge plots into one document
+    print ("")
+    
+    lambd.lambdacompare(thiscluster)#compare lambda methods (uses 3D)
     filehandling.mergefiles()
     print ("")
+    
+    #compare simulations (k##)
+    lambd.lambda_k(thiscluster) #compare simulations (k## together)
+
 
 #print (timeit.default_timer() - start_time)
-
-#compare lambda methods (uses 3D projection)
-for thiscluster in plotconfig.clustertypes:
-    lambd.lambdacompare(thiscluster)
-    filehandling.mergefiles()
-    print ("")
-
-#compare simulations (k##)
-
-'''
-print ("")
-print ("************************************")
-print ("* Making comparison plots across k *")
-print ("************************************")
-# Plot all values of k together for each E, Q, lambda, etc
-
-if skip == 'n':
-    energy.energy_k()
-    virial.virial_k()
-    for thiscluster in plotconfig.clustertypes:
-        rhalfm.rhalfm_k(thiscluster)
-        
-#for thiscluster in plotconfig.clustertypes:
-    #lambd.lambda_k(thiscluster)
-'''
-'''
-#original bash script:
-
-
-echo ""
-echo "****************************"
-echo "* Comparing lambda methods *"
-echo "****************************"
-# Plot lambar, lamtilde, etc against each other for each k
-
-plots/differentlambda.py ${fbin} ${fdim} ${qvir} ${outpath}
-
-#param=alllam
-. ./plots/merge.sh
-
-echo ""
-echo "       ... done."
-
-
-echo ""
-echo "************************************"
-echo "* Making comparison plots across k *"
-echo "************************************"
-# Plot all values of k together for each E, Q, lambda, etc
-
-plots/lambda_comparek.py ${fbin} ${fdim} ${qvir} ${outpath}
-echo ""
-sleep 0.6
-
-echo "       ... done."
-'''

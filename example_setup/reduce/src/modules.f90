@@ -118,6 +118,8 @@
 !============== Lambda ===============
 ! Lengths of 'object' edges in MST for CDFs
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: edgelengths
+! Number of median values to include in l_Nmed (e.g. 2 or 3 for even/odd nedge)
+       INTEGER :: Nmed
 ! Number of CDF plots of random MSTs
        INTEGER :: nCDF
 ! lambda = measure of mass segregation & errors
@@ -139,7 +141,7 @@
 ! lambda_tilde uses median length of MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_til, l_up_til, l_low_til
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: ltil_avranmst, ltil_objmst
-! lambda_Nmed uses the mean of the N median lengths of MST (2 or 3)
+! lambda_Nmed uses the mean of the N median lengths of MST (Nmed)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_Nmed, l_up_Nmed, l_low_Nmed
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lNmed_avranmst, lNmed_objmst
 ! lambda_star uses median length of MST and adds this to the actual length of the MST

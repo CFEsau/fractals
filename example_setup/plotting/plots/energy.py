@@ -66,7 +66,7 @@ def plotenergy():
             plt.close()
 
 def energy_k():
-    print ("   Doing energies...")
+    print ("   Comparing across k...")
     
     duration = 10. #Duration of simulation (Myr)
     my_dpi=96
