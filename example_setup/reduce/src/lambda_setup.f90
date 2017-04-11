@@ -8,10 +8,12 @@ subroutine lambda_setup
   implicit none
   integer :: i,j
   character(len=6) :: filei !string version of 'i'
+  integer :: nedge !number of edges in MST (nmst-1)
   integer :: nlam !number of lambda types
   integer :: lamunit, lambarunit, lamrmsunit, lamsmrunit !output units
   integer :: lamharunit, lamtilunit, lamstarunit, gamunit, lamlnunit
   integer :: lamNmedunit
+  character(len=5) :: Nmedstr
   character(len=100) :: CDFpath
   LOGICAL :: dirExists
   !could just use 'lamunit' & increment but the have to keep track
@@ -35,6 +37,8 @@ subroutine lambda_setup
 !======================================================
   
   nmst=10 !number of stars in the MST
+  nmed=3 !when using x number of median points, findlamNmed
+         !odd for odd nedge, even nmst & v/v)
   
 !For large nmst it can take a while to build the MST, so reduce
 !the number of times we do the loop - higher nmst MSTs are less 
@@ -187,6 +191,25 @@ subroutine lambda_setup
   END IF
   
   IF (findlamNmed) THEN
+     
+     !Nmed checks:
+     nedge=nmst-1
+     !------------
+     ! Even nmst: (odd edges)
+     if (.not. MOD(nedge,2)==0) then
+        if (MOD(Nmed,2)==0) stop 'Nmed must be odd'
+        if (.not. Nmed .gt. 1) stop 'Nmed must be greater than 1'
+        if (Nmed .gt. nedge) stop 'Nmed must be less than nedge'
+     else
+     !-----------
+     ! Odd nmst: (even edges)
+        if (.not. MOD(Nmed,2)==0) stop 'Nmed must be even'
+        if (.not. Nmed .gt. 2) stop 'Nmed must be greater than 2'
+        if (Nmed .gt. nedge) stop 'Nmed must be less than nedge'
+     end if
+     
+     write(Nmedstr,'(I5)') Nmed
+     
      nlam = nlam + 1
      lamlnunit = nlam + 100
      
@@ -327,7 +350,8 @@ subroutine lambda_setup
 !lamunit
 ! Median random MST edge lengths &
 ! object edge lengths used for each lambda, and lambda values with errors:
-     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lambda_'//thisproj//'.dat',status='replace')
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lambda_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamunit,99) i,l_avranmst(i),l_objmst(i),lambda(i),l_low(i),l_up(i)
      END DO
@@ -336,7 +360,8 @@ subroutine lambda_setup
   END IF
      
   IF (findlambar) THEN
-     OPEN(lambarunit,file=TRIM(newPath)//'/lambda/MST_lambar_'//thisproj//'.dat',status='replace')
+     OPEN(lambarunit,file=TRIM(newPath)//'/lambda/MST_lambar_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lambarunit,99) i,lbar_avranmst(i),lbar_objmst(i), &
              & lambda_bar(i),l_low_bar(i),l_up_bar(i)
@@ -346,7 +371,8 @@ subroutine lambda_setup
   END IF
   
   IF (findlamrms) THEN
-     OPEN(lamrmsunit,file=TRIM(newPath)//'/lambda/MST_lamrms_'//thisproj//'.dat',status='replace')
+     OPEN(lamrmsunit,file=TRIM(newPath)//'/lambda/MST_lamrms_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamrmsunit,99) i,lrms_avranmst(i),lrms_objmst(i), &
              & lambda_rms(i),l_low_rms(i),l_up_rms(i)
@@ -356,7 +382,8 @@ subroutine lambda_setup
   END IF
   
   IF (findlamsmr) THEN
-     OPEN(lamsmrunit,file=TRIM(newPath)//'/lambda/MST_lamsmr_'//thisproj//'.dat',status='replace')
+     OPEN(lamsmrunit,file=TRIM(newPath)//'/lambda/MST_lamsmr_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamsmrunit,99) i,lsmr_avranmst(i),lsmr_objmst(i), &
              & lambda_smr(i),l_low_smr(i),l_up_smr(i)
@@ -366,7 +393,8 @@ subroutine lambda_setup
   END IF
   
   IF (findlamhar) THEN
-     OPEN(lamharunit,file=TRIM(newPath)//'/lambda/MST_lamhar_'//thisproj//'.dat',status='replace')
+     OPEN(lamharunit,file=TRIM(newPath)//'/lambda/MST_lamhar_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamharunit,99) i,lhar_avranmst(i),lhar_objmst(i), &
              & lambda_har(i),l_low_har(i),l_up_har(i)
@@ -376,7 +404,8 @@ subroutine lambda_setup
   END IF
   
   IF (findlamtil) THEN
-     OPEN(lamtilunit,file=TRIM(newPath)//'/lambda/MST_lamtil_'//thisproj//'.dat',status='replace')
+     OPEN(lamtilunit,file=TRIM(newPath)//'/lambda/MST_lamtil_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamtilunit,99) i,ltil_avranmst(i),ltil_objmst(i), &
              & lambda_til(i),l_low_til(i),l_up_til(i)
@@ -386,7 +415,8 @@ subroutine lambda_setup
   END IF
   
   IF (findlamNmed) THEN
-     OPEN(lamNmedunit,file=TRIM(newPath)//'/lambda/MST_lamNmed_'//thisproj//'.dat',status='replace')
+     OPEN(lamNmedunit,file=TRIM(newPath)//'/lambda/MST_lam'//&
+          trim(adjustl(Nmedstr))//'med_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamNmedunit,99) i,lNmed_avranmst(i),lNmed_objmst(i), &
              & lambda_Nmed(i),l_low_Nmed(i),l_up_Nmed(i)
@@ -396,7 +426,8 @@ subroutine lambda_setup
   END IF
   
   IF (findlamstar) THEN
-     OPEN(lamstarunit,file=TRIM(newPath)//'/lambda/MST_lamstar_'//thisproj//'.dat',status='replace')
+     OPEN(lamstarunit,file=TRIM(newPath)//'/lambda/MST_lamstar_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamstarunit,99) i,lstar_avranmst(i),lstar_objmst(i), &
              & lambda_star(i),l_low_star(i),l_up_star(i)
@@ -406,7 +437,8 @@ subroutine lambda_setup
   END IF
   
   IF (findgam) THEN
-     OPEN(gamunit,file=TRIM(newPath)//'/lambda/MST_gam_'//thisproj//'.dat',status='replace')
+     OPEN(gamunit,file=TRIM(newPath)//'/lambda/MST_gam_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(gamunit,99) i,lgam_avranmst(i),lgam_objmst(i), &
              & lambda_gam(i),l_low_gam(i),l_up_gam(i)
@@ -416,7 +448,8 @@ subroutine lambda_setup
   END IF
   
   IF (findlamln) THEN
-     OPEN(lamlnunit,file=TRIM(newPath)//'/lambda/MST_lamln_'//thisproj//'.dat',status='replace')
+     OPEN(lamlnunit,file=TRIM(newPath)//'/lambda/MST_lamln_'//&
+          thisproj//'.dat',status='replace')
      DO i=1,snapnum
         WRITE(lamlnunit,99) i,lln_avranmst(i),lln_objmst(i), &
              & lambda_ln(i),l_low_ln(i),l_up_ln(i)

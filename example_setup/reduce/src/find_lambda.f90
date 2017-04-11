@@ -36,7 +36,7 @@ SUBROUTINE find_lambda(snapi,ni)
 ! MST stuff
 !-----------
   INTEGER :: nedge !number of edge lengths
-  INTEGER :: int_nedged2 !INT(REAL(nedge)/2.) - for median edge length calcs
+  INTEGER :: nint_nedged2, ceint_nedged2 !NINT(... & CEILING(  REAL(nedge)/2.)
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: length !length of each MST edge
   INTEGER, DIMENSION(:), ALLOCATABLE :: length_list !IDs of 'length' entries
   double precision :: totallength  !total length of mst (sum of 'length')
@@ -63,7 +63,9 @@ SUBROUTINE find_lambda(snapi,ni)
 
 !Frequently used expressions:
   nedge=nmst-1
-  int_nedged2=int(real(nedge)/2.) !for median calculations
+  !for median calculations:
+  nint_nedged2=nint(real(nedge)/2.) !nint to round to nearest int from ~x.0
+  ceint_nedged2=ceiling(real(nedge)/2.) !ceint to round up from x.5)
 
 ! Allocate memory for arrays
   ALLOCATE(mi(1:ni))
@@ -77,14 +79,13 @@ SUBROUTINE find_lambda(snapi,ni)
   ALLOCATE(x(1:nmst))
   ALLOCATE(y(1:nmst))
   ALLOCATE(z(1:nmst))
-  ALLOCATE(node(1:nmst-1,1:2))
+  ALLOCATE(node(1:nedge,1:2))
   ALLOCATE(obj_r(1:nmst,1:3))
   
 ! And populate arrays 
   mi(1:ni)=m(snapi,1:ni)
   ri(1:ni,1:3)=r(snapi,1:ni,1:3)
   ti=t(snapi,1)
-  
   
 !====================================
 !For when outliers are being ignored
@@ -207,7 +208,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !######################################
 
   totallength=0.
-  !DO i = 1,nmst-1
+  !DO i = 1,nedge
   !   totallength = totallength + length(i)  !Add the edges of the mst
   !END DO                                    ! to find the total length
   totallength=SUM(length)
@@ -219,14 +220,12 @@ SUBROUTINE find_lambda(snapi,ni)
   END DO
   CALL heapsort(nedge, length, length_list)
   
-  if (.not. MOD(nedge,2)==0) then
-     !if odd no. of edge lengths, take median.
-     medianlength=length(length_list(int_nedged2))
-  else
-     ! if even no. of edge lengths, take mean of median two.
-     medianlength=length(length_list(int_nedged2 +1)) &
-          + length(length_list(int_nedged2))
+  if (MOD(nedge,2)==0) then !even nedge (odd nmst), take mean of median two
+     medianlength=length(length_list(nint_nedged2)) &
+          + length(length_list(nint_nedged2 + 1)) !nedge/2=x.0, ensure nearest
      medianlength=medianlength/2.
+  else !.not. MOD(nedge,2)==0, odd nedge (even nmst), take median.
+     medianlength=length(length_list(ceint_nedged2)) !nedge/2=x.5, round up
   end if
   
   
@@ -277,16 +276,22 @@ SUBROUTINE find_lambda(snapi,ni)
   
 !Lambda N-median MST:
   IF (findlamNmed) THEN
-     do i=1,Nmed
-        if (i==1) then
-           lNmed_objmst(snapi)=length(length_list(int_nedged2))
-        else
-           !take values either side of median:
+     if (mod(Nmed,2)==0) then !even edge lengths (odd nmst), round to nint
+        lNmed_objmst(snapi)=medianlength*2 !i=1. *2 for l1+l2 as /2 for median.
+        do i=2,Nmed/2
+           !take values either side of two median:
            lNmed_objmst(snapi)=lNmed_objmst(snapi) &
-                + length(length_list(int_nedged2 + (i-1))) &
-                + length(length_list(int_nedged2 - (i-1)))
-        end if
-     end do
+                + length(length_list(nint_nedged2 - (i-1))) &
+                + length(length_list(nint_nedged2 + i))
+        end do
+     else !odd edge lengths (even nmst), round to ceiling
+        lNmed_objmst(snapi)=medianlength !i=1
+        do i=2,(Nmed+1)/2        !take values either side of median:
+           lNmed_objmst(snapi)=lNmed_objmst(snapi) &
+                + length(length_list(ceint_nedged2 - (i-1))) &
+                + length(length_list(ceint_nedged2 + (i-1)))
+        end do
+     end if
      lNmed_objmst(snapi)=lNmed_objmst(snapi)/real(Nmed)
   END IF
   
@@ -332,27 +337,47 @@ SUBROUTINE find_lambda(snapi,ni)
 
   length = 0.
   
-  ALLOCATE(l_ranmst(1:nloop))
-  ALLOCATE(lbar_ranmst(1:nloop))
-  ALLOCATE(lrms_ranmst(1:nloop))
-  ALLOCATE(lsmr_ranmst(1:nloop))
-  ALLOCATE(lhar_ranmst(1:nloop))
-  ALLOCATE(ltil_ranmst(1:nloop))
-  ALLOCATE(lNmed_ranmst(1:nloop))
-  ALLOCATE(lstar_ranmst(1:nloop))
-  ALLOCATE(lgam_ranmst(1:nloop))
-  ALLOCATE(lln_ranmst(1:nloop))
-
-  l_ranmst = 0. !set lengths of random MSTs to 0.
-  lbar_ranmst = 0.
-  lrms_ranmst = 0.
-  lsmr_ranmst = 0.
-  lhar_ranmst = 0.
-  ltil_ranmst = 0.
-  lNmed_ranmst = 0.
-  lstar_ranmst = 0.
-  lgam_ranmst = 0.
-  lln_ranmst = 0.
+  !set lengths of random MSTs to 0:
+  IF (findlam) then
+     ALLOCATE(l_ranmst(1:nloop))
+     l_ranmst = 0. 
+  END IF
+  IF (findlambar) THEN
+     ALLOCATE(lbar_ranmst(1:nloop))
+     lbar_ranmst = 0.
+  END IF
+  IF (findlamrms) THEN
+     ALLOCATE(lrms_ranmst(1:nloop))
+     lrms_ranmst = 0.
+  END IF
+  IF (findlamsmr) THEN
+     ALLOCATE(lsmr_ranmst(1:nloop))
+     lsmr_ranmst = 0.
+  END IF
+  IF (findlamhar) THEN
+     ALLOCATE(lhar_ranmst(1:nloop))
+     lhar_ranmst = 0.
+  END IF
+  IF (findlamtil) THEN
+     ALLOCATE(ltil_ranmst(1:nloop))
+     ltil_ranmst = 0.
+  END IF
+  IF (findlamNmed) THEN
+     ALLOCATE(lNmed_ranmst(1:nloop))
+     lNmed_ranmst = 0.
+  END IF
+  IF (findlamstar) THEN
+     ALLOCATE(lstar_ranmst(1:nloop))
+     lstar_ranmst = 0.
+  END IF
+  IF (findgam) THEN
+     ALLOCATE(lgam_ranmst(1:nloop))
+     lgam_ranmst = 0.
+  END IF
+  IF (findlamln) THEN
+     ALLOCATE(lln_ranmst(1:nloop))
+     lln_ranmst = 0.
+  END IF
   
   ALLOCATE(rand_list(1:nloop))
 
@@ -376,13 +401,12 @@ SUBROUTINE find_lambda(snapi,ni)
 
      CALL mst(snapi,nmst,x,y,z,node,length)
 
-
 !######################################
 !Average edge lengths for random stars
 !######################################
 
      totallength=0.
-     !DO i = 1,nmst-1
+     !DO i = 1,nedge
      !   totallength = totallength + length(i)  !Add the edges of the mst
      !END DO                                    ! to find the total length
      totallength=SUM(length)
@@ -406,15 +430,15 @@ SUBROUTINE find_lambda(snapi,ni)
      !end if
 
         !Median edge length of this MST (depends on even/odd nedge):
-        if (.not. MOD(nedge,2)==0) then
-           !if odd no. of edge lengths, take median edge length.
-           !(Use INT as always need to round up from #.5)
-           medianlength=length(length_list(int_nedged2))
-        else
+        if (MOD(nedge,2)==0) then
            ! if even no. of edge lengths, take mean of median 2.
-           medianlength=length(length_list(int_nedged2 +1)) &
-                + length(length_list(int_nedged2))
+           medianlength=length(length_list(nint_nedged2 +1)) &
+                + length(length_list(nint_nedged2))
            medianlength=medianlength/2.
+        else !.not. MOD(nedge,2)==0
+           !if odd no. of edge lengths (even nmst), take median edge length.
+           !(Use CEILING as always need to round up from #.5)
+           medianlength=length(length_list(ceint_nedged2))
         end if
      
 !Lambda MST:
@@ -465,16 +489,23 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda N-median MST:
 !Find the N median points and take the mean of these
      IF (findlamNmed) THEN
-        do i=1,Nmed
-           if (i==1) then
-              lNmed_ranmst(j)=length(length_list(int_nedged2))
-           else
+        if (mod(Nmed,2)==0) then !even nedge (odd nmst)
+           lNmed_ranmst(j) = medianlength*2 !i=1. *2 as /2 earlier.
+           do i=2,Nmed/2
+              !take values either side of two used for median:
+              lNmed_ranmst(j)=lNmed_ranmst(j) &
+                   + length(length_list(nint_nedged2 - (i-1))) &
+                   + length(length_list(nint_nedged2 + i))
+           end do
+        else !.not. mod(Nmed,2)==0, odd nedge (even nmst)
+           lNmed_ranmst(j) = medianlength !i=1
+           do i=2,(Nmed+1)/2
               !take values either side of median:
               lNmed_ranmst(j)=lNmed_ranmst(j) &
-                   + length(length_list(int_nedged2 + (i-1))) &
-                   + length(length_list(int_nedged2 - (i-1)))
-           end if
-        end do
+                   + length(length_list(ceint_nedged2 - (i-1))) &
+                   + length(length_list(ceint_nedged2 + (i-1)))
+           end do
+        end if
         lNmed_ranmst(j)=lNmed_ranmst(j)/real(Nmed)
      END IF
 
