@@ -115,7 +115,7 @@ SUBROUTINE reduce_FoV(ni)
 ! output: i com_x com_y com_z r1/2
      OPEN(3,file=TRIM(newPath)//'/c_of_m_'//thisproj//'.dat',status='replace')
      DO i=1,snapnum
-        WRITE(3,30) i,com_cluster(i,1),com_cluster(i,2),com_cluster(i,3), &
+        WRITE(3,30) i,com_cluster(1,i),com_cluster(2,i),com_cluster(3,i), &
              & r_halfmass(i)
      END DO
 30   FORMAT(1X,I4,3(2X,F7.4),2X,F7.3)

@@ -7,13 +7,14 @@ SUBROUTINE calc_lambda(obj_avl,ran_avl,lam_val,minus,plus,avranmstlen)
   USE parameters_module
 
   implicit none
-  DOUBLE PRECISION, intent(in) :: obj_avl !average edge length (obj)
+  DOUBLE PRECISION, intent(in) :: obj_avl ! Average edge length (obj)
   DOUBLE PRECISION, dimension(1:nloop), intent(in) :: ran_avl ! " (ran)
   double precision, intent(out) :: lam_val,minus,plus
-  double precision, intent(out) :: avranmstlen !Average tot length of random trees
+  double precision, intent(out) :: avranmstlen ! Average total length of
+                                               ! random msts
   integer :: i
-  INTEGER, DIMENSION(1:nloop) :: listID !IDs of ran_avl list
-  REAL :: ranup, ranlow !Upper & lower boundaries, 1 sigma
+  INTEGER, DIMENSION(1:nloop) :: listID        ! IDs of ran_avl list
+  REAL :: ranup, ranlow          ! Upper & lower boundaries, 1 sigma
   
   do i = 1,nloop
      listID(i) = i

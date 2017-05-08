@@ -30,13 +30,13 @@ SUBROUTINE in_cluster(snapi,ni)
 ! This file in full is large so use only if needed.
   writeescaped=.FALSE.
 
-  mi(1:ni)=m(snapi,1:ni)
+  mi(1:ni)=m(1:ni,snapi)
 ! Populate distance magnitude arrays in observer planes & 3D
 ! between each star and centre of mass
   do i = 1, ni
-     ri_x = ri_com(snapi,i,1)
-     ri_y = ri_com(snapi,i,2)
-     ri_z = ri_com(snapi,i,3)
+     ri_x = ri_com(1,i,snapi)
+     ri_y = ri_com(2,i,snapi)
+     ri_z = ri_com(3,i,snapi)
      if (thisproj=='xy') then
         rmag(i) = sqrt(ri_x**2 + ri_y**2)
      else if (thisproj=='yz') then
@@ -60,7 +60,7 @@ SUBROUTINE in_cluster(snapi,ni)
 
 ! if rmag is greater than FoV_lim, it has left the cluster
      IF (limittype=='FoV' .and. rmag(i) > FoV_lim) THEN
-        incluster(snapi,i) = .FALSE.
+        incluster(i,snapi) = .FALSE.
         n_proj = n_proj - 1
      END IF
 ! This only sets star to F in current snapshot. Initially all T so
@@ -74,7 +74,7 @@ SUBROUTINE in_cluster(snapi,ni)
 ! if rmag is greater than rfac*r_halfmass, it has left the cluster
      IF (limittype=='rhalf' .and. &
           & rmag(i) > rfac*rhalf_all(projnum)) THEN
-        incluster(snapi,i) = .FALSE.
+        incluster(i,snapi) = .FALSE.
         n_proj = n_proj - 1
      END IF
   END DO
@@ -107,7 +107,7 @@ SUBROUTINE in_cluster(snapi,ni)
      IF (writeescaped) THEN
 ! if star isn't in cluster, write distance magnitude & star mass
         DO i=1,ni
-           IF (.NOT. incluster(snapi,i)) WRITE(10,80) i, rmag(i), mi(i)
+           IF (.NOT. incluster(i,snapi)) WRITE(10,80) i, rmag(i), mi(i)
         END DO
 
         IF (limittype=='rhalf') THEN

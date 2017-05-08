@@ -60,10 +60,10 @@ PROGRAM reduce
   star_v=star_v*pc*1.e-9/yr
 ! These data are Reals at the moment. I want Double Precision.
 ! First allocate arrays
-  ALLOCATE(t(1:snapnum,1:nstars(1)))
-  ALLOCATE(m(1:snapnum,1:nstars(1)))
-  ALLOCATE(r(1:snapnum,1:nstars(1),1:3))
-  ALLOCATE(v(1:snapnum,1:nstars(1),1:3))
+  ALLOCATE(t(1:nstars(1),1:snapnum))
+  ALLOCATE(m(1:nstars(1),1:snapnum))
+  ALLOCATE(r(1:3,1:nstars(1),1:snapnum))
+  ALLOCATE(v(1:3,1:nstars(1),1:snapnum))
 ! Now fill the arrays
   t=DBLE(star_t)
   m=DBLE(star_m)
@@ -81,7 +81,7 @@ PROGRAM reduce
 !
   IF (writesnap) THEN
      CALL SYSTEM('mkdir -p '//TRIM(outarg)//'/snapshots')
-     DO i=1,snapnum
+     DO j=1,snapnum
         IF (i<10) THEN
            WRITE(ofilen,'(i1)')i
            outfile='snap'//'000'//ofilen
@@ -96,8 +96,8 @@ PROGRAM reduce
            outfile='snap'//ofilen
         END IF
         OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='new')
-        DO j=1,nstars(i)
-           WRITE(4,104) j, ids(i,j),t(i,j),m(i,j),r(i,j,1:3),v(i,j,1:3)
+        DO i=1,nstars(j)
+           WRITE(4,104) i, ids(i,j),t(i,j),m(i,j),r(1:3,i,j),v(1:3,i,j)
         END DO
 104     FORMAT (2(2X,I4),2X,F8.4,2X,F7.3,6(2X,F8.3))
         CLOSE(4)
@@ -110,13 +110,13 @@ PROGRAM reduce
 ! Allocate arrays for calculations.
 
 ! logical array: is the star in the cluster
-  ALLOCATE(incluster(1:snapnum,1:nstars(1)))
+  ALLOCATE(incluster(1:nstars(1),1:snapnum))
 
 ! x, y, z positions of centre of mass:
-  ALLOCATE(com_cluster(1:snapnum,1:3))
+  ALLOCATE(com_cluster(1:3,1:snapnum))
 
 ! x, y, z distances of each star from com:
-  ALLOCATE(ri_com(1:snapnum,1:nstars(1),1:3))
+  ALLOCATE(ri_com(1:3,1:nstars(1),1:snapnum))
 
 ! halfmass radius of cluster:
   ALLOCATE(r_halfmass(1:snapnum))
@@ -139,7 +139,7 @@ PROGRAM reduce
   CALL reduce_FoV(nstars(1))
 
 ! Find energy, c of m, rhalf, mass segregation for stars
-! within rfac*r_halfmass(snapnum,1:4) of all stars:
+! within rfac*r_halfmass(1:4,snapnum) of all stars:
   rfac = 2
   CALL reduce_rhalf(nstars(1))
   rfac = 3

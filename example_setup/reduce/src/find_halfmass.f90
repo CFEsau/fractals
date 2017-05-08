@@ -17,19 +17,19 @@ SUBROUTINE find_halfmass(snapshoti,ni)
 
 ! Allocate memory for arrays
   ALLOCATE(mi(1:ni))
-  ALLOCATE(ri(1:ni,1:3))
+  ALLOCATE(ri(1:3,1:ni))
   ALLOCATE(rmag(1:ni))
   ALLOCATE(rlist(1:ni))
 
 ! Assign values
-  mi(1:ni)=m(snapshoti,1:ni)
-  ri(1:ni,1:3)=r(snapshoti,1:ni,1:3)
+  mi(1:ni)=m(1:ni,snapshoti)
+  ri(1:3,1:ni)=r(1:3,1:ni,snapshoti)
 
 ! Find distance magnitude of star i from c of m:
   DO i = 1, ni
-     ri_x = ri_com(snapshoti,i,1)
-     ri_y = ri_com(snapshoti,i,2)
-     ri_z = ri_com(snapshoti,i,3)
+     ri_x = ri_com(1,i,snapshoti)
+     ri_y = ri_com(2,i,snapshoti)
+     ri_z = ri_com(3,i,snapshoti)
      IF (thisproj=='xy') THEN
         rmag(i) = SQRT(ri_x**2 + ri_y**2)
      ELSE IF (thisproj=='yz') THEN
@@ -54,7 +54,7 @@ SUBROUTINE find_halfmass(snapshoti,ni)
 ! Sort the stars by distance from the com
   CALL heapsort(ni,rmag,rlist)
   
-! The half mass radius is then the radius at which half of the stelalr mass in inside and half is outside.
+! The half mass radius is then the radius at which half of the stellar mass in inside and half is outside.
 ! Keep adding up the masses of the stars, starting from the centre moving out,
 ! until half of the mass is inside the radius.
 ! There'll be a radius ri-1 where M < totalM/2 and ri > totalM/2.

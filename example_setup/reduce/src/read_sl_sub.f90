@@ -86,13 +86,13 @@ SUBROUTINE read_multinfo
   READ(2,*) descriptor ! Reads in line, hopefully 'N =' line
   IF(descriptor=='N') THEN
      BACKSPACE 2                                                     ! Rewinds file one line
-     READ(2,*) descriptor,equals,mult_nstars(snapnum,nMult(snapnum)) ! Reads in nMult (number of stars in system)  
+     READ(2,*) descriptor,equals,mult_nstars(nMult(snapnum),snapnum) ! Reads in nMult (number of stars in system)  
      BACKSPACE 2
      BACKSPACE 2 ! Rewinds file two lines to 'name =' line.
   END IF
 
-  IF(mult_nstars(snapnum,nMult(snapnum))==3) CALL read_tripleinfo
-  IF(mult_nstars(snapnum,nMult(snapnum))==2) CALL read_binaryinfo
+  IF(mult_nstars(nMult(snapnum),snapnum)==3) CALL read_tripleinfo
+  IF(mult_nstars(nMult(snapnum),snapnum)==2) CALL read_binaryinfo
 
 END SUBROUTINE
   
@@ -127,16 +127,16 @@ SUBROUTINE read_tripleinfo
      WRITE(cstar_len(1),'(I1)') LEN_TRIM(cstar(1))-2
      WRITE(cstar_len(2),'(I1)') LEN_TRIM(cstar(2))-1
      WRITE(cstar_len(3),'(I1)') LEN_TRIM(cstar(3))-1
-     READ(cstar(1),"(A1,A1,I"//TRIM(cstar_len(1))//")") parop,parop,mult_ids(snapnum,nMult(snapnum),1)
-     READ(cstar(2),"(I"//TRIM(cstar_len(2))//",A1)") mult_ids(snapnum,nMult(snapnum),2),parcl
-     READ(cstar(3),"(I"//TRIM(cstar_len(3))//",A1)") mult_ids(snapnum,nMult(snapnum),3),parcl
+     READ(cstar(1),"(A1,A1,I"//TRIM(cstar_len(1))//")") parop,parop,mult_ids(1,nMult(snapnum),snapnum)
+     READ(cstar(2),"(I"//TRIM(cstar_len(2))//",A1)") mult_ids(2,nMult(snapnum),snapnum),parcl
+     READ(cstar(3),"(I"//TRIM(cstar_len(3))//",A1)") mult_ids(3,nMult(snapnum),snapnum),parcl
   ELSE
      WRITE(cstar_len(1),'(I1)') LEN_TRIM(cstar(1))-1
      WRITE(cstar_len(2),'(I1)') LEN_TRIM(cstar(2))-1
      WRITE(cstar_len(3),'(I1)') LEN_TRIM(cstar(3))-2
-     READ(cstar(1),"(A1,I"//TRIM(cstar_len(1))//")") parop,mult_ids(snapnum,nMult(snapnum),1)
-     READ(cstar(2),"(A1,I"//TRIM(cstar_len(2))//")") parop,mult_ids(snapnum,nMult(snapnum),2)
-     READ(cstar(3),"(I"//TRIM(cstar_len(3))//",A1,A1)") mult_ids(snapnum,nMult(snapnum),3),parcl,parcl
+     READ(cstar(1),"(A1,I"//TRIM(cstar_len(1))//")") parop,mult_ids(1,nMult(snapnum),snapnum)
+     READ(cstar(2),"(A1,I"//TRIM(cstar_len(2))//")") parop,mult_ids(2,nMult(snapunm),snapnum)
+     READ(cstar(3),"(I"//TRIM(cstar_len(3))//",A1,A1)") mult_ids(3,nMult(snapnum),snapnum),parcl,parcl
   END IF
 !
   DO WHILE(descriptor/='(Particle')                                ! Loops until the triple info is over
@@ -144,25 +144,25 @@ SUBROUTINE read_tripleinfo
 !
      IF(descriptor=='t') THEN
         BACKSPACE 2                                                ! Rewinds file one line
-        READ(2,*) descriptor,equals,mult_t(snapnum,nMult(snapnum)) ! Reads in mult_t (time in system) 
+        READ(2,*) descriptor,equals,mult_t(nMult(snapnum),snapnum) ! Reads in mult_t (time in system) 
      END IF
 !
      IF(descriptor=='m') THEN
         BACKSPACE 2                                                ! Rewinds file one line
-        READ(2,*) descriptor,equals,mult_m(snapnum,nMult(snapnum)) ! Reads mult_m (mass of system)
+        READ(2,*) descriptor,equals,mult_m(nMult(snapnum),snapnum) ! Reads mult_m (mass of system)
      END IF
 !
      IF(descriptor=='r') THEN
         BACKSPACE 2                                                              ! Rewinds file one line
-        READ(2,*) descriptor,equals,mult_r(snapnum,nMult(snapnum),1),&
-             & mult_r(snapnum,nMult(snapnum),2),mult_r(snapnum,nMult(snapnum),3) ! Reads in mult_r (position of com of system)
+        READ(2,*) descriptor,equals,mult_r(1,nMult(snapunm),snapnum),&
+             & mult_r(2,nMult(snapnum),snapnum),mult_r(3,nMult(snapnum),snapnum) ! Reads in mult_r (position of com of system)
      END IF
 !
      IF(descriptor=='v') THEN
         BACKSPACE 2                                                               ! Rewinds file one line
-        READ(2,*) descriptor,equals,mult_v(snapnum,nMult(snapnum),1)&
-             & ,mult_v(snapnum,nMult(snapnum),2),mult_v(snapnum,nMult(snapnum),3) ! Reads in mult_v (velocity of cov of system)
-        !PRINT *, mult_ids(snapnum,nMult(snapnum),1:3), mult_r(snapnum,nMult(snapnum),1:3), mult_v(snapnum,nMult(snapnum),1:3)
+        READ(2,*) descriptor,equals,mult_v(1,nMult(snapnum),snapnum)&
+             & ,mult_v(2,nMult(snapnum),snapnum),mult_v(3,nMult(snapnum),snapnum) ! Reads in mult_v (velocity of cov of system)
+        !PRINT *, mult_ids(1:3,nMult(snapnum),snapnum), mult_r(1:3,nMult(snapnum),snapnum), mult_v(1:3,nMult(snapnum),snapnum)
      END IF
      !IF (descriptor=='(Particle') BACKSPACE 2
   END DO ! Ends loop because data for that triple is over.
@@ -214,56 +214,56 @@ SUBROUTINE read_tripleinfo
 !
 ! Now the three stars in the triple system...
      i=0
-     DO WHILE(i<mult_nstars(snapnum,nMult(snapnum))) ! This loop cycles through the stars in the multiple system.
+     DO WHILE(i<mult_nstars(nMult(snapnum),snapnum)) ! This loop cycles through the stars in the multiple system.
         READ(2,*) descriptor                         ! Reads line
 !
         IF(descriptor=='i') THEN ! It's a star if it has an id number.
            i=i+1
            nstars(snapnum)=nstars(snapnum)+1 ! Add to the overall number of stars.
            BACKSPACE 2                                              ! Rewinds file one line
-           READ(2,*) descriptor,equals,ids(snapnum,nstars(snapnum)) ! Reads in id number of star
+           READ(2,*) descriptor,equals,ids(nstars(snapnum),snapnum) ! Reads in id number of star
 !
            DO WHILE(descriptor/=')Particle') ! Loop. Star info ends at next ')Particle' line
               READ(2,*) descriptor           ! Reads line
 !
               IF(descriptor=='t') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_t(snapnum,nstars(snapnum)) ! Reads in star time
+                 READ(2,*) descriptor,equals,star_t(nstars(snapnum),snapnum) ! Reads in star time
               END IF
 !
               IF(descriptor=='m') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_m(snapnum,nstars(snapnum)) ! Reads in star mass
+                 READ(2,*) descriptor,equals,star_m(nstars(snapnum),snapnum) ! Reads in star mass
               END IF
 !
               IF(descriptor=='r') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_r(snapnum,nstars(snapnum),1),&
-                      & star_r(snapnum,nstars(snapnum),2),star_r(snapnum,nstars(snapnum),3) ! Reads in position relative to com
-              !PRINT *, ids(snapnum,nstars(snapnum)), star_r(snapnum,nstars(snapnum),1:3)
-                 IF(ids(snapnum,nstars(snapnum))==bin_id(1).OR. ids(snapnum,nstars(snapnum))==bin_id(2)) THEN
-                    star_r(snapnum,nstars(snapnum),1:3)=star_r(snapnum,nstars(snapnum),1:3)+&
-                         & mult_r(snapnum,nMult(snapnum),1:3) + bin_r(1:3) ! star position = [position relative to com] + [position of com]
+                 READ(2,*) descriptor,equals,star_r(1,nstars(snapnum),snapnum),&
+                      & star_r(2,nstars(snapnum),snapnum),star_r(3,nstars(snapnum),snapnum) ! Reads in position relative to com
+              !PRINT *, ids(nstars(snapnum),snapnum), star_r(1:3,nstars(snapnum),snapnum)
+                 IF(ids(nstars(snapnum),snapnum)==bin_id(1).OR. ids(nstars(snapnum),snapnum)==bin_id(2)) THEN
+                    star_r(1:3,nstars(snapnum),snapnum)=star_r(1:3,nstars(snapnum),snapnum)+&
+                         & mult_r(1:3,nMult(snapnum),snapnum) + bin_r(1:3) ! star position = [position relative to com] + [position of com]
                  ELSE 
-                    star_r(snapnum,nstars(snapnum),1:3)=star_r(snapnum,nstars(snapnum),1:3)+&
-                         & mult_r(snapnum,nMult(snapnum),1:3)
+                    star_r(1:3,nstars(snapnum),snapnum)=star_r(1:3,nstars(snapnum),snapnum)+&
+                         & mult_r(1:3,nMult(snapnum),snapnum)
                  END IF
 !
               END IF
 !
               IF(descriptor=='v') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_v(snapnum,nstars(snapnum),1),&
-                      & star_v(snapnum,nstars(snapnum),2),star_v(snapnum,nstars(snapnum),3) ! Reads  in velocity relative to cov
-              !PRINT *, ids(snapnum,nstars(snapnum)),star_v(snapnum,nstars(snapnum),1:3)
-                 IF(ids(snapnum,nstars(snapnum))==bin_id(1).OR. ids(snapnum,nstars(snapnum))==bin_id(2)) THEN
-                    star_v(snapnum,nstars(snapnum),1:3)=star_v(snapnum,nstars(snapnum),1:3)+&
-                         & mult_v(snapnum,nMult(snapnum),1:3) + bin_v(1:3) ! star velocity = [velocity relative to cov] + [velocity of cov]
+                 READ(2,*) descriptor,equals,star_v(1,nstars(snapnum),nstars),&
+                      & star_v(2,nstars(snapnum),snapnum),star_v(3,nstars(snapnum),snapnum) ! Reads  in velocity relative to cov
+              !PRINT *, ids(nstars(snapnum),snapnum),star_v(1:3,nstars(snapnum),snapnum)
+                 IF(ids(nstars(snapnum),snapnum)==bin_id(1).OR. ids(nstars(snapnum),snapnum)==bin_id(2)) THEN
+                    star_v(1:3,nstars(snapnum),snapnum)=star_v(1:3,nstars(snapnum),snapnum)+&
+                         & mult_v(1:3,nMult(snapnum),snapnum) + bin_v(1:3) ! star velocity = [velocity relative to cov] + [velocity of cov]
                  ELSE
-                    star_v(snapnum,nstars(snapnum),1:3)=star_v(snapnum,nstars(snapnum),1:3)+&
-                         & mult_v(snapnum,nMult(snapnum),1:3)
+                    star_v(1:3,nMult(snapnum),snapnum)=star_v(1:3,nMult(snapnum),snapnum)+&
+                         & mult_v(1:3,nMult(snapnum),snapnum)
                  END IF
-              !PRINT *, ids(snapnum,nstars(snapnum)),mult_r(snapnum,nMult(snapnum),1:3),mult_v(snapnum,nMult(snapnum),1:3)
+              !PRINT *, ids(nstars(snapnum),snapnum),mult_r(1:3,nMult(snapnum),snapnum),mult_v(1:3,nMult(snapnum),snapnum)
               END IF
            END DO
         END IF
@@ -275,39 +275,39 @@ SUBROUTINE read_tripleinfo
         IF(descriptor=='i') THEN ! It's a star if it has an id number.
            nstars(snapnum)=nstars(snapnum)+1 ! Add to the overall number of stars.
            BACKSPACE 2                                              ! Rewinds file one line
-           READ(2,*) descriptor,equals,ids(snapnum,nstars(snapnum)) ! Reads in id number of star
+           READ(2,*) descriptor,equals,ids(nstars(snapnum),snapnum) ! Reads in id number of star
 !
            DO WHILE(descriptor/=')Particle') ! Loop. Star info ends at next ')Particle' line
               READ(2,*) descriptor           ! Reads line
 !
               IF(descriptor=='t') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_t(snapnum,nstars(snapnum)) ! Reads in star time
+                 READ(2,*) descriptor,equals,star_t(nstars(snapnum),snapnum) ! Reads in star time
               END IF
 !
               IF(descriptor=='m') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_m(snapnum,nstars(snapnum)) ! Reads in star mass
+                 READ(2,*) descriptor,equals,star_m(nstars(snapnum),snapnum) ! Reads in star mass
               END IF
 !
               IF(descriptor=='r') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_r(snapnum,nstars(snapnum),1),&
-                      & star_r(snapnum,nstars(snapnum),2),star_r(snapnum,nstars(snapnum),3) ! Reads in position relative to com
-              !PRINT *, ids(snapnum,nstars(snapnum)), star_r(snapnum,nstars(snapnum),1:3)
-                 star_r(snapnum,nstars(snapnum),1:3)=star_r(snapnum,nstars(snapnum),1:3)+&
-                      & mult_r(snapnum,nMult(snapnum),1:3)
+                 READ(2,*) descriptor,equals,star_r(1,nstars(snapnum),nstars),&
+                      & star_r(2,nstars(snapnum),snapnum),star_r(3,nstars(snapnum),snapnum) ! Reads in position relative to com
+              !PRINT *, ids(nstars(snapnum),snapnum), star_r(1:3,nstars(snapnum),snapnum)
+                 star_r(1:3,nstars(snapnum),snapnum)=star_r(1:3,nstars(snapnum),snapnum)+&
+                      & mult_r(1:3,nMult(snapnum),snapnum)
 !
               END IF
 !
               IF(descriptor=='v') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_v(snapnum,nstars(snapnum),1),&
-                      & star_v(snapnum,nstars(snapnum),2),star_v(snapnum,nstars(snapnum),3) ! Reads  in velocity relative to cov
-              !PRINT *, ids(snapnum,nstars(snapnum)),star_v(snapnum,nstars(snapnum),1:3)
-                 star_v(snapnum,nstars(snapnum),1:3)=star_v(snapnum,nstars(snapnum),1:3)+&
-                      & mult_v(snapnum,nMult(snapnum),1:3)
-              !PRINT *, ids(snapnum,nstars(snapnum)),mult_r(snapnum,nMult(snapnum),1:3),mult_v(snapnum,nMult(snapnum),1:3)
+                 READ(2,*) descriptor,equals,star_v(1,nstars(snapnum),nstars),&
+                      & star_v(2,nstars(snapnum),snapnum),star_v(3,nstars(snapnum),snapnum) ! Reads  in velocity relative to cov
+              !PRINT *, ids(nstars(snapnum),snapnum),star_v(1:3,nstars(snapnum),snapnum)
+                 star_v(1:3,nstars(snapnum),snapnum)=star_v(1:3,nstars(snapnum),snapnum)+&
+                      & mult_v(1:3,nMult(snapnum),snapnum)
+              !PRINT *, ids(nstars(snapnum),snapnum),mult_r(1:3,nMult(snapnum),snapnum),mult_v(1:3,nMult(snapnum),snapnum)
               END IF
            END DO
         END IF
@@ -358,49 +358,49 @@ SUBROUTINE read_tripleinfo
               i=i+1
               nstars(snapnum)=nstars(snapnum)+1 ! Add to the overall number of stars.
               BACKSPACE 2                                              ! Rewinds file one line
-              READ(2,*) descriptor,equals,ids(snapnum,nstars(snapnum)) ! Reads in id number of star
+              READ(2,*) descriptor,equals,ids(nstars(snapnum),snapnum) ! Reads in id number of star
 !
               DO WHILE(descriptor/=')Particle') ! Loop. Star info ends at next ')Particle' line
                  READ(2,*) descriptor           ! Reads line
 !
                  IF(descriptor=='t') THEN
                     BACKSPACE 2                ! Rewinds file one line
-                    READ(2,*) descriptor,equals,star_t(snapnum,nstars(snapnum)) ! Reads in star time
+                    READ(2,*) descriptor,equals,star_t(nstars(snapnum),snapnum) ! Reads in star time
                  END IF
 !
                  IF(descriptor=='m') THEN
                     BACKSPACE 2                ! Rewinds file one line
-                    READ(2,*) descriptor,equals,star_m(snapnum,nstars(snapnum)) ! Reads in star mass
+                    READ(2,*) descriptor,equals,star_m(nstars(snapnum),snapnum) ! Reads in star mass
                  END IF
 !
                  IF(descriptor=='r') THEN
                     BACKSPACE 2                ! Rewinds file one line
-                    READ(2,*) descriptor,equals,star_r(snapnum,nstars(snapnum),1),&
-                         & star_r(snapnum,nstars(snapnum),2),star_r(snapnum,nstars(snapnum),3) ! Reads in position relative to com
-              !PRINT *, ids(snapnum,nstars(snapnum)), star_r(snapnum,nstars(snapnum),1:3)
-                    IF(ids(snapnum,nstars(snapnum))==bin_id(1).OR. ids(snapnum,nstars(snapnum))==bin_id(2)) THEN
-                       star_r(snapnum,nstars(snapnum),1:3)=star_r(snapnum,nstars(snapnum),1:3)+&
-                            & mult_r(snapnum,nMult(snapnum),1:3) + bin_r(1:3) ! star position = [position relative to com] + [position of com]
+                    READ(2,*) descriptor,equals,star_r(1,nstars(snapnum),nstars),&
+                         & star_r(2,nstars(snapnum),snapnum),star_r(3,nstars(snapnum),snapnum) ! Reads in position relative to com
+              !PRINT *, ids(nstars(snapnum),snapnum), star_r(1:3,nstars(snapnum),snapnum)
+                    IF(ids(nstars(snapnum),snapnum)==bin_id(1).OR. ids(nstars(snapnum),snapnum)==bin_id(2)) THEN
+                       star_r(1:3,nstars(snapnum),snapnum)=star_r(1:3,nstars(snapnum),snapnum)+&
+                            & mult_r(1:3,nMult(snapnum),snapnum) + bin_r(1:3) ! star position = [position relative to com] + [position of com]
                     ELSE 
-                       star_r(snapnum,nstars(snapnum),1:3)=star_r(snapnum,nstars(snapnum),1:3)+&
-                            & mult_r(snapnum,nMult(snapnum),1:3)
+                       star_r(1:3,nstars(snapnum),snapnum)=star_r(1:3,nstars(snapnum),snapnum)+&
+                            & mult_r(1:3,nMult(snapnum),snapnum)
                     END IF
 !
                  END IF
 !
                  IF(descriptor=='v') THEN
                     BACKSPACE 2                ! Rewinds file one line
-                    READ(2,*) descriptor,equals,star_v(snapnum,nstars(snapnum),1),&
-                         & star_v(snapnum,nstars(snapnum),2),star_v(snapnum,nstars(snapnum),3) ! Reads  in velocity relative to cov
-                    !PRINT *, ids(snapnum,nstars(snapnum)),star_v(snapnum,nstars(snapnum),1:3)
-                    IF(ids(snapnum,nstars(snapnum))==bin_id(1).OR. ids(snapnum,nstars(snapnum))==bin_id(2)) THEN
-                       star_v(snapnum,nstars(snapnum),1:3)=star_v(snapnum,nstars(snapnum),1:3)+&
-                            & mult_v(snapnum,nMult(snapnum),1:3) + bin_v(1:3) ! star velocity = [velocity relative to cov] + [velocity of cov]
+                    READ(2,*) descriptor,equals,star_v(1,nstars(snapnum),nstars),&
+                         & star_v(2,nstars(snapnum),snapnum),star_v(3,nstars(snapnum),snapnum) ! Reads  in velocity relative to cov
+                    !PRINT *, ids(nstars(snapnum),snapnum),star_v(1:3,nstars(snapnum),snapnum)
+                    IF(ids(nstars(snapnum),snapnum)==bin_id(1).OR. ids(nstars(snapnum),snapnum)==bin_id(2)) THEN
+                       star_v(1:3,nstars(snapnum),snapnum)=star_v(1:3,nstars(snapnum),snapnum)+&
+                            & mult_v(1:3,nMult(snapnum),snapnum) + bin_v(1:3) ! star velocity = [velocity relative to cov] + [velocity of cov]
                     ELSE
-                       star_v(snapnum,nstars(snapnum),1:3)=star_v(snapnum,nstars(snapnum),1:3)+&
-                            & mult_v(snapnum,nMult(snapnum),1:3)
+                       star_v(1:3,nstars(snapnum),snapnum)=star_v(1:3,nstars(snapnum),snapnum)+&
+                            & mult_v(1:3,nMult(snapnum),snapnum)
                     END IF
-                    !PRINT *, ids(snapnum,nstars(snapnum)),mult_r(snapnum,nMult(snapnum),1:3),mult_v(snapnum,nMult(snapnum),1:3)
+                    !PRINT *, ids(nstars(snapnum),snapnum),mult_r(1:3,nMult(snapnum),snapnum),mult_v(1:3,nMult(snapnum),snapnum)
                  END IF
               END DO
            END IF
@@ -414,77 +414,77 @@ SUBROUTINE read_binaryinfo
   INTEGER :: i
 !
 ! So, for a binary:
-  IF(mult_nstars(snapnum,nMult(snapnum))==2) THEN
+  IF(mult_nstars(nMult(snapnum),snapnum)==2) THEN
 ! Find IDs of star1 and star2
      READ(2,*) descriptor,equals,cstar(1),cstar(2) ! Reads in line with IDs of both stars
 ! The next few lines format the IDs and stick them into array mult_ids
      WRITE(cstar_len(1),'(I1)') LEN_TRIM(cstar(1))-1
      WRITE(cstar_len(2),'(I1)') LEN_TRIM(cstar(2))-1
-     READ(cstar(1),"(A1,I"//TRIM(cstar_len(1))//")") parop,mult_ids(snapnum,nMult(snapnum),1)
-     READ(cstar(2),"(I"//TRIM(cstar_len(2))//",A1)") mult_ids(snapnum,nMult(snapnum),2),parcl
+     READ(cstar(1),"(A1,I"//TRIM(cstar_len(1))//")") parop,mult_ids(1,nMult(snapnum),snapnum)
+     READ(cstar(2),"(I"//TRIM(cstar_len(2))//",A1)") mult_ids(2,nMult(snapnum),snapnum),parcl
 !
      DO WHILE(descriptor/=')Dynamics')                                ! Loops until the binary info is over.
         READ(2,*) descriptor                                          ! Reads in line
 !
         IF(descriptor=='t') THEN
            BACKSPACE 2                                                ! Rewinds file one line
-           READ(2,*) descriptor,equals,mult_t(snapnum,nMult(snapnum)) ! Reads in mult_t (time in system) 
+           READ(2,*) descriptor,equals,mult_t(nMult(snapnum),snapnum) ! Reads in mult_t (time in system) 
         END IF
 !
         IF(descriptor=='m') THEN
            BACKSPACE 2                                                ! Rewinds file one line
-           READ(2,*) descriptor,equals,mult_m(snapnum,nMult(snapnum)) ! Reads mult_m (mass of system)
+           READ(2,*) descriptor,equals,mult_m(nMult(snapnum),snapnum) ! Reads mult_m (mass of system)
         END IF
 !
         IF(descriptor=='r') THEN
            BACKSPACE 2                                                              ! Rewinds file one line
-           READ(2,*) descriptor,equals,mult_r(snapnum,nMult(snapnum),1),&
-                & mult_r(snapnum,nMult(snapnum),2),mult_r(snapnum,nMult(snapnum),3) ! Reads in mult_r (position of com of system)
+           READ(2,*) descriptor,equals,mult_r(1,nMult(snapnum),snapnum),&
+                & mult_r(2,nMult(snapnum),snapnum),mult_r(3,nMult(snapnum),snapnum) ! Reads in mult_r (position of com of system)
         END IF
 !
         IF(descriptor=='v') THEN
            BACKSPACE 2                                                               ! Rewinds file one line
-           READ(2,*) descriptor,equals,mult_v(snapnum,nMult(snapnum),1)&
-                & ,mult_v(snapnum,nMult(snapnum),2),mult_v(snapnum,nMult(snapnum),3) ! Reads in mult_v (velocity of cov of system)
+           READ(2,*) descriptor,equals,mult_v(1,nMult(snapnum),snapnum)&
+                & ,mult_v(2,nMult(snapnum),snapnum),mult_v(3,nMult(snapnum),snapnum) ! Reads in mult_v (velocity of cov of system)
         END IF
      END DO ! Ends loop because data for that binary info is over.
      i=0
-     DO WHILE(i<mult_nstars(snapnum,nMult(snapnum))) ! This loop cycles through the stars in the multiple system.
+     DO WHILE(i<mult_nstars(nMult(snapnum),snapnum)) ! This loop cycles through the stars in the multiple system.
         READ(2,*) descriptor                         ! Reads line
 !
         IF(descriptor=='i') THEN ! It's a star if it has an id number.
            i=i+1
            nstars(snapnum)=nstars(snapnum)+1 ! Add to the overall number of stars.
            BACKSPACE 2                                              ! Rewinds file one line
-           READ(2,*) descriptor,equals,ids(snapnum,nstars(snapnum)) ! Reads in id number of star
+           READ(2,*) descriptor,equals,ids(nstars(snapnum),snapnum) ! Reads in id number of star
 !
            DO WHILE(descriptor/=')Particle') ! Loop. Star info ends at next ')Particle' line
               READ(2,*) descriptor           ! Reads line
 
               IF(descriptor=='t') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_t(snapnum,nstars(snapnum)) ! Reads in star time
+                 READ(2,*) descriptor,equals,star_t(nstars(snapnum),snapnum) ! Reads in star time
               END IF
 !
               IF(descriptor=='m') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_m(snapnum,nstars(snapnum)) ! Reads in star mass
+                 READ(2,*) descriptor,equals,star_m(nstars(snapnum),snapnum) ! Reads in star mass
               END IF
 !
               IF(descriptor=='r') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_r(snapnum,nstars(snapnum),1),&
-                      & star_r(snapnum,nstars(snapnum),2),star_r(snapnum,nstars(snapnum),3)
-                 star_r(snapnum,nstars(snapnum),1:3)=star_r(snapnum,nstars(snapnum),1:3)+&
-                      & mult_r(snapnum,nMult(snapnum),1:3)
+                 READ(2,*) descriptor,equals,star_r(1,nstars(snapnum),nstars),&
+                      & star_r(2,nstars(snapnum),snapnum),star_r(3,nstars(snapnum),snapnum)
+                 star_r(1:3,nstars(snapnum),snapnum)=star_r(1:3,nstars(snapnum),snapnum)+&
+                      & mult_r(1:3,nMult(snapnum),snapnum)
               END IF
 !
               IF(descriptor=='v') THEN
                  BACKSPACE 2                ! Rewinds file one line
-                 READ(2,*) descriptor,equals,star_v(snapnum,nstars(snapnum),1),&
-                      & star_v(snapnum,nstars(snapnum),2),star_v(snapnum,nstars(snapnum),3)
-                 star_v(snapnum,nstars(snapnum),1:3)=star_v(snapnum,nstars(snapnum),1:3)+&
-                      & mult_v(snapnum,nMult(snapnum),1:3)
+                 READ(2,*) descriptor,equals,star_v(1,nstars(snapnum),nstars),&
+                      & star_v(2,nstars(snapnum),snapnum),star_v(3,nstars(snapnum),snapnum)
+                 star_v(1:3,nstars(snapnum),snapnum)=star_v(1:3,nstars(snapnum),snapnum)+&
+                      & mult_v(1:3,nMult(snapnum),snapnum)
               END IF
            END DO
         END IF
@@ -495,30 +495,30 @@ END SUBROUTINE
 SUBROUTINE read_singinfo
   USE sl_input_module
   IMPLICIT NONE
-  READ(2,*) descriptor,equals,ids(snapnum,nstars(snapnum)) ! Reads in star id
+  READ(2,*) descriptor,equals,ids(nstars(snapnum),snapnum) ! Reads in star id
   DO WHILE(descriptor/=')Particle') ! Loop : Star info ends at next ')Particle' line.
      READ(2,*) descriptor           ! Reads next line
 !
      IF(descriptor=='t') THEN
         BACKSPACE 2                ! Rewinds file one line
-        READ(2,*) descriptor,equals,star_t(snapnum,nstars(snapnum)) ! Reads in star time
+        READ(2,*) descriptor,equals,star_t(nstars(snapnum),snapnum) ! Reads in star time
      END IF
 !
      IF(descriptor=='m') THEN
         BACKSPACE 2                ! Rewinds file one line
-        READ(2,*) descriptor,equals,star_m(snapnum,nstars(snapnum)) ! Reads  in star mass
+        READ(2,*) descriptor,equals,star_m(nstars(snapnum),snapnum) ! Reads  in star mass
      END IF
 !
      IF(descriptor=='r') THEN
         BACKSPACE 2                ! Rewinds file one line
-        READ(2,*) descriptor,equals,star_r(snapnum,nstars(snapnum),1),&
-             & star_r(snapnum,nstars(snapnum),2),star_r(snapnum,nstars(snapnum),3) ! Reads in star position
+        READ(2,*) descriptor,equals,star_r(1,nstars(snapnum),nstars),&
+             & star_r(2,nstars(snapnum),snapnum),star_r(3,nstars(snapnum),snapnum) ! Reads in star position
      END IF
 !
      IF(descriptor=='v') THEN
         BACKSPACE 2                ! Rewinds file one line
-        READ(2,*) descriptor,equals,star_v(snapnum,nstars(snapnum),1),&
-             & star_v(snapnum,nstars(snapnum),2),star_v(snapnum,nstars(snapnum),3) ! Reads star velocity
+        READ(2,*) descriptor,equals,star_v(1,nstars(snapnum),nstars),&
+             & star_v(2,nstars(snapnum),snapnum),star_v(3,nstars(snapnum),snapnum) ! Reads star velocity
      END IF
   END DO ! End of star info
 END SUBROUTINE

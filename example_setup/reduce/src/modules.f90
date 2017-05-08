@@ -18,16 +18,16 @@
      CHARACTER*20 :: partname    ! particle name (e.g. 'root', or '8')
 ! top_info:
 ! nTop = the number of stars N given in the topinfo
-     INTEGER :: nTop
+     INTEGER :: nTop     ! The number of stars N given in the topinfo
 ! system_time = the system_time value for the snapshot
 ! top_energy = the total_energy value for the snapshot
 ! mass_scale = the mass_scale value for the snapshot
 ! size_scale = the size_scale value for the snapshot
 ! time_scale = the time_scale value for the snapshot
      REAL :: system_time, top_energy, mass_scale, size_scale, time_scale
+     
 ! multiple_info:
-! nMult = the number of multiples in the snapshot
-     INTEGER, DIMENSION(:), ALLOCATABLE :: nMult
+     INTEGER, DIMENSION(:), ALLOCATABLE :: nMult ! Number of multiples in  snap
 ! mult_nstars = number of stars in each  multiple
 ! mult_ids = ids of stars in each multiple
      INTEGER, DIMENSION (:,:), ALLOCATABLE :: mult_nstars
@@ -120,8 +120,7 @@
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: edgelengths
 ! Number of median values to include in l_Nmed (e.g. 2 or 3 for even/odd nedge)
        INTEGER :: Nmed
-! Number of CDF plots of random MSTs
-       INTEGER :: nCDF
+       INTEGER :: nCDF       ! Number of CDF plots of random MSTs
 ! lambda = measure of mass segregation & errors
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda, l_up, l_low
 ! mean MST length of nloop random MSTs, object MST length
@@ -158,13 +157,9 @@
        LOGICAL :: findlam, findlambar, findlamrms, findlamsmr, findlamhar
        LOGICAL :: findlamtil, findlamNmed, findlamstar, findgam, findlamln
        
-       
-! nmst = number of stars in the minimum spanning tree
-! nloop = number of random MSTs calculated in loop
-       integer :: nmst
-       INTEGER :: nloop
+       integer :: nmst          ! number of stars in the minimum spanning tree
+       INTEGER :: nloop         ! number of random MSTs calculated in loop
        double precision, dimension(:,:), allocatable :: obj_mass
-! Time
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: time
 
 !===============
@@ -175,7 +170,7 @@
        integer :: fileunit, unit1, unit2
 ! outarg = destination directory (e.g. 'outputs')
 ! newpath = output path with cluster type appended (e.g. all, FoV)
-  CHARACTER*150 :: outarg, newpath
+       CHARACTER*150 :: outarg, newpath
 
      END MODULE parameters_module
 !

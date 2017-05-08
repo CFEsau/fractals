@@ -28,11 +28,11 @@ SUBROUTINE read_sl_out(slName)
   ALLOCATE(nstars(1:3000))
 ! Multiple information
   ALLOCATE(mult_nstars(1:3000,1:3000))
-  ALLOCATE(mult_ids(1:3000,1:3000,1:3))
+  ALLOCATE(mult_ids(1:3,1:3000,1:3000))
   ALLOCATE(mult_t(1:3000,1:3000))
   ALLOCATE(mult_m(1:3000,1:3000))
-  ALLOCATE(mult_r(1:3000,1:3000,1:3))
-  ALLOCATE(mult_v(1:3000,1:3000,1:3))
+  ALLOCATE(mult_r(1:3,1:3000,1:3000))
+  ALLOCATE(mult_v(1:3,1:3000,1:3000))
 ! Initialise variables
   snapnum=0 ! Number of snapshots
   i=0 ! Iterator
@@ -42,8 +42,8 @@ SUBROUTINE read_sl_out(slName)
   ALLOCATE(ids(1:3000,1:3000))
   ALLOCATE(star_t(1:3000,1:3000))
   ALLOCATE(star_m(1:3000,1:3000))
-  ALLOCATE(star_r(1:3000,1:3000,1:3))
-  ALLOCATE(star_v(1:3000,1:3000,1:3))
+  ALLOCATE(star_r(1:3,1:3000,1:3000))
+  ALLOCATE(star_v(1:3,1:3000,1:3000))
 ! Initialise arrays
   nMult=0
   nstars=0

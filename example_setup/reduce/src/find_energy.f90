@@ -18,13 +18,13 @@ SUBROUTINE find_energy(snapshoti,ni)
   INTEGER :: i,j,k
   
   ALLOCATE(mi(1:ni))
-  ALLOCATE(ri(1:ni,1:3))
-  ALLOCATE(vi(1:ni,1:3))
+  ALLOCATE(ri(1:3,1:ni))
+  ALLOCATE(vi(1:3,1:ni))
   !allocate(i_incluster(1:ni))
-  mi(1:ni)=m(snapshoti,1:ni)
-  ri(1:ni,1:3)=r(snapshoti,1:ni,1:3)
-  vi(1:ni,1:3)=v(snapshoti,1:ni,1:3)
-  !i_incluster(1:ni)=incluster_FoV(snapshoti,1:ni,4) !in 3D cluster
+  mi(1:ni)=m(1:ni,snapshoti)
+  ri(1:3,1:ni)=r(1:3,1:ni,snapshoti)
+  vi(1:3,1:ni)=v(1:3,1:ni,snapshoti)
+  !i_incluster(1:ni)=incluster_FoV(4,1:ni,snapshoti) !in 3D cluster
 
 ! First convert to SI units
   mi=mi*msun
@@ -35,7 +35,7 @@ SUBROUTINE find_energy(snapshoti,ni)
   DO i=1,ni
      ! Find kinetic energy
      !if (.not. i_incluster(i)) cycle
-     ekin = ekin + (0.5*mi(i)*(vi(i,1)**2+vi(i,2)**2+vi(i,3)**2))
+     ekin = ekin + (0.5*mi(i)*(vi(1,i)**2+vi(2,i)**2+vi(3,i)**2))
   END DO
   
   epot=0.
@@ -47,8 +47,8 @@ SUBROUTINE find_energy(snapshoti,ni)
      DO j=i+1,ni
         !if (.not. i_incluster(j)) cycle
 ! Find separation between two stars
-        rij=(ri(i,1)-ri(j,1))**2 + (ri(i,2)-ri(j,2))**2 + & 
-             &              (ri(i,3)-ri(j,3))**2
+        rij=(ri(1,i)-ri(1,j))**2 + (ri(2,i)-ri(2,j))**2 + & 
+             &              (ri(3,i)-ri(3,j))**2
 ! Find gravitational potential energy between two stars
         epoti=epoti + DBLE(mi(j)/SQRT(rij))
      END DO

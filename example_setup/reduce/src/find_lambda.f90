@@ -69,7 +69,7 @@ SUBROUTINE find_lambda(snapi,ni)
 
 ! Allocate memory for arrays
   ALLOCATE(mi(1:ni))
-  ALLOCATE(ri(1:ni,1:3))
+  ALLOCATE(ri(1:3,1:ni))
   ALLOCATE(rmag(1:ni))
   ALLOCATE(mlist(1:ni))
   ALLOCATE(done(1:ni))
@@ -79,13 +79,13 @@ SUBROUTINE find_lambda(snapi,ni)
   ALLOCATE(x(1:nmst))
   ALLOCATE(y(1:nmst))
   ALLOCATE(z(1:nmst))
-  ALLOCATE(node(1:nedge,1:2))
-  ALLOCATE(obj_r(1:nmst,1:3))
+  ALLOCATE(node(1:2,1:nedge))
+  ALLOCATE(obj_r(1:3,1:nmst))
   
 ! And populate arrays 
-  mi(1:ni)=m(snapi,1:ni)
-  ri(1:ni,1:3)=r(snapi,1:ni,1:3)
-  ti=t(snapi,1)
+  mi(1:ni)=m(1:ni,snapi)
+  ri(1:3,1:ni)=r(1:3,1:ni,snapi)
+  ti=t(1,snapi)
   
 !====================================
 !For when outliers are being ignored
@@ -100,24 +100,24 @@ SUBROUTINE find_lambda(snapi,ni)
 !Find distance of each star from centre of mass:
   DO i = 1, ni
 
-     ri_x = ri_com(snapi,i,1)
-     ri_y = ri_com(snapi,i,2)
-     ri_z = ri_com(snapi,i,3)
+     ri_x = ri_com(1,i,snapi)
+     ri_y = ri_com(2,i,snapi)
+     ri_z = ri_com(3,i,snapi)
 
      IF (thisproj=='xy') THEN
-        ri(i,3) = 0.
+        ri(3,i) = 0.          ! z coordinate is 0
         rmag(i) = SQRT(ri_x**2 + ri_y**2)
      ELSE IF (thisproj=='yz') THEN
-        ri(i,1) = 0.
+        ri(1,i) = 0.          ! x coordinate is 0
         rmag(i) = SQRT(ri_y**2 + ri_z**2)
      ELSE IF (thisproj=='xz') THEN
-        ri(i,2) = 0.
+        ri(2,i) = 0.          ! y coordinate is 0
         rmag(i) = SQRT(ri_x**2 + ri_z**2)
      ELSE IF (thisproj=='3D') THEN
         rmag(i) = SQRT(ri_x**2 + ri_y**2 + ri_z**2)
      END IF
 
-     i_incluster(i) = incluster(snapi,i)
+     i_incluster(i) = incluster(i,snapi)
   END DO
 
 
@@ -152,9 +152,9 @@ SUBROUTINE find_lambda(snapi,ni)
         GOTO 5 !don't use 'cycle' as we don't want i to inrease
      END IF
 
-     obj_r(i,1) = ri(k,1) !x position
-     obj_r(i,2) = ri(k,2) !y position
-     obj_r(i,3) = ri(k,3) !z position
+     obj_r(1,i) = ri(1,k) !x position
+     obj_r(2,i) = ri(2,k) !y position
+     obj_r(3,i) = ri(3,k) !z position
 
 ! track masses selected after each snapshot for output file:
      obj_mass(2,i) = mi(mlist(ni+1-j))
@@ -182,9 +182,9 @@ SUBROUTINE find_lambda(snapi,ni)
   length = 0.
 
 !Split obj_r across x,y,z arrays. Just helps readability in mst subroutine.
-  x(1:nmst)=obj_r(1:nmst,1)
-  y(1:nmst)=obj_r(1:nmst,2)
-  z(1:nmst)=obj_r(1:nmst,3)
+  x(1:nmst)=obj_r(1,1:nmst)
+  y(1:nmst)=obj_r(2,1:nmst)
+  z(1:nmst)=obj_r(3,1:nmst)
 
 !set unit for output to file (separation data)
   fileunit=unit1
@@ -394,9 +394,9 @@ SUBROUTINE find_lambda(snapi,ni)
         IF (done(k)) GOTO 6    !Don't chose the same star twice
         IF (.NOT. i_incluster(k)) GOTO 6 !Don't use escaped stars
         done(k) = .TRUE.       !You're selected
-        x(i) = ri(k,1)
-        y(i) = ri(k,2)
-        z(i) = ri(k,3)
+        x(i) = ri(1,k)
+        y(i) = ri(2,k)
+        z(i) = ri(3,k)
      END DO
 
      CALL mst(snapi,nmst,x,y,z,node,length)

@@ -14,13 +14,13 @@ SUBROUTINE c_of_m(snapi,ni)
 
 ! Allocate memory for arrays
   ALLOCATE(mi(1:ni))
-  ALLOCATE(ri(1:ni,1:3))
+  ALLOCATE(ri(1:3,1:ni))
   ALLOCATE(i_incluster(1:ni))
 
 ! Initialise variables
   mi(1:ni)=m(snapi,1:ni)
-  ri(1:ni,1:3)=r(snapi,1:ni,1:3)
-  i_incluster(1:ni)=incluster(snapi,1:ni)
+  ri(1:3,1:ni)=r(1:3,1:ni,snapi)
+  i_incluster(1:ni)=incluster(1:ni,snapi)
   totalmass=0.
   com_x=0.
   com_y=0.
@@ -32,9 +32,9 @@ SUBROUTINE c_of_m(snapi,ni)
   DO i=1,ni
      IF (i_incluster(i)) THEN
         totalmass = totalmass + mi(i)
-        com_x = com_x + (mi(i)*ri(i,1))
-        com_y = com_y + (mi(i)*ri(i,2))
-        com_z = com_z + (mi(i)*ri(i,3))
+        com_x = com_x + (mi(i)*ri(1,i))
+        com_y = com_y + (mi(i)*ri(2,i))
+        com_z = com_z + (mi(i)*ri(3,i))
      END IF
   END DO
 
@@ -43,16 +43,16 @@ SUBROUTINE c_of_m(snapi,ni)
   com_y = com_y / totalmass
   com_z = com_z / totalmass
 
-  com_cluster(snapi,1) = com_x
-  com_cluster(snapi,2) = com_y
-  com_cluster(snapi,3) = com_z
+  com_cluster(1,snapi) = com_x
+  com_cluster(2,snapi) = com_y
+  com_cluster(3,snapi) = com_z
 
 !Then find the distance between each star and the com of the cluster
   DO i=1,ni
 !x, y, z distances:
-     ri_com(snapi,i,1) = ri(i,1) - com_x
-     ri_com(snapi,i,2) = ri(i,2) - com_y
-     ri_com(snapi,i,3) = ri(i,3) - com_z
+     ri_com(1,i,snapi) = ri(1,i) - com_x
+     ri_com(2,i,snapi) = ri(2,i) - com_y
+     ri_com(3,i,snapi) = ri(3,i) - com_z
   END DO
 
 ! Deallocate arrays
