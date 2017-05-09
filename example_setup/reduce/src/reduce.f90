@@ -61,17 +61,17 @@ PROGRAM reduce
   IF (writesnap) THEN
      CALL SYSTEM('mkdir -p '//TRIM(outarg)//'/snapshots')
      DO j=1,nsnaps
-        IF (i<10) THEN
-           WRITE(ofilen,'(i1)')i
+        IF (j<10) THEN
+           WRITE(ofilen,'(i1)')j
            outfile='snap'//'000'//ofilen
-        ELSE IF (i<100) THEN
-           WRITE(ofilen,'(i2)')i
+        ELSE IF (j<100) THEN
+           WRITE(ofilen,'(i2)')j
            outfile='snap'//'00'//ofilen
-        ELSE IF (i<1000) THEN
-           WRITE(ofilen,'(i3)')i
+        ELSE IF (j<1000) THEN
+           WRITE(ofilen,'(i3)')j
            outfile='snap'//'0'//ofilen
         ELSE
-           WRITE(ofilen,'(i4)')i
+           WRITE(ofilen,'(i4)')j
            outfile='snap'//ofilen
         END IF
         OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='replace')
