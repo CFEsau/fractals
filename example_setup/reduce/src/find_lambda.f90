@@ -83,9 +83,9 @@ SUBROUTINE find_lambda(snapi,ni)
   ALLOCATE(obj_r(1:3,1:nmst))
   
 ! And populate arrays 
-  mi(1:ni)=m(1:ni,snapi)
-  ri(1:3,1:ni)=r(1:3,1:ni,snapi)
-  ti=t(1,snapi)
+  mi(1:ni)=mstar(1:ni,snapi)
+  ri(1:3,1:ni)=rstar(1:3,1:ni,snapi)
+  ti=tstar(1,snapi)
   
 !====================================
 !For when outliers are being ignored

@@ -18,8 +18,8 @@ SUBROUTINE c_of_m(snapi,ni)
   ALLOCATE(i_incluster(1:ni))
 
 ! Initialise variables
-  mi(1:ni)=m(snapi,1:ni)
-  ri(1:3,1:ni)=r(1:3,1:ni,snapi)
+  mi(1:ni)=mstar(1:ni,snapi)
+  ri(1:3,1:ni)=rstar(1:3,1:ni,snapi)
   i_incluster(1:ni)=incluster(1:ni,snapi)
   totalmass=0.
   com_x=0.

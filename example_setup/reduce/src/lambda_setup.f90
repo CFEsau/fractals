@@ -88,15 +88,15 @@ subroutine lambda_setup
      lamunit = nlam+100
      
 ! final lambda value calculated (output)
-     ALLOCATE(lambda(1:snapnum))
+     ALLOCATE(lambda(1:nsnaps))
 ! +ve error bar
-     ALLOCATE(l_low(1:snapnum))
+     ALLOCATE(l_low(1:nsnaps))
 ! -ve error bar
-     ALLOCATE(l_up(1:snapnum))
+     ALLOCATE(l_up(1:nsnaps))
 ! median average edge length of random MTSs
-     ALLOCATE(l_avranmst(1:snapnum))
+     ALLOCATE(l_avranmst(1:nsnaps))
 ! average edge length of object MST
-     ALLOCATE(l_objmst(1:snapnum))
+     ALLOCATE(l_objmst(1:nsnaps))
 
      lambda=0.
      l_up=0.
@@ -109,11 +109,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      lambarunit = nlam+100
      
-     ALLOCATE(lambda_bar(1:snapnum))
-     ALLOCATE(l_low_bar(1:snapnum))
-     ALLOCATE(l_up_bar(1:snapnum))
-     ALLOCATE(lbar_avranmst(1:snapnum))
-     ALLOCATE(lbar_objmst(1:snapnum))
+     ALLOCATE(lambda_bar(1:nsnaps))
+     ALLOCATE(l_low_bar(1:nsnaps))
+     ALLOCATE(l_up_bar(1:nsnaps))
+     ALLOCATE(lbar_avranmst(1:nsnaps))
+     ALLOCATE(lbar_objmst(1:nsnaps))
      
      lambda_bar=0.
      l_up_bar=0.
@@ -126,11 +126,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      lamrmsunit = nlam + 100
      
-     ALLOCATE(lambda_rms(1:snapnum))
-     ALLOCATE(l_low_rms(1:snapnum))
-     ALLOCATE(l_up_rms(1:snapnum))
-     ALLOCATE(lrms_avranmst(1:snapnum))
-     ALLOCATE(lrms_objmst(1:snapnum))
+     ALLOCATE(lambda_rms(1:nsnaps))
+     ALLOCATE(l_low_rms(1:nsnaps))
+     ALLOCATE(l_up_rms(1:nsnaps))
+     ALLOCATE(lrms_avranmst(1:nsnaps))
+     ALLOCATE(lrms_objmst(1:nsnaps))
 
      lambda_rms=0.
      l_up_rms=0.
@@ -143,11 +143,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      lamsmrunit = nlam + 100
      
-     ALLOCATE(lambda_smr(1:snapnum))
-     ALLOCATE(l_low_smr(1:snapnum))
-     ALLOCATE(l_up_smr(1:snapnum))
-     ALLOCATE(lsmr_avranmst(1:snapnum))
-     ALLOCATE(lsmr_objmst(1:snapnum))
+     ALLOCATE(lambda_smr(1:nsnaps))
+     ALLOCATE(l_low_smr(1:nsnaps))
+     ALLOCATE(l_up_smr(1:nsnaps))
+     ALLOCATE(lsmr_avranmst(1:nsnaps))
+     ALLOCATE(lsmr_objmst(1:nsnaps))
 
      lambda_smr=0.
      l_up_smr=0.
@@ -160,11 +160,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      lamharunit = nlam + 100
      
-     ALLOCATE(lambda_har(1:snapnum))
-     ALLOCATE(l_low_har(1:snapnum))
-     ALLOCATE(l_up_har(1:snapnum))
-     ALLOCATE(lhar_avranmst(1:snapnum))
-     ALLOCATE(lhar_objmst(1:snapnum))
+     ALLOCATE(lambda_har(1:nsnaps))
+     ALLOCATE(l_low_har(1:nsnaps))
+     ALLOCATE(l_up_har(1:nsnaps))
+     ALLOCATE(lhar_avranmst(1:nsnaps))
+     ALLOCATE(lhar_objmst(1:nsnaps))
 
      lambda_har=0.
      l_up_har=0.
@@ -177,11 +177,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      lamtilunit = nlam + 100
      
-     ALLOCATE(lambda_til(1:snapnum))
-     ALLOCATE(l_low_til(1:snapnum))
-     ALLOCATE(l_up_til(1:snapnum))
-     ALLOCATE(ltil_avranmst(1:snapnum))
-     ALLOCATE(ltil_objmst(1:snapnum))
+     ALLOCATE(lambda_til(1:nsnaps))
+     ALLOCATE(l_low_til(1:nsnaps))
+     ALLOCATE(l_up_til(1:nsnaps))
+     ALLOCATE(ltil_avranmst(1:nsnaps))
+     ALLOCATE(ltil_objmst(1:nsnaps))
      
      lambda_til=0.
      l_up_til=0.
@@ -213,11 +213,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      lamlnunit = nlam + 100
      
-     ALLOCATE(lambda_Nmed(1:snapnum))
-     ALLOCATE(l_low_Nmed(1:snapnum))
-     ALLOCATE(l_up_Nmed(1:snapnum))
-     ALLOCATE(lNmed_avranmst(1:snapnum))
-     ALLOCATE(lNmed_objmst(1:snapnum))
+     ALLOCATE(lambda_Nmed(1:nsnaps))
+     ALLOCATE(l_low_Nmed(1:nsnaps))
+     ALLOCATE(l_up_Nmed(1:nsnaps))
+     ALLOCATE(lNmed_avranmst(1:nsnaps))
+     ALLOCATE(lNmed_objmst(1:nsnaps))
      
      lambda_Nmed=0.
      l_up_Nmed=0.
@@ -230,11 +230,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      lamstarunit = nlam + 100
      
-     ALLOCATE(lambda_star(1:snapnum))
-     ALLOCATE(l_low_star(1:snapnum))
-     ALLOCATE(l_up_star(1:snapnum))
-     ALLOCATE(lstar_avranmst(1:snapnum))
-     ALLOCATE(lstar_objmst(1:snapnum))
+     ALLOCATE(lambda_star(1:nsnaps))
+     ALLOCATE(l_low_star(1:nsnaps))
+     ALLOCATE(l_up_star(1:nsnaps))
+     ALLOCATE(lstar_avranmst(1:nsnaps))
+     ALLOCATE(lstar_objmst(1:nsnaps))
      
      lambda_star=0.
      l_up_star=0.
@@ -247,11 +247,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      gamunit = nlam + 100
      
-     ALLOCATE(lambda_gam(1:snapnum))
-     ALLOCATE(l_low_gam(1:snapnum))
-     ALLOCATE(l_up_gam(1:snapnum))
-     ALLOCATE(lgam_avranmst(1:snapnum))
-     ALLOCATE(lgam_objmst(1:snapnum))
+     ALLOCATE(lambda_gam(1:nsnaps))
+     ALLOCATE(l_low_gam(1:nsnaps))
+     ALLOCATE(l_up_gam(1:nsnaps))
+     ALLOCATE(lgam_avranmst(1:nsnaps))
+     ALLOCATE(lgam_objmst(1:nsnaps))
      
      lambda_gam=0.
      l_up_gam=0.
@@ -264,11 +264,11 @@ subroutine lambda_setup
      nlam = nlam + 1
      lamlnunit = nlam + 100
      
-     ALLOCATE(lambda_ln(1:snapnum))
-     ALLOCATE(l_low_ln(1:snapnum))
-     ALLOCATE(l_up_ln(1:snapnum))
-     ALLOCATE(lln_avranmst(1:snapnum))
-     ALLOCATE(lln_objmst(1:snapnum))
+     ALLOCATE(lambda_ln(1:nsnaps))
+     ALLOCATE(l_low_ln(1:nsnaps))
+     ALLOCATE(l_up_ln(1:nsnaps))
+     ALLOCATE(lln_avranmst(1:nsnaps))
+     ALLOCATE(lln_objmst(1:nsnaps))
      
      lambda_ln=0.
      l_up_ln=0.
@@ -321,7 +321,7 @@ subroutine lambda_setup
   write(unit1,*) "**** ",thisproj," ****"
   write(unit2,*) "**** ",thisproj," ****"
 
-  do i=1,snapnum
+  do i=1,nsnaps
      call find_lambda(i,nstars(i))
   end do
 
@@ -352,7 +352,7 @@ subroutine lambda_setup
 ! object edge lengths used for each lambda, and lambda values with errors:
      OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lambda_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lamunit,99) i,l_avranmst(i),l_objmst(i),lambda(i),l_low(i),l_up(i)
      END DO
 
@@ -362,7 +362,7 @@ subroutine lambda_setup
   IF (findlambar) THEN
      OPEN(lambarunit,file=TRIM(newPath)//'/lambda/MST_lambar_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lambarunit,99) i,lbar_avranmst(i),lbar_objmst(i), &
              & lambda_bar(i),l_low_bar(i),l_up_bar(i)
      END DO
@@ -373,7 +373,7 @@ subroutine lambda_setup
   IF (findlamrms) THEN
      OPEN(lamrmsunit,file=TRIM(newPath)//'/lambda/MST_lamrms_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lamrmsunit,99) i,lrms_avranmst(i),lrms_objmst(i), &
              & lambda_rms(i),l_low_rms(i),l_up_rms(i)
      END DO
@@ -384,7 +384,7 @@ subroutine lambda_setup
   IF (findlamsmr) THEN
      OPEN(lamsmrunit,file=TRIM(newPath)//'/lambda/MST_lamsmr_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lamsmrunit,99) i,lsmr_avranmst(i),lsmr_objmst(i), &
              & lambda_smr(i),l_low_smr(i),l_up_smr(i)
      END DO
@@ -395,7 +395,7 @@ subroutine lambda_setup
   IF (findlamhar) THEN
      OPEN(lamharunit,file=TRIM(newPath)//'/lambda/MST_lamhar_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lamharunit,99) i,lhar_avranmst(i),lhar_objmst(i), &
              & lambda_har(i),l_low_har(i),l_up_har(i)
      END DO
@@ -406,7 +406,7 @@ subroutine lambda_setup
   IF (findlamtil) THEN
      OPEN(lamtilunit,file=TRIM(newPath)//'/lambda/MST_lamtil_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lamtilunit,99) i,ltil_avranmst(i),ltil_objmst(i), &
              & lambda_til(i),l_low_til(i),l_up_til(i)
      END DO
@@ -417,7 +417,7 @@ subroutine lambda_setup
   IF (findlamNmed) THEN
      OPEN(lamNmedunit,file=TRIM(newPath)//'/lambda/MST_lam'//&
           trim(adjustl(Nmedstr))//'med_'//thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lamNmedunit,99) i,lNmed_avranmst(i),lNmed_objmst(i), &
              & lambda_Nmed(i),l_low_Nmed(i),l_up_Nmed(i)
      END DO
@@ -428,7 +428,7 @@ subroutine lambda_setup
   IF (findlamstar) THEN
      OPEN(lamstarunit,file=TRIM(newPath)//'/lambda/MST_lamstar_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lamstarunit,99) i,lstar_avranmst(i),lstar_objmst(i), &
              & lambda_star(i),l_low_star(i),l_up_star(i)
      END DO
@@ -439,7 +439,7 @@ subroutine lambda_setup
   IF (findgam) THEN
      OPEN(gamunit,file=TRIM(newPath)//'/lambda/MST_gam_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(gamunit,99) i,lgam_avranmst(i),lgam_objmst(i), &
              & lambda_gam(i),l_low_gam(i),l_up_gam(i)
      END DO
@@ -450,7 +450,7 @@ subroutine lambda_setup
   IF (findlamln) THEN
      OPEN(lamlnunit,file=TRIM(newPath)//'/lambda/MST_lamln_'//&
           thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(lamlnunit,99) i,lln_avranmst(i),lln_objmst(i), &
              & lambda_ln(i),l_low_ln(i),l_up_ln(i)
      END DO

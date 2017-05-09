@@ -30,7 +30,7 @@ SUBROUTINE in_cluster(snapi,ni)
 ! This file in full is large so use only if needed.
   writeescaped=.FALSE.
 
-  mi(1:ni)=m(1:ni,snapi)
+  mi(1:ni)=mstar(1:ni,snapi)
 ! Populate distance magnitude arrays in observer planes & 3D
 ! between each star and centre of mass
   do i = 1, ni

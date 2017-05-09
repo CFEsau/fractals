@@ -21,9 +21,9 @@ SUBROUTINE find_energy(snapshoti,ni)
   ALLOCATE(ri(1:3,1:ni))
   ALLOCATE(vi(1:3,1:ni))
   !allocate(i_incluster(1:ni))
-  mi(1:ni)=m(1:ni,snapshoti)
-  ri(1:3,1:ni)=r(1:3,1:ni,snapshoti)
-  vi(1:3,1:ni)=v(1:3,1:ni,snapshoti)
+  mi(1:ni)=mstar(1:ni,snapshoti)
+  ri(1:3,1:ni)=rstar(1:3,1:ni,snapshoti)
+  vi(1:3,1:ni)=vstar(1:3,1:ni,snapshoti)
   !i_incluster(1:ni)=incluster_FoV(4,1:ni,snapshoti) !in 3D cluster
 
 ! First convert to SI units

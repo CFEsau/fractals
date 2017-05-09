@@ -1,6 +1,8 @@
 !******************************************************************************!
 !
-! 08/12/14 Dan Griffiths
+! Star Wars Day 2017 - Claire Esau
+! Bastardisation of code from Dan Griffiths 08/12/14
+! and Richard Allison from aeons ago. Also added a bunch of new stuff.
 ! 
 ! reduce.f90
 !
@@ -29,51 +31,28 @@ PROGRAM reduce
 
   writesnap=.FALSE.
   
-  
-! Get the name and path of the runfile from the command line
-  CALL GETARG(1,inarg)
+  CALL GETARG(1,inarg) ! Get name & path of runfile from command line
   PRINT *, 'Input file: ',TRIM(inarg)
 
-  CALL GETARG(2,outarg)
+  CALL GETARG(2,outarg) ! Get path of output from command line
   PRINT *, 'Output directory: ',TRIM(outarg)
 !
-! read_sl reads in the sl file, converting the relevant data into arrays.
-! These include the overall properties of each individual snapshot and, for each snapshot,
-! the properties (mass, position, velocity) of the individual stars.
-!
   CALL read_sl_out(inarg)
+! Reads in the sl file & saves required data in arrays.
+! Data saved: the overall properties of each individual snapshot and
+! properties (mass, position, velocity) of the particles in each snapshot.
 !
-! Next step is to convert these masses, positions and velocities from N-body units to usable units
-! (Solar masses, au and km/s?). Can do this here, don't need a separate subroutine.
-! So let's get runit, munit, and tunit (NOT the same as runit, munit and tunit in initials.f90):
-  munit=mass_scale
-  runit=size_scale
-  tunit=time_scale
-!
-! Now let's just multiply the masses, positions, velocities and times by these values
-! to get m in solar masses, r in pc, v in km/s and t in Myr
-  star_t=star_t/tunit
-  star_m=star_m/munit
-  star_r=star_r*(2.255e-8/runit)  
-  star_v=star_v*(2.255e-8/runit)*tunit
-  ! Convert from pc/Myr into km/s
-  star_v=star_v*pc*1.e-9/yr
-! These data are Reals at the moment. I want Double Precision.
-! First allocate arrays
-  ALLOCATE(t(1:nstars(1),1:snapnum))
-  ALLOCATE(m(1:nstars(1),1:snapnum))
-  ALLOCATE(r(1:3,1:nstars(1),1:snapnum))
-  ALLOCATE(v(1:3,1:nstars(1),1:snapnum))
-! Now fill the arrays
-  t=DBLE(star_t)
-  m=DBLE(star_m)
-  r=DBLE(star_r)
-  v=DBLE(star_v)
-
+! Convert these masses, positions & velocities from N-body units
+! to t in Myr, m in solar masses, r in pc, v in km/s
+  tstar=tstar/tunit
+  mstar=mstar/munit
+  rstar=rstar*(2.255e-8/runit)
+  vstar=vstar*(2.255e-8/runit)*tunit   ! N-body to pc/Myr
+  vstar=vstar*pc*1.e-9/yr              ! pc/Myr to km/s
 !
 ! Make a directory for this simulation data
   CALL SYSTEM('mkdir -p '//TRIM(outarg))
-
+!
 !
 !******************************************************************************!
 !
@@ -81,7 +60,7 @@ PROGRAM reduce
 !
   IF (writesnap) THEN
      CALL SYSTEM('mkdir -p '//TRIM(outarg)//'/snapshots')
-     DO j=1,snapnum
+     DO j=1,nsnaps
         IF (i<10) THEN
            WRITE(ofilen,'(i1)')i
            outfile='snap'//'000'//ofilen
@@ -95,9 +74,10 @@ PROGRAM reduce
            WRITE(ofilen,'(i4)')i
            outfile='snap'//ofilen
         END IF
-        OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='new')
+        OPEN(4,file=TRIM(outarg)//'/snapshots/'//outfile,status='replace')
         DO i=1,nstars(j)
-           WRITE(4,104) i, ids(i,j),t(i,j),m(i,j),r(1:3,i,j),v(1:3,i,j)
+           WRITE(4,104) i,idstar(i,j),tstar(i,j),mstar(i,j),&
+                & rstar(1:3,i,j),vstar(1:3,i,j)
         END DO
 104     FORMAT (2(2X,I4),2X,F8.4,2X,F7.3,6(2X,F8.3))
         CLOSE(4)
@@ -110,21 +90,21 @@ PROGRAM reduce
 ! Allocate arrays for calculations.
 
 ! logical array: is the star in the cluster
-  ALLOCATE(incluster(1:nstars(1),1:snapnum))
+  ALLOCATE(incluster(1:nstars(1),1:nsnaps))
 
 ! x, y, z positions of centre of mass:
-  ALLOCATE(com_cluster(1:3,1:snapnum))
+  ALLOCATE(com_cluster(1:3,1:nsnaps))
 
 ! x, y, z distances of each star from com:
-  ALLOCATE(ri_com(1:3,1:nstars(1),1:snapnum))
+  ALLOCATE(ri_com(1:3,1:nstars(1),1:nsnaps))
 
 ! halfmass radius of cluster:
-  ALLOCATE(r_halfmass(1:snapnum))
+  ALLOCATE(r_halfmass(1:nsnaps))
 
 ! Energy of each snapshot
-  ALLOCATE(kinetic_energy(1:snapnum))
-  ALLOCATE(potential_energy(1:snapnum))
-  ALLOCATE(total_energy(1:snapnum))
+  ALLOCATE(kinetic_energy(1:nsnaps))
+  ALLOCATE(potential_energy(1:nsnaps))
+  ALLOCATE(total_energy(1:nsnaps))
 
 
 ! Define the number of stars in the MST:
@@ -139,7 +119,7 @@ PROGRAM reduce
   CALL reduce_FoV(nstars(1))
 
 ! Find energy, c of m, rhalf, mass segregation for stars
-! within rfac*r_halfmass(1:4,snapnum) of all stars:
+! within rfac*r_halfmass(1:4,nsnaps) of all stars:
   rfac = 2
   CALL reduce_rhalf(nstars(1))
   rfac = 3
@@ -162,25 +142,19 @@ SUBROUTINE DEALLOCATE
     
   DEALLOCATE(nMult)
   DEALLOCATE(nstars)
-! Multiple information
-  DEALLOCATE(mult_nstars)
-  DEALLOCATE(mult_ids)
-  DEALLOCATE(mult_t)
-  DEALLOCATE(mult_m)
-  DEALLOCATE(mult_r)
-  DEALLOCATE(mult_v)
   
 ! Stellar information
-  DEALLOCATE(ids)
-  DEALLOCATE(star_t)
-  DEALLOCATE(star_m)
-  DEALLOCATE(star_r)
-  DEALLOCATE(star_v)
+  DEALLOCATE(idstar)
+  DEALLOCATE(tstar)
+  DEALLOCATE(mstar)
+  DEALLOCATE(rstar)
+  DEALLOCATE(vstar)
 
-  DEALLOCATE(t)
-  DEALLOCATE(m)
-  DEALLOCATE(r)
-  DEALLOCATE(v)
+  DEALLOCATE(idmax)
+  DEALLOCATE(tmax)
+  DEALLOCATE(mmax)
+  DEALLOCATE(rmax)
+  DEALLOCATE(vmax)
 
   DEALLOCATE(incluster)
 

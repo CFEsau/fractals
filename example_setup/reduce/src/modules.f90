@@ -7,113 +7,86 @@
 ! This module is for variables needed to read in the kira output file.
    MODULE sl_input_module
 !
-! snapnum = number of snapshots. Starts at zero and is increased incrementally.
-       INTEGER :: snapnum
-! desciptor = The first part of a line being read in, generally descibing the data
-! on the line, e.g. '(Particle' or 'name'
-! equals = the '=' sign found on most lines.
-! partname = the particle name, e.g. 'root' for topinfo, maybe '(6,100006)' for sysinfo, stars have an ID not a name
-     CHARACTER*40 :: descriptor  ! name of value being read in
-     CHARACTER*4 :: equals       ! the '='
-     CHARACTER*20 :: partname    ! particle name (e.g. 'root', or '8')
+     INTEGER :: numstars         ! Number of stars
+     INTEGER :: nsnaps           ! Number of snapshots
+     INTEGER :: nmax             ! Max number of 'particles' in snapshot (guess)
+     INTEGER :: npart            ! Actual number of 'particles' in snapshot
+     INTEGER, DIMENSION(:), ALLOCATABLE :: multN ! Num stars in each particle
+     CHARACTER*40 :: descriptor  ! Name of value being read in
+     CHARACTER*4 :: equals       ! The '='
+     CHARACTER*20 :: partname    ! Particle name (e.g. 'root', or '8')
+     
 ! top_info:
-! nTop = the number of stars N given in the topinfo
-     INTEGER :: nTop     ! The number of stars N given in the topinfo
-! system_time = the system_time value for the snapshot
-! top_energy = the total_energy value for the snapshot
-! mass_scale = the mass_scale value for the snapshot
-! size_scale = the size_scale value for the snapshot
-! time_scale = the time_scale value for the snapshot
-     REAL :: system_time, top_energy, mass_scale, size_scale, time_scale
+     INTEGER :: Ntop     ! The number of stars N in each snap from top info
+     DOUBLE PRECISION :: system_time ! System_time for snapshot from top info
+     DOUBLE PRECISION :: topm                ! Total system mass
+     DOUBLE PRECISION :: topr1,topr2,topr3   ! Total system lengths
+     DOUBLE PRECISION :: topv1,topv2,topv3   ! Total system velocities
+     DOUBLE PRECISION :: topt                ! Total system time
+     DOUBLE PRECISION :: top_energy   ! Total_energy value for the snapshot
      
 ! multiple_info:
-     INTEGER, DIMENSION(:), ALLOCATABLE :: nMult ! Number of multiples in  snap
-! mult_nstars = number of stars in each  multiple
-! mult_ids = ids of stars in each multiple
-     INTEGER, DIMENSION (:,:), ALLOCATABLE :: mult_nstars
-     INTEGER, DIMENSION (:,:,:), ALLOCATABLE :: mult_ids
-! These find the IDs of stars in a binary. What about a multiple?
-! parop, parcl = Opening and closing parenthesis
-! cstar1, cstar2 = ids of star1 and star2 in character format
-! cstar1_len, cstar2_len = length of strings cstar1 and cstar2 in character format (used for formatting purposes)
-     CHARACTER*1 :: parop, parcl
-     CHARACTER*10, DIMENSION(5) :: cstar, cstar_len
-! mult_t = time of multiple
-! mult_m = mass of multiple
-! mult_r = center of mass of multiple
-! mult_v = center of velocity of multiple
-! mult_childof = whether the multiple is a child of another multiple (given by ID of first star)
-     REAL, DIMENSION(:,:), ALLOCATABLE :: mult_t,mult_m
-     REAL, DIMENSION(:,:,:), ALLOCATABLE :: mult_r,mult_v
+     INTEGER, DIMENSION(:), ALLOCATABLE :: nMult ! Number of multiples in snap
+     
 ! star info:
-! nstars = the total number of stars in the snapshot
-! ids = the ids of the individual stars
-     INTEGER, DIMENSION(:), ALLOCATABLE :: nstars
-     INTEGER, DIMENSION(:,:), ALLOCATABLE :: ids
-! star_t = time of star
-! star_m = mass of star
-! star_r = position of star
-! star_v = velocity of star
-     REAL, DIMENSION(:,:), ALLOCATABLE :: star_t,star_m
-     REAL, DIMENSION(:,:,:), ALLOCATABLE :: star_r,star_v
+     INTEGER, DIMENSION(:), ALLOCATABLE :: nstars ! Number of stars in snap
 !
      END MODULE sl_input_module
 !
 !******************************************************************************!
 !
-! I'm going to create another module for general use which has the arrays properties of
-! the individual stars per snapshot, in non-N-body units, hopefully making it a bit
-! easier to use by breaking the program up a bit more. Plus we want double precision.
+! Another module for general use which has the arrays properties of
+! the individual stars per snapshot, in non-N-body units, hopefully making it
+! a bit easier to use by breaking the program up a bit more.
      MODULE parameters_module
 !====================
 ! Stellar parameters
 !====================
 ! munit,runit,vunit,tunit = conversion factors between N-Body units and
-! solar masses,pc,km/s and Myr
+! solar masses, pc, km/s and Myr
        DOUBLE PRECISION :: munit,runit,vunit,tunit
-! t = time in Myr of each star in each snapshot
-! m = mass in solar masses of each star in each snapshot
-! r = position in pc of each star in each snapshot
-! v = velocity in km/s of each star in each snapshot
-       DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: t,m
-       DOUBLE PRECISION, DIMENSION(:,:,:), ALLOCATABLE :: r,v
+! tmax = time in Myr of each particle in each snapshot
+! mmax = mass in solar masses of each particle in each snapshot
+! rmax = position in pc of each particle in each snapshot
+! vmax = velocity in km/s of each particle in each snapshot
+       INTEGER, DIMENSION(:,:), ALLOCATABLE :: idmax  ! IDs of particles
+       DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: tmax,mmax
+       DOUBLE PRECISION, DIMENSION(:,:,:), ALLOCATABLE :: rmax,vmax
+! As above but for each star in each snapshot (after multiples analysed)
+       INTEGER, DIMENSION(:,:), ALLOCATABLE :: idstar
+       DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: tstar,mstar
+       DOUBLE PRECISION, DIMENSION(:,:,:), ALLOCATABLE :: rstar,vstar
 
 !====================
 ! Cluster parameters
 !====================
-! totalmass = the total mass of the distribution
+       DOUBLE PRECISION :: totalmass    ! Total mass of the distribution
 ! com_cluster = the centre of mass of the cluster (x, y, z positions)
 ! ri_com = distance between each star and cluster centre of mass
-       DOUBLE PRECISION :: totalmass
        double precision, dimension(:,:),allocatable :: com_cluster
        double precision, dimension(:,:,:),allocatable :: ri_com
 ! r_halfmass = the half mass radius of the distribution
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: r_halfmass
-! incluster = logical array, star has escaped cluster if F
-       logical, dimension(:,:), allocatable :: incluster
-! limittype = condition in which stars are in cluster.
-! Currently either field of view (=FoV) or half-mass radius (=rhalf)
-       CHARACTER*20 :: limittype
+       logical, dimension(:,:), allocatable :: incluster  ! Star escaped if F
+       CHARACTER*20 :: limittype    ! Condition in which stars are in cluster.
+!           Currently either field of view (=FoV) or half-mass radius (=rhalf)
 ! Fov_lim = the limit of field of view in pc
-! rfac = the factor by which half-mass radius is multiplied by
+! rfac = the factor by which half-mass radius is multiplied
 ! to establish the boundary of stars that are still in  the cluster
        integer :: FoV_lim, rfac
 ! save the final value of half-mass radius calculated from 
 ! whole cluster for use in the rfac*rhalf cluster calculation
        double precision, dimension(4) :: rhalf_all
-! projection of cluster (2D axis/3D)
-! projnum = integer representing projection type
-       character*2 :: thisproj
-       integer :: projnum
+       character*2 :: thisproj ! Projection of cluster (xy/yz/xz/3D)
+       integer :: projnum      ! Integer representing projection type
 
 !===============
 ! Calculations
 !===============
-! These next variables are for finding the kinetic, potential and total energy:
-! kinetic_energy = the total kinetic energy
-! potential_energy = the total gravitational potential energy
-! total_energy = the total energy
-       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: kinetic_energy,potential_energy,total_energy
+! Total kinetic & potential energy, and total overall energy:
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: kinetic_energy
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: potential_energy
+       DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: total_energy
 
 !============== Lambda ===============
 ! Lengths of 'object' edges in MST for CDFs
@@ -168,9 +141,9 @@
 !
 ! unit# = unit numbers for output files in star separation values
        integer :: fileunit, unit1, unit2
-! outarg = destination directory (e.g. 'outputs')
-! newpath = output path with cluster type appended (e.g. all, FoV)
-       CHARACTER*150 :: outarg, newpath
+       CHARACTER*150 :: outarg  ! Destination directory (e.g. 'outputs')
+       CHARACTER*150 :: newpath ! Output path with cluster type appended
+!                                 (e.g. all, FoV)
 
      END MODULE parameters_module
 !

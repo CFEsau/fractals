@@ -1,4 +1,3 @@
-
 SUBROUTINE find_halfmass(snapshoti,ni)
   USE parameters_module
   IMPLICIT NONE
@@ -22,8 +21,8 @@ SUBROUTINE find_halfmass(snapshoti,ni)
   ALLOCATE(rlist(1:ni))
 
 ! Assign values
-  mi(1:ni)=m(1:ni,snapshoti)
-  ri(1:3,1:ni)=r(1:3,1:ni,snapshoti)
+  mi(1:ni)=mstar(1:ni,snapshoti)
+  ri(1:3,1:ni)=rstar(1:3,1:ni,snapshoti)
 
 ! Find distance magnitude of star i from c of m:
   DO i = 1, ni

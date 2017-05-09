@@ -67,7 +67,7 @@ SUBROUTINE reduce_cluster(ni)
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
      WRITE(6,*)"       Calculating centre of mass..."
-     DO i=1, snapnum
+     DO i=1, nsnaps
         CALL c_of_m(i,nstars(i))
      END DO
 
@@ -75,7 +75,7 @@ SUBROUTINE reduce_cluster(ni)
 !Don't need to call this here as all stars included
 !     open(10,file=trim(newPath)//'/escaped_'//thisproj//'.dat')
 !
-!     do i=1,snapnum
+!     do i=1,nsnaps
 !       call in_cluster(i,nstars(i))
 !     end do
 !
@@ -89,7 +89,7 @@ SUBROUTINE reduce_cluster(ni)
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
 !     WRITE(6,*)"       Calculating new centre of mass..."
-!     DO i=1, snapnum
+!     DO i=1, nsnaps
 !        CALL c_of_m(i,nstars(i))
 !     END DO
 
@@ -101,7 +101,7 @@ SUBROUTINE reduce_cluster(ni)
 
      WRITE(6,*)"       Calculating half-mass radius..."
 ! Loop over all snapshots
-     DO i=1,snapnum
+     DO i=1,nsnaps
         CALL find_halfmass(i,nstars(i))
 !!$     PRINT *, i, r_halfmass(i)
      END DO
@@ -113,7 +113,7 @@ SUBROUTINE reduce_cluster(ni)
 ! Centre of mass and half-mass radius:
 ! output: i com_x com_y com_z r1/2
      OPEN(3,file=TRIM(newPath)//'/c_of_m_'//thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(3,30) i,com_cluster(1,i),com_cluster(2,i),com_cluster(3,i), &
              & r_halfmass(i)
      END DO
@@ -141,7 +141,7 @@ SUBROUTINE reduce_cluster(ni)
   WRITE(6,*)""
   WRITE(6,*)"   Calculating cluster energy..."
 ! Loop over all snapshots
-  DO i=1, snapnum
+  DO i=1, nsnaps
      CALL find_energy(i,nstars(i))
 !!$     PRINT *, kinetic_energy(i),potential_energy(i),total_energy(i)
   END DO
@@ -155,7 +155,7 @@ SUBROUTINE reduce_cluster(ni)
 ! Save in 'outarg' as this is the same for all cluster types
 ! (don't need to call from FoV / rhalf cluster types)
   OPEN(4,file=TRIM(outarg)//'/energies.dat',status='replace')
-  DO i=1,snapnum
+  DO i=1,nsnaps
      WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i)
   END DO
 40 FORMAT(1X,I4,3(2X,E9.3))

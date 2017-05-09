@@ -68,13 +68,13 @@ SUBROUTINE reduce_FoV(ni)
 ! This means the distance between each star & cluster c of m
 ! is the distance between ri_com & centre of grid, i.e. r.
 ! (This assumes all stars are initially in FoV.)
-     ri_com=r
+     ri_com=rstar
 
 
 ! Is the star in the cluster?
      OPEN(10,file=TRIM(newPath)//'/escaped_'//thisproj//'.dat')
 
-     DO i=1,snapnum
+     DO i=1,nsnaps
         CALL in_cluster(i,nstars(i))
      END DO
 
@@ -88,7 +88,7 @@ SUBROUTINE reduce_FoV(ni)
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
      WRITE(6,*)"       Calculating new centre of mass..."
-     DO i=1,snapnum
+     DO i=1,nsnaps
         CALL c_of_m(i,nstars(i))
      END DO
 
@@ -101,7 +101,7 @@ SUBROUTINE reduce_FoV(ni)
 
      WRITE(6,*)"       Calculating half-mass radius..."
 ! Loop over all snapshots
-     DO i=1,snapnum
+     DO i=1,nsnaps
         CALL find_halfmass(i,nstars(i))
 !!$     PRINT *, i, r_halfmass(i)
      END DO
@@ -114,7 +114,7 @@ SUBROUTINE reduce_FoV(ni)
 ! Centre of mass and half-mass radius for each snapshot:
 ! output: i com_x com_y com_z r1/2
      OPEN(3,file=TRIM(newPath)//'/c_of_m_'//thisproj//'.dat',status='replace')
-     DO i=1,snapnum
+     DO i=1,nsnaps
         WRITE(3,30) i,com_cluster(1,i),com_cluster(2,i),com_cluster(3,i), &
              & r_halfmass(i)
      END DO
@@ -147,7 +147,7 @@ SUBROUTINE reduce_FoV(ni)
       WRITE(6,*)""
       WRITE(6,*)"   Calculating cluster energy..."
 ! Loop over all snapshots
-      DO i=1, snapnum
+      DO i=1, nsnaps
          CALL find_energy(i,nstars(i))
 !!$     PRINT *, kinetic_energy(i),potential_energy(i),total_energy(i)
       END DO
@@ -159,7 +159,7 @@ SUBROUTINE reduce_FoV(ni)
 ! Write out energy data
 !
       OPEN(4,file=TRIM(outarg)//'/energies.dat',status='new')
-      DO i=1,snapnum
+      DO i=1,nsnaps
          WRITE(4,40) i,kinetic_energy(i),potential_energy(i),total_energy(i)
       END DO
 40    FORMAT(1X,I4,3(2X,E9.3))
