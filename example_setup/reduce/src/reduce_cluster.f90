@@ -58,11 +58,11 @@ SUBROUTINE reduce_cluster(ni)
      incluster = .TRUE.
 
 !
-! Find centre of mass of cluster.
+! Set centre of mass of cluster as (0,0,0). True when all in cluster.
      com_cluster=0.
 
 ! Find distance between each star and cluster centre of mass.
-     ri_com=0.
+     ri_com=rstar
 
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
@@ -70,6 +70,8 @@ SUBROUTINE reduce_cluster(ni)
      DO i=1, nsnaps
         CALL c_of_m(i,nstars(i))
      END DO
+! (Could comment out the above as c of m won't change when all
+! the stars are in the cluster, but keep for now... can check later.)
 
 
 !Don't need to call this here as all stars included

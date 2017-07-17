@@ -61,16 +61,17 @@ SUBROUTINE find_halfmass(snapshoti,ni)
 
   i=0
   j=0
-  massi=0.
+  massi=0.   ! cumulative stellar mass
   massj=0.
 
   DO WHILE(massi<(0.5*totalmass))
-     massj=massi
+     massj=massi               ! massj is now the mass within the shell
      j=i
      i=i+1
-     massi=massi+mi(rlist(i))
+     massi=massi+mi(rlist(i))  ! cumulative mass in shell plus next star
   END DO
 
+! rhalf is somewhere between r(massj) and r(massi)
   r_halfmass(snapshoti) = rmag(rlist(j)) + &
        & ( (rmag(rlist(i)) - rmag(rlist(j))) * &
        & (((0.5*totalmass)-massj)/(massi-massj)) )

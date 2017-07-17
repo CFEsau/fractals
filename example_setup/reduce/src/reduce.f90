@@ -10,7 +10,7 @@
 PROGRAM reduce
 
 !
-!TODO: parallelise!
+!TODO: parallelise! (e.g. different cluster types, snapshot production...)
 !
 ! Declare modules used
   USE sl_input_module
@@ -19,6 +19,7 @@ PROGRAM reduce
   IMPLICIT NONE
   
 ! Declare variables:
+  LOGICAL :: writesnap !write data to snapshots? T/F
 ! iterators
   INTEGER :: i,j,k,l
 ! ignore certain stars?
@@ -27,7 +28,6 @@ PROGRAM reduce
   CHARACTER*150 :: inarg
   CHARACTER*4 :: ofilen
   CHARACTER*8 :: outfile
-  LOGICAL :: writesnap !write data to snapshots? T/F
 
   writesnap=.FALSE.
   
@@ -88,7 +88,7 @@ PROGRAM reduce
 !******************************************************************************!
 !
 ! Allocate arrays for calculations.
-
+  
 ! logical array: is the star in the cluster
   ALLOCATE(incluster(1:nstars(1),1:nsnaps))
 
@@ -105,11 +105,8 @@ PROGRAM reduce
   ALLOCATE(kinetic_energy(1:nsnaps))
   ALLOCATE(potential_energy(1:nsnaps))
   ALLOCATE(total_energy(1:nsnaps))
-
-
-! Define the number of stars in the MST:
-  nmst=10
-
+  
+  
 ! Find energy, c of m, rhalf, mass segregation for all stars in cluster:
   CALL reduce_cluster(nstars(1))
 

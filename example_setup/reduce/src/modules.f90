@@ -98,33 +98,43 @@
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda, l_up, l_low
 ! mean MST length of nloop random MSTs, object MST length
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: l_avranmst, l_objmst
+       double precision, dimension(:,:), allocatable :: l_allmsts
 ! lambda_bar uses mean length of MST (basically same as lambda)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_bar, l_up_bar, l_low_bar
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lbar_avranmst, lbar_objmst
+       double precision, dimension(:,:), allocatable :: lbar_allmsts
 ! lambda_rms uses root mean square length of MST (generalised mean with p=2)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_rms, l_up_rms, l_low_rms
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lrms_avranmst, lrms_objmst
+       double precision, dimension(:,:), allocatable :: lrms_allmsts
 ! lambda_smr uses square mean root length of MST (generalised mean with p=1/2)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_smr, l_up_smr, l_low_smr
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lsmr_avranmst, lsmr_objmst
+       double precision, dimension(:,:), allocatable :: lsmr_allmsts
 ! lambda_har uses harmonic mean (generalised mean with p=-1)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_har, l_up_har, l_low_har
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lhar_avranmst, lhar_objmst
+       double precision, dimension(:,:), allocatable :: lhar_allmsts
 ! lambda_tilde uses median length of MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_til, l_up_til, l_low_til
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: ltil_avranmst, ltil_objmst
+       double precision, dimension(:,:), allocatable :: ltil_allmsts
 ! lambda_Nmed uses the mean of the N median lengths of MST (Nmed)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_Nmed, l_up_Nmed, l_low_Nmed
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lNmed_avranmst, lNmed_objmst
+       double precision, dimension(:,:), allocatable :: lNmed_allmsts
 ! lambda_star uses median length of MST and adds this to the actual length of the MST
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_star, l_up_star, l_low_star
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lstar_avranmst, lstar_objmst
+       double precision, dimension(:,:), allocatable :: lstar_allmsts
 ! lambda_gam uses the geometric mean
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_gam, l_up_gam, l_low_gam
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lgam_avranmst, lgam_objmst
+       double precision, dimension(:,:), allocatable :: lgam_allmsts
 ! lamda_ln: sum the exponents and take the log (sort of inverse of geometric mean)
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lambda_ln, l_up_ln, l_low_ln
        DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: lln_avranmst, lln_objmst
+       double precision, dimension(:,:), allocatable :: lln_allmsts
        
 ! state which types of lambda you want to find, to save doing all every time
        LOGICAL :: findlam, findlambar, findlamrms, findlamsmr, findlamhar
@@ -139,8 +149,9 @@
 ! Outputs
 !===============
 !
-! unit# = unit numbers for output files in star separation values
-       integer :: fileunit, unit1, unit2
+! unit# = keep track of file units by setting as variables at top of file
+       integer :: fileunit, sepunit1, sepunit2
+       integer :: objmunit, cdfobjunit, cdfranunit
        CHARACTER*150 :: outarg  ! Destination directory (e.g. 'outputs')
        CHARACTER*150 :: newpath ! Output path with cluster type appended
 !                                 (e.g. all, FoV)

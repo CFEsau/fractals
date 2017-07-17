@@ -65,9 +65,9 @@ SUBROUTINE reduce_FoV(ni)
 ! Set centre of mass of cluster as (0,0,0). True when all in cluster.
      com_cluster=0.
 
-! This means the distance between each star & cluster c of m
-! is the distance between ri_com & centre of grid, i.e. r.
-! (This assumes all stars are initially in FoV.)
+! This means the distance between each star & cluster c of m (0,0,0)
+! is the distance between ri_com (distance for each star i)
+! & centre of grid, i.e. r. (This assumes all stars are initially in FoV.)
      ri_com=rstar
 
 

@@ -8,16 +8,12 @@ subroutine lambda_setup
   implicit none
   integer :: i,j
   character(len=6) :: filei !string version of 'i'
-  integer :: nedge !number of edges in MST (nmst-1)
-  integer :: nlam !number of lambda types
-  integer :: lamunit, lambarunit, lamrmsunit, lamsmrunit !output units
-  integer :: lamharunit, lamtilunit, lamstarunit, gamunit, lamlnunit
-  integer :: lamNmedunit
+  integer :: nedge       ! number of edges in MST (nmst-1)
+  integer :: nlam        ! number of lambda types
+  integer :: lamunit     ! output unit
   character(len=5) :: Nmedstr
   character(len=100) :: CDFpath
   LOGICAL :: dirExists
-  !could just use 'lamunit' & increment but the have to keep track
-  !of the order in which different lambda measures are calculated
   
 !lambda: uses average random mst length & total obj length
 !lambda bar: uses mean edge lengths (arithmetic mean)
@@ -45,6 +41,14 @@ subroutine lambda_setup
 !stochastic anyway...
   nloop = 1000
   IF(nmst >= 100) nloop = 50
+
+! keep track of file units for i/o
+  sepunit1=4     ! make a note of stars with separation 0. for object
+  sepunit2=5     ! and random stars, as separation is changed for MST
+  objmunit=10    ! file unit for masses of object stars
+  cdfobjunit=11  ! file unit for edge lengths in object MST
+  cdfranunit=300 ! file unit SHIFT for nCDF output files (u+1 to u+nranCDF)
+  lamunit=12     ! format unit: 98
   
   nCDF = 20 !Number of CDFs plotted for random MSTs; must be =< nloop
   CDFPath = TRIM(newPath)//'/CDFdata'
@@ -85,7 +89,6 @@ subroutine lambda_setup
   
   IF (findlam) THEN
      nlam = nlam + 1
-     lamunit = nlam+100
      
 ! final lambda value calculated (output)
      ALLOCATE(lambda(1:nsnaps))
@@ -97,97 +100,105 @@ subroutine lambda_setup
      ALLOCATE(l_avranmst(1:nsnaps))
 ! average edge length of object MST
      ALLOCATE(l_objmst(1:nsnaps))
+! lambda values for all the random MSTs that are generated
+     allocate(l_allmsts(1:nloop,1:nsnaps))
 
      lambda=0.
      l_up=0.
      l_low=0.
      l_avranmst=0.
      l_objmst=0.
+     l_allmsts=0.
   END IF
 
   IF (findlambar) THEN
      nlam = nlam + 1
-     lambarunit = nlam+100
      
      ALLOCATE(lambda_bar(1:nsnaps))
      ALLOCATE(l_low_bar(1:nsnaps))
      ALLOCATE(l_up_bar(1:nsnaps))
      ALLOCATE(lbar_avranmst(1:nsnaps))
      ALLOCATE(lbar_objmst(1:nsnaps))
+     allocate(lbar_allmsts(1:nloop,1:nsnaps))
      
      lambda_bar=0.
      l_up_bar=0.
      l_low_bar=0.
      lbar_avranmst=0.
      lbar_objmst=0.
+     lbar_allmsts=0.
   END IF
 
   IF (findlamrms) THEN
      nlam = nlam + 1
-     lamrmsunit = nlam + 100
      
      ALLOCATE(lambda_rms(1:nsnaps))
      ALLOCATE(l_low_rms(1:nsnaps))
      ALLOCATE(l_up_rms(1:nsnaps))
      ALLOCATE(lrms_avranmst(1:nsnaps))
      ALLOCATE(lrms_objmst(1:nsnaps))
+     allocate(lrms_allmsts(1:nloop,1:nsnaps))
 
      lambda_rms=0.
      l_up_rms=0.
      l_low_rms=0.
      lrms_avranmst=0.
      lrms_objmst=0.
+     lrms_allmsts=0.
   END IF
 
   IF (findlamsmr) THEN
      nlam = nlam + 1
-     lamsmrunit = nlam + 100
      
      ALLOCATE(lambda_smr(1:nsnaps))
      ALLOCATE(l_low_smr(1:nsnaps))
      ALLOCATE(l_up_smr(1:nsnaps))
      ALLOCATE(lsmr_avranmst(1:nsnaps))
      ALLOCATE(lsmr_objmst(1:nsnaps))
+     allocate(lsmr_allmsts(1:nloop,1:nsnaps))
 
      lambda_smr=0.
      l_up_smr=0.
      l_low_smr=0.
      lsmr_avranmst=0.
      lsmr_objmst=0.
+     lsmr_allmsts=0.
   END IF
 
   IF (findlamhar) THEN
      nlam = nlam + 1
-     lamharunit = nlam + 100
      
      ALLOCATE(lambda_har(1:nsnaps))
      ALLOCATE(l_low_har(1:nsnaps))
      ALLOCATE(l_up_har(1:nsnaps))
      ALLOCATE(lhar_avranmst(1:nsnaps))
      ALLOCATE(lhar_objmst(1:nsnaps))
+     allocate(lhar_allmsts(1:nloop,1:nsnaps))
 
      lambda_har=0.
      l_up_har=0.
      l_low_har=0.
      lhar_avranmst=0.
      lhar_objmst=0.
+     lhar_allmsts=0.
   END IF
   
   IF (findlamtil) THEN
      nlam = nlam + 1
-     lamtilunit = nlam + 100
      
      ALLOCATE(lambda_til(1:nsnaps))
      ALLOCATE(l_low_til(1:nsnaps))
      ALLOCATE(l_up_til(1:nsnaps))
      ALLOCATE(ltil_avranmst(1:nsnaps))
      ALLOCATE(ltil_objmst(1:nsnaps))
+     allocate(ltil_allmsts(1:nloop,1:nsnaps))
      
      lambda_til=0.
      l_up_til=0.
      l_low_til=0.
      ltil_avranmst=0.
      ltil_objmst=0.
+     ltil_allmsts=0.
   END IF
   
   IF (findlamNmed) THEN
@@ -211,70 +222,74 @@ subroutine lambda_setup
      write(Nmedstr,'(I5)') Nmed
      
      nlam = nlam + 1
-     lamlnunit = nlam + 100
      
      ALLOCATE(lambda_Nmed(1:nsnaps))
      ALLOCATE(l_low_Nmed(1:nsnaps))
      ALLOCATE(l_up_Nmed(1:nsnaps))
      ALLOCATE(lNmed_avranmst(1:nsnaps))
      ALLOCATE(lNmed_objmst(1:nsnaps))
+     allocate(lNmed_allmsts(1:nloop,1:nsnaps))
      
      lambda_Nmed=0.
      l_up_Nmed=0.
      l_low_Nmed=0.
      lNmed_avranmst=0.
      lNmed_objmst=0.
+     lNmed_allmsts=0.
   END IF
   
   IF (findlamstar) THEN
      nlam = nlam + 1
-     lamstarunit = nlam + 100
      
      ALLOCATE(lambda_star(1:nsnaps))
      ALLOCATE(l_low_star(1:nsnaps))
      ALLOCATE(l_up_star(1:nsnaps))
      ALLOCATE(lstar_avranmst(1:nsnaps))
      ALLOCATE(lstar_objmst(1:nsnaps))
+     allocate(lstar_allmsts(1:nloop,1:nsnaps))
      
      lambda_star=0.
      l_up_star=0.
      l_low_star=0.
      lstar_avranmst=0.
      lstar_objmst=0.
+     lstar_allmsts=0.
   END IF
   
   IF (findgam) THEN
      nlam = nlam + 1
-     gamunit = nlam + 100
      
      ALLOCATE(lambda_gam(1:nsnaps))
      ALLOCATE(l_low_gam(1:nsnaps))
      ALLOCATE(l_up_gam(1:nsnaps))
      ALLOCATE(lgam_avranmst(1:nsnaps))
      ALLOCATE(lgam_objmst(1:nsnaps))
+     allocate(lgam_allmsts(1:nloop,1:nsnaps))
      
      lambda_gam=0.
      l_up_gam=0.
      l_low_gam=0.
      lgam_avranmst=0.
      lgam_objmst=0.
+     lgam_allmsts=0.
   END IF
   
   IF (findlamln) THEN
      nlam = nlam + 1
-     lamlnunit = nlam + 100
      
      ALLOCATE(lambda_ln(1:nsnaps))
      ALLOCATE(l_low_ln(1:nsnaps))
      ALLOCATE(l_up_ln(1:nsnaps))
      ALLOCATE(lln_avranmst(1:nsnaps))
      ALLOCATE(lln_objmst(1:nsnaps))
+     allocate(lln_allmsts(1:nloop,1:nsnaps))
      
      lambda_ln=0.
      l_up_ln=0.
      l_low_ln=0.
      lln_avranmst=0.
      lln_objmst=0.
+     lln_allmsts=0.
   END IF
   
   IF(nlam==0) THEN
@@ -287,8 +302,8 @@ subroutine lambda_setup
   
   write(6,*)"       Calculating lambda..."
   
-  open(10,file=trim(newPath)//'/objm_'//thisproj//'.dat')
-  !open(11,file=trim(newPath)//'/objescaped_lam_'//thisproj//'.dat')
+  open(objmunit,file=trim(newPath)//'/objm_'//thisproj//'.dat')
+  !open(objescunit,file=trim(newPath)//'/objescaped_lam_'//thisproj//'.dat')
 !(only need this if you want to check distances of escaped object stars)
 
 !Files for CDFs:  (only bother doing this in xy)
@@ -302,11 +317,12 @@ subroutine lambda_setup
   END IF
   
 ! open file for MST of object stars
-  OPEN(12,file=trim(CDFPath)//'/MSTedgeL_'//thisproj//'.dat',status='replace')
+  OPEN(cdfobjunit,file=trim(CDFPath)//'/MSTedgeL_'//thisproj//'.dat',&
+       & status='replace')
 ! open files for MSTs of randomly selected stars:
   do i=1,nCDF
      write(filei,'(I6)') i
-     open(300+i,file=trim(CDFPath)//'/MSTedgeL_'//thisproj//'_'&
+     open(cdfranunit+i,file=trim(CDFPath)//'/MSTedgeL_'//thisproj//'_'&
           & //trim(adjustl(filei))//'.dat',status='replace')
   end do
  ! end if
@@ -314,38 +330,39 @@ subroutine lambda_setup
 !Record any stars that fall on top of each other &
 !need their separation changing for the mst.
 !Using 'unit#' as these are both populated in same bit of code (mst.f90)
-  unit1=4
-  unit2=5
-  open(unit1,file=TRIM(newPath)//'/sepchange_obj.dat',position='append')
-  open(unit2,file=TRIM(newPath)//'/sepchange.dat',position='append')
-  write(unit1,*) "**** ",thisproj," ****"
-  write(unit2,*) "**** ",thisproj," ****"
+  !sepunit1=4
+  !sepunit2=5
+  open(sepunit1,file=TRIM(newPath)//'/sepchange_obj.dat',position='append')
+  open(sepunit2,file=TRIM(newPath)//'/sepchange.dat',position='append')
+  write(sepunit1,*) "**** ",thisproj," ****"
+  write(sepunit2,*) "**** ",thisproj," ****"
 
   do i=1,nsnaps
      call find_lambda(i,nstars(i))
   end do
 
-  close(unit1)
-  close(unit2)
+  close(sepunit1)
+  close(sepunit2)
 
   write(6,*)"       ...done"
   
-  close(10)
-  !close(11)
+  close(objmunit)
+  !close(objescunit)
 
 !close CDF files:
   !if(thisproj=='xy') then
-     close(12)
-     do i=1,nCDF
-        close(300+i)
-     end do
+  close(cdfobjunit)
+  do i=1,nCDF
+     close(cdfranunit+i)
+  end do
   !end if
 
   
 !**********************
 ! Lambda outputs
 !**********************
-
+  
+  
   IF (findlam) THEN
 !lamunit
 ! Median random MST edge lengths &
@@ -353,112 +370,204 @@ subroutine lambda_setup
      OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lambda_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lamunit,99) i,l_avranmst(i),l_objmst(i),lambda(i),l_low(i),l_up(i)
+        WRITE(lamunit,98) i,l_avranmst(i),l_objmst(i),lambda(i),l_low(i),l_up(i)
      END DO
-
      CLOSE(lamunit)
-  END IF
      
+! Lambda CDF: lambda bar values for every random MST at each snapshot
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lam_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,l_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
+  END IF
+  
+  
+! Lambda bar: average MST, object MST, lambda bar value, and errors
   IF (findlambar) THEN
-     OPEN(lambarunit,file=TRIM(newPath)//'/lambda/MST_lambar_'//&
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lambar_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lambarunit,99) i,lbar_avranmst(i),lbar_objmst(i), &
+        WRITE(lamunit,98) i,lbar_avranmst(i),lbar_objmst(i), &
              & lambda_bar(i),l_low_bar(i),l_up_bar(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(lambarunit)
+! Lambda bar CDF: lambda bar values for every random MST at each snapshot
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lambar_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,lbar_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
+  
   
   IF (findlamrms) THEN
-     OPEN(lamrmsunit,file=TRIM(newPath)//'/lambda/MST_lamrms_'//&
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lamrms_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lamrmsunit,99) i,lrms_avranmst(i),lrms_objmst(i), &
+        WRITE(lamunit,98) i,lrms_avranmst(i),lrms_objmst(i), &
              & lambda_rms(i),l_low_rms(i),l_up_rms(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(lamrmsunit)
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lamrms_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,lrms_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
+
   
   IF (findlamsmr) THEN
-     OPEN(lamsmrunit,file=TRIM(newPath)//'/lambda/MST_lamsmr_'//&
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lamsmr_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lamsmrunit,99) i,lsmr_avranmst(i),lsmr_objmst(i), &
+        WRITE(lamunit,98) i,lsmr_avranmst(i),lsmr_objmst(i), &
              & lambda_smr(i),l_low_smr(i),l_up_smr(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(lamsmrunit)
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lamsmr_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,lsmr_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
+
   
   IF (findlamhar) THEN
-     OPEN(lamharunit,file=TRIM(newPath)//'/lambda/MST_lamhar_'//&
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lamhar_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lamharunit,99) i,lhar_avranmst(i),lhar_objmst(i), &
+        WRITE(lamunit,98) i,lhar_avranmst(i),lhar_objmst(i), &
              & lambda_har(i),l_low_har(i),l_up_har(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(lamharunit)
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lamhar_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,lhar_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
+
   
   IF (findlamtil) THEN
-     OPEN(lamtilunit,file=TRIM(newPath)//'/lambda/MST_lamtil_'//&
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lamtil_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lamtilunit,99) i,ltil_avranmst(i),ltil_objmst(i), &
+        WRITE(lamunit,98) i,ltil_avranmst(i),ltil_objmst(i), &
              & lambda_til(i),l_low_til(i),l_up_til(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(lamtilunit)
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lamtil_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,ltil_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
+
   
   IF (findlamNmed) THEN
-     OPEN(lamNmedunit,file=TRIM(newPath)//'/lambda/MST_lam'//&
-          trim(adjustl(Nmedstr))//'med_'//thisproj//'.dat',status='replace')
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lam'//&
+          & trim(adjustl(Nmedstr))//'med_'//thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lamNmedunit,99) i,lNmed_avranmst(i),lNmed_objmst(i), &
+        WRITE(lamunit,98) i,lNmed_avranmst(i),lNmed_objmst(i), &
              & lambda_Nmed(i),l_low_Nmed(i),l_up_Nmed(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(lamNmedunit)
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lam_'//&
+          & trim(adjustl(Nmedstr))//'med_'//thisproj//'.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,lNmed_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
+
   
   IF (findlamstar) THEN
-     OPEN(lamstarunit,file=TRIM(newPath)//'/lambda/MST_lamstar_'//&
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lamstar_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lamstarunit,99) i,lstar_avranmst(i),lstar_objmst(i), &
+        WRITE(lamunit,98) i,lstar_avranmst(i),lstar_objmst(i), &
              & lambda_star(i),l_low_star(i),l_up_star(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(lamstarunit)
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lamstar_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,lstar_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
+
   
   IF (findgam) THEN
-     OPEN(gamunit,file=TRIM(newPath)//'/lambda/MST_gam_'//&
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_gam_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(gamunit,99) i,lgam_avranmst(i),lgam_objmst(i), &
+        WRITE(lamunit,98) i,lgam_avranmst(i),lgam_objmst(i), &
              & lambda_gam(i),l_low_gam(i),l_up_gam(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(gamunit)
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_gam_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,lgam_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
+
   
   IF (findlamln) THEN
-     OPEN(lamlnunit,file=TRIM(newPath)//'/lambda/MST_lamln_'//&
+     
+     OPEN(lamunit,file=TRIM(newPath)//'/lambda/MST_lamln_'//&
           thisproj//'.dat',status='replace')
      DO i=1,nsnaps
-        WRITE(lamlnunit,99) i,lln_avranmst(i),lln_objmst(i), &
+        WRITE(lamunit,98) i,lln_avranmst(i),lln_objmst(i), &
              & lambda_ln(i),l_low_ln(i),l_up_ln(i)
      END DO
+     CLOSE(lamunit)
      
-     CLOSE(lamlnunit)
+     open(lamunit,file=TRIM(CDFpath)//'/allMSTs_lamln_'//thisproj//&
+          & '.dat',status='replace')
+     do i=1,nsnaps
+        write(lamunit,99) i,lln_allmsts(1:nloop,i) 
+     end do
+     close(lamunit)
+     
   END IF
   
-99 FORMAT(1X,I4,2(2X,F10.5),3(2X,F9.3))
+98 FORMAT(1X,I4,2(2X,F10.5),3(2X,F9.3))
+99 format(1X, I4, 1000(2X,F10.5))
 
 
 !===========================================
@@ -471,6 +580,7 @@ subroutine lambda_setup
      deALLOCATE(l_up)
      deallocate(l_avranmst)
      deallocate(l_objmst)
+     deallocate(l_allmsts)
   END IF
   
   IF (findlambar) THEN
@@ -479,6 +589,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_bar)
      deallocate(lbar_avranmst)
      deallocate(lbar_objmst)
+     deallocate(lbar_allmsts)
   END IF
   
   IF (findlamrms) THEN
@@ -487,6 +598,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_rms)
      deallocate(lrms_avranmst)
      deallocate(lrms_objmst)
+     deallocate(lrms_allmsts)
   END IF
   
   IF (findlamsmr) THEN
@@ -495,6 +607,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_smr)
      deallocate(lsmr_avranmst)
      deallocate(lsmr_objmst)
+     deallocate(lsmr_allmsts)
   END IF
   
   IF (findlamhar) THEN
@@ -503,6 +616,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_har)
      deallocate(lhar_avranmst)
      deallocate(lhar_objmst)
+     deallocate(lhar_allmsts)
   END IF
   
   IF (findlamtil) THEN
@@ -511,6 +625,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_til)
      deallocate(ltil_avranmst)
      deallocate(ltil_objmst)
+     deallocate(ltil_allmsts)
   END IF
   
   IF (findlamNmed) THEN
@@ -519,6 +634,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_Nmed)
      deallocate(lNmed_avranmst)
      deallocate(lNmed_objmst)
+     deallocate(lNmed_allmsts)
   END IF
   
   IF (findlamstar) THEN
@@ -527,6 +643,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_star)
      deallocate(lstar_avranmst)
      deallocate(lstar_objmst)
+     deallocate(lstar_allmsts)
   END IF
   
   IF (findgam) THEN
@@ -535,6 +652,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_gam)
      deallocate(lgam_avranmst)
      deallocate(lgam_objmst)
+     deallocate(lgam_allmsts)
   END IF
   
   IF (findlamln) THEN
@@ -543,6 +661,7 @@ subroutine lambda_setup
      deALLOCATE(l_up_ln)
      deallocate(lln_avranmst)
      deallocate(lln_objmst)
+     deallocate(lln_allmsts)
   END IF
   
 end subroutine lambda_setup

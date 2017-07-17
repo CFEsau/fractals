@@ -145,7 +145,7 @@ SUBROUTINE find_lambda(snapi,ni)
      k = mlist(ni+1-j) !heapsort orders from small to large - invert
 
      IF (.NOT. i_incluster(k)) THEN
-        !WRITE(11,'(1X,I4,1X,I5,1X,I5,1X,F7.3,1X,F8.3,1X,A1)') &
+        !WRITE(objescunit,'(1X,I4,1X,I5,1X,I5,1X,F7.3,1X,F8.3,1X,A1)') &
              !& snapi, i, k, mi(k), rmag(k), i_incluster(k)
 
 ! if star has escaped cluster, leave it out of the list
@@ -164,7 +164,7 @@ SUBROUTINE find_lambda(snapi,ni)
 ! when IDs of most massive stars change
   DO i=1, nmst
      IF(obj_mass(1,i) /= obj_mass(2,i)) THEN
-        WRITE(10,110) snapi, ti, obj_mass(2,1:nmst)
+        WRITE(objmunit,110) snapi, ti, obj_mass(2,1:nmst)
         EXIT
      END IF
   END DO
@@ -186,8 +186,8 @@ SUBROUTINE find_lambda(snapi,ni)
   y(1:nmst)=obj_r(2,1:nmst)
   z(1:nmst)=obj_r(3,1:nmst)
 
-!set unit for output to file (separation data)
-  fileunit=unit1
+!set unit for output to file (separation data, used in mst.f90)
+  fileunit=sepunit1
   CALL mst(snapi,nmst,x,y,z,node,length)
 
 !Assign IDs for heapsort to order MST edges
@@ -200,7 +200,7 @@ SUBROUTINE find_lambda(snapi,ni)
   do i=1,nedge
      edgelengths(i)=length(length_list(i))
   end do
-  write(12,112) snapi,edgelengths(1:nedge)
+  write(cdfobjunit,112) snapi,edgelengths(1:nedge)
 112 FORMAT(1X,I4,*(2X,F9.5))
 
 !######################################
@@ -381,8 +381,8 @@ SUBROUTINE find_lambda(snapi,ni)
   
   ALLOCATE(rand_list(1:nloop))
 
-!set unit for output to file (separation data)
-  fileunit=unit2
+!set unit for output to file (separation data, used in mst.f90)
+  fileunit=sepunit2
 
   DO j = 1,nloop          !Do nloop random MSTs
      x = 0. ; y = 0. ; z = 0.
@@ -424,7 +424,7 @@ SUBROUTINE find_lambda(snapi,ni)
            do k=1,nedge
               edgelengths(k)=length(length_list(k))
            end do
-           write(300+j,300) snapi,edgelengths(1:nedge)
+           write(cdfranunit+j,300) snapi,edgelengths(1:nedge)
 300        FORMAT(1X,I4,*(2X,F9.5))
         end if
      !end if
@@ -556,72 +556,83 @@ SUBROUTINE find_lambda(snapi,ni)
 !Calculate lambda:
   IF (findlam) THEN
      CALL calc_lambda(l_objmst(snapi), l_ranmst, lambda(snapi), &
-          & l_low(snapi), l_up(snapi), l_avranmst(snapi))
+          & l_allmsts(1:nloop,snapi), l_low(snapi), l_up(snapi), &
+          & l_avranmst(snapi))
   END IF
-
-
+  
+  
 !Calculate lambda bar:
   IF (findlambar) THEN
      CALL calc_lambda(lbar_objmst(snapi), lbar_ranmst, lambda_bar(snapi), &
-          & l_low_bar(snapi), l_up_bar(snapi), lbar_avranmst(snapi))
+          & lbar_allmsts(1:nloop,snapi), l_low_bar(snapi), l_up_bar(snapi), &
+          & lbar_avranmst(snapi))
   END IF
-
-
+  
+  
 !Calculate lambda rms:
   IF (findlamrms) THEN
      CALL calc_lambda(lrms_objmst(snapi), lrms_ranmst, lambda_rms(snapi), &
-          & l_low_rms(snapi), l_up_rms(snapi), lrms_avranmst(snapi))
+          & lrms_allmsts(1:nloop,snapi), l_low_rms(snapi), l_up_rms(snapi), &
+          & lrms_avranmst(snapi))
   END IF
-
-
+  
+  
 !Calculate lambda smr:
   IF (findlamsmr) THEN
      CALL calc_lambda(lsmr_objmst(snapi), lsmr_ranmst, lambda_smr(snapi), &
-          & l_low_smr(snapi), l_up_smr(snapi), lsmr_avranmst(snapi))
+          & lsmr_allmsts(1:nloop,snapi), l_low_smr(snapi), l_up_smr(snapi), &
+          & lsmr_avranmst(snapi))
   END IF
-
-
+  
+  
 !Calculate lambda har:
   IF (findlamhar) THEN
      CALL calc_lambda(lhar_objmst(snapi), lhar_ranmst, lambda_har(snapi), &
-          & l_low_har(snapi), l_up_har(snapi), lhar_avranmst(snapi))
+          & lhar_allmsts(1:nloop,snapi), l_low_har(snapi), l_up_har(snapi), &
+          & lhar_avranmst(snapi))
   END IF
-
-
+  
+  
 !Calculate lambda tilde:
   IF (findlamtil) THEN
      CALL calc_lambda(ltil_objmst(snapi), ltil_ranmst, lambda_til(snapi), &
-          & l_low_til(snapi), l_up_til(snapi), ltil_avranmst(snapi))
+          & ltil_allmsts(1:nloop,snapi), l_low_til(snapi), l_up_til(snapi), &
+          & ltil_avranmst(snapi))
   END IF
+  
   
 !Calculate lambda N median:
   IF (findlamNmed) THEN
      CALL calc_lambda(lNmed_objmst(snapi), lNmed_ranmst, lambda_Nmed(snapi), &
-          & l_low_Nmed(snapi), l_up_Nmed(snapi), lNmed_avranmst(snapi))
+          & lNmed_allmsts(1:nloop,snapi), l_low_Nmed(snapi), l_up_Nmed(snapi), &
+          & lNmed_avranmst(snapi))
   END IF
-
-
+  
+  
 !Calculate lambda star:
   IF (findlamstar) THEN
      CALL calc_lambda(lstar_objmst(snapi), lstar_ranmst, lambda_star(snapi), &
-          & l_low_star(snapi), l_up_star(snapi), lstar_avranmst(snapi))
+          & lstar_allmsts(1:nloop,snapi), l_low_star(snapi), l_up_star(snapi), &
+          & lstar_avranmst(snapi))
   END IF
-
-
+  
+  
 !Calculate gamma:
   IF (findgam) THEN
      CALL calc_lambda(lgam_objmst(snapi), lgam_ranmst, lambda_gam(snapi), &
-          & l_low_gam(snapi), l_up_gam(snapi), lgam_avranmst(snapi))
+          & lgam_allmsts(1:nloop,snapi), l_low_gam(snapi), l_up_gam(snapi), &
+          & lgam_avranmst(snapi))
   END IF
-
-
+  
+  
 !Calculate lambda ln:
   IF (findlamln) THEN
      CALL calc_lambda(lln_objmst(snapi), lln_ranmst, lambda_ln(snapi), &
-          & l_low_ln(snapi), l_up_ln(snapi), lln_avranmst(snapi))
+          & lln_allmsts(1:nloop,snapi), l_low_ln(snapi), l_up_ln(snapi), &
+          & lln_avranmst(snapi))
   END IF
-
-
+  
+  
 !Deallocate arrays:
   DEALLOCATE(mi)
   DEALLOCATE(ri)
