@@ -8,8 +8,8 @@ import energy,virial,rhalfm,lambd
 
 skip='y'                   #skip energy, Q, rhalf plots? y/n
 plotconfig.errorbars='n'   #plot error bars on lambda?
-plotconfig.duration = 10   #Duration of simulation (Myr)
-    
+plotconfig.duration = 10   #Duration of simulation (Myr - for axis limits)
+
 #Haven't made 'projection' a variable. Change manually. 3D at the moment.
 
 plotconfig.fbin = ''
@@ -77,16 +77,25 @@ if not os.path.exists(plotconfig.outpath+'/plots'):
     os.makedirs(plotconfig.outpath+'/plots')
 
 if skip == 'n':
+    #----------------
+    #     Energy
+    #----------------
     energy.printenergy() #print banner
     energy.plotenergy() #plot energies for each model
     filehandling.mergefiles() #merge plots into one document
     energy.energy_k() #compare simulations (k## together)
-
+    
+    #----------------
+    #      Qvir
+    #----------------
     virial.printvirial() #print banner
     virial.plotvirial() #plot Q for each model
     filehandling.mergefiles() #merge plots into one document
     virial.virial_k() #compare simulations (k## together)
-
+    
+    #----------------
+    #     Rhalf
+    #----------------
     rhalfm.printrhalfm() #print banner
     #do for different cluster types:
     #print ("Cluster list:",plotconfig.clustertypes)
@@ -109,14 +118,30 @@ lambd.lambdasetup() #set which lambda types to plot & y-label text
 #overplot projections for all types of lambda, for each cluster
 
 for thiscluster in plotconfig.clustertypes:
+    #--------------------
+    # Lambda projections
+    #--------------------
     lambd.lambdaprojections(thiscluster) #compare projections for each lambda
     filehandling.mergefiles() #merge plots into one document
     print ("")
     
-    lambd.lambdacompare(thiscluster)#compare lambda methods (uses 3D)
+    #plot 2D projections relative to 3D for each lambda:
+    lambd.projectioncompare(thiscluster)
+    filehandling.mergefiles() #merge plots into one document
+    print ("")
+
+    #Measure divergence from 3D
+    
+    #--------------------
+    #   Lambda methods
+    #--------------------
+    lambd.lambdacompare(thiscluster) #compare lambda methods (uses 3D)
     filehandling.mergefiles()
     print ("")
     
+    #--------------------
+    #    k comparisons
+    #--------------------
     #compare simulations (k##)
     lambd.lambda_k(thiscluster) #compare simulations (k## together)
 

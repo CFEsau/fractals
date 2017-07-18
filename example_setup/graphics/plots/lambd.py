@@ -58,8 +58,8 @@ def lambdasetup():
     plotconfig.lambda_tex['lamstar']='$\Lambda^\star$'
     plotconfig.lambda_tex['gam']='$\Gamma$'
     plotconfig.lambda_tex['lamln']='$\mathrm{ln}(\Lambda)$'
-
     
+
 def lambdaprojections(thiscluster):
     #duration = 10. #Duration of simulation (Myr)
     projections=['3D','xy','xz','yz']
@@ -153,7 +153,113 @@ def lambdaprojections(thiscluster):
                 plt.savefig(saveplot, bbox_inches='tight')
                 print ("    ",kval,"_",ctype,"_",thislambda,".pdf",sep="")
                 plt.close()
-                                
+
+def projectioncompare(thiscluster):
+    #duration = 10. #Duration of simulation (Myr)
+    projections2D=['xy','xz','yz']
+    
+    for simname in os.listdir(plotconfig.outpath + '/'):
+        #loop through each simulation (k number):
+        if 'runinv' in simname:
+            kval = simname.split("_")[1] #get k01, k02, etc
+            ctype = thiscluster.split("_")[1] #'all', FoV, etc
+            filepath = (plotconfig.outpath+'/'+simname+'/' + 
+                        thiscluster + '/lambda')
+            
+            for thislambda in plotconfig.lambdatypes:
+                #print("Doing",thislambda)
+                #check that this file exists:
+                lamfilelist=[]
+                found=''
+                for filename in os.listdir(filepath):
+                    if thislambda in filename:
+                        #print (thislambda)
+                        found = 'found'
+                        lamfilelist.append(filename)
+                        #break #had this before moving 'lamfilelist' to here        
+                if not found:
+                    print ("WARNING:",thislambda,"doesn't exist. Skipping.")
+                
+                #read in data & make plots for this lambda
+                #set up plot:
+                saveplot = ''
+                my_dpi = 96
+                plt.figure()
+                plt.xlabel("Time (Myr)")
+                plt.ylabel(plotconfig.lambda_tex[thislambda])
+                plt.title("Mass segregation for 2D projections relative to 3D")
+                #n-1 minor ticks:
+                plt.axes().xaxis.set_minor_locator(AutoMinorLocator(4))
+                plt.annotate("fdim = "+plotconfig.fdim+", qvir = "+plotconfig.qvir,
+                             xy=(1.0, -0.09), xycoords='axes fraction',
+                             horizontalalignment='right',
+                             verticalalignment='bottom', fontsize=10)
+                plt.annotate("fbin = " + plotconfig.fbin, xy=(0.05, -0.09),
+                             xycoords='axes fraction', horizontalalignment='right',
+                             verticalalignment='bottom', fontsize=10)
+                plt.annotate(kval, xy=(0.99, 1.01),
+                             xycoords='axes fraction', horizontalalignment='right',
+                             verticalalignment='bottom', fontsize=10)
+                
+                ylow=0
+                #plot data for each 2D projection:
+                #'thisfile' is MST_[thislambda]_[proj].dat
+                for thisfile in lamfilelist:
+                    #read in 3D data:
+                    if '3D' in thisfile:
+                        nsnap = np.loadtxt(filepath+'/'+thisfile)[:,0]
+                        time = (nsnap/nsnap[-1])*plotconfig.duration
+                            
+                        data_3D = np.loadtxt(filepath+'/'+thisfile)[:,3]
+                        lambda_min = np.loadtxt(filepath+'/'+thisfile)[:,4]
+                        lambda_max = np.loadtxt(filepath+'/'+thisfile)[:,5]
+                        lambda_maxerr = data_3D - lambda_min
+                        lambda_minerr = lambda_max - data_3D
+                        #make plot
+                        zero_line_data = np.array([0 for i in xrange(len(time))])
+                        plt.plot(time,data_3D,label="3D MST",linestyle='dotted')
+                        plt.plot(time,zero_line_data)
+                        
+                    for thisproj in projections2D:
+                        #print (thisproj)
+                        if thisproj in thisfile:
+                            #for thisfile in lamfilelist:
+                            nsnap = np.loadtxt(filepath+'/'+thisfile)[:,0]
+                            time = (nsnap/nsnap[-1])*plotconfig.duration
+                            
+                            lambda_data = np.loadtxt(filepath+'/'+thisfile)[:,3]
+                            #if thislambda == 'lambar' and kval=='k01':
+                            #    print (thisfile)
+                            #    print (lambda_data[0:3])
+                            lambda_min = np.loadtxt(filepath+'/'+thisfile)[:,4]
+                            lambda_max = np.loadtxt(filepath+'/'+thisfile)[:,5]
+                            lambda_maxerr = lambda_data - lambda_min
+                            lambda_minerr = lambda_max - lambda_data
+                            #make plot
+                            plt.plot(time,lambda_data-data_3D,label=thisproj+'-3D')
+                            ylow=min(min(lambda_data-data_3D),ylow)
+                            #break #skip next projections & move on to next file
+
+                #find minimum y value for axis limit:
+                plt.ylim(ylow,15)
+                plt.legend(loc="upper right", fontsize=10)
+                #plt.show()
+                saveplot = (plotconfig.outpath+'/plots/'+
+                                kval+'_'+ctype+'_'+thislambda+'proj.pdf')
+                plt.tight_layout()
+                plt.savefig(saveplot, bbox_inches='tight')
+                print ("    ",kval,"_",ctype,"_",thislambda,"proj.pdf",sep="")
+                plt.close()
+
+#def 3Ddivergence(thiscluster):
+    #find mass segregation divergence and dt divergence
+    #use lambda > 2
+    #if |2D-3D|>2, bounded by t1 and t2. dt=t2-t1
+    # XXXXX no as don't have value for lambda_div. can't just use max.
+    #use area under curve?
+    # & how many points should we take for the scatter plot?
+    
+
 def lambdacompare(thiscluster):
     for simname in os.listdir(plotconfig.outpath + '/'):
         #loop through each simulation (k number):
