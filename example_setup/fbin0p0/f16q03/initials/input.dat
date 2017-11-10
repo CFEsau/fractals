@@ -2,7 +2,7 @@
 1000                  ! Number of systems
 f                     ! mass distribution:  f=fractal, p=plummer
 1.6                   ! fractal dimension
-0.5		      ! Size unit scale
+1.0		      ! Size unit scale
 10.                   ! Simulation length (Myr) 
 0.01                  ! Snapshot interval (Myr)
 inv_k		      ! Filestem. If changed, check #chars in modules.f90

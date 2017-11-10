@@ -155,7 +155,7 @@
        END DO
      END DO
 ! exit if enough particles
-     IF (nsmax>10.*nstar) EXIT
+     IF (nsmax>6.*nstar) EXIT
 !     WRITE(6,*) 'done', delta, nsmax
    END DO
    WRITE(6,*) 'Made initial cubic distribution'
