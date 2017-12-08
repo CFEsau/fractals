@@ -1,34 +1,26 @@
-SUBROUTINE find_halfmass(snapshoti,ni)
+SUBROUTINE find_halfmass(snapi,ni)
   USE parameters_module
   IMPLICIT NONE
-  INTEGER, INTENT(IN) :: snapshoti,ni
+  INTEGER, INTENT(IN) :: snapi,ni
 ! mi,ri = mass & position of stars
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi
-  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri
+  DOUBLE PRECISION :: mi(1:ni)
 ! ri_x, ri_y, ri_z = x, y, z distances of star i from c of m
   DOUBLE PRECISION :: ri_x, ri_y, ri_z
-! rmag = distance magnitude of all stars from the distribution's com
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: rmag
+! rmag = distance magnitude between each star and centre of grid
+  DOUBLE PRECISION :: rmag(1:ni)
 ! rlist = a list of all stars in the distribution
-  INTEGER, DIMENSION(:), ALLOCATABLE :: rlist
+  INTEGER :: rlist(1:ni)
   DOUBLE PRECISION :: massi, massj
   INTEGER :: i,j,k
 
-! Allocate memory for arrays
-  ALLOCATE(mi(1:ni))
-  ALLOCATE(ri(1:3,1:ni))
-  ALLOCATE(rmag(1:ni))
-  ALLOCATE(rlist(1:ni))
-
 ! Assign values
-  mi(1:ni)=mstar(1:ni,snapshoti)
-  ri(1:3,1:ni)=rstar(1:3,1:ni,snapshoti)
+  mi(1:ni)=mstar(1:ni,snapi)
 
 ! Find distance magnitude of star i from c of m:
   DO i = 1, ni
-     ri_x = ri_com(1,i,snapshoti)
-     ri_y = ri_com(2,i,snapshoti)
-     ri_z = ri_com(3,i,snapshoti)
+     ri_x = rstar(1,i,snapi)
+     ri_y = rstar(2,i,snapi)
+     ri_z = rstar(3,i,snapi)
      IF (thisproj=='xy') THEN
         rmag(i) = SQRT(ri_x**2 + ri_y**2)
      ELSE IF (thisproj=='yz') THEN
@@ -50,7 +42,7 @@ SUBROUTINE find_halfmass(snapshoti,ni)
      rlist(i)=i
   END DO
 !
-! Sort the stars by distance from the com
+! Sort the stars by distance from the cluster centre
   CALL heapsort(ni,rmag,rlist)
   
 ! The half mass radius is then the radius at which half of the stellar mass in inside and half is outside.
@@ -72,15 +64,8 @@ SUBROUTINE find_halfmass(snapshoti,ni)
   END DO
 
 ! rhalf is somewhere between r(massj) and r(massi)
-  r_halfmass(snapshoti) = rmag(rlist(j)) + &
+  r_halfmass(snapi) = rmag(rlist(j)) + &
        & ( (rmag(rlist(i)) - rmag(rlist(j))) * &
        & (((0.5*totalmass)-massj)/(massi-massj)) )
-
-!
-  ! Deallocate arrays
-  DEALLOCATE(mi)
-  DEALLOCATE(ri)
-  DEALLOCATE(rmag)
-  DEALLOCATE(rlist)
 
 END SUBROUTINE find_halfmass

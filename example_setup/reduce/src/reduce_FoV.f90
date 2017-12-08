@@ -60,17 +60,7 @@ SUBROUTINE reduce_FoV(ni)
 ! Initially all stars are in the cluster; none have escaped
 !
      incluster = .TRUE.
-
 !
-! Set centre of mass of cluster as (0,0,0). True when all in cluster.
-     com_cluster=0.
-
-! This means the distance between each star & cluster c of m (0,0,0)
-! is the distance between ri_com (distance for each star i)
-! & centre of grid, i.e. r. (This assumes all stars are initially in FoV.)
-     ri_com=rstar
-
-
 ! Is the star in the cluster?
      OPEN(10,file=TRIM(newPath)//'/escaped_'//thisproj//'.dat')
 
@@ -83,11 +73,19 @@ SUBROUTINE reduce_FoV(ni)
 !
 !******************************************************************************!
 !
-! Find new centre of mass of cluster after ejections.
+! Find centre of mass of cluster after ejections.
+!
+! Set centre of mass of cluster as (0,0,0). True when all in cluster.
+     com_cluster=0.
+
+! This means the distance between each star & cluster c of m (0,0,0)
+! is the distance between ri_com (distance for each star i)
+! & centre of grid, i.e. r. (This assumes all stars are initially in FoV.)
+     ri_com=rstar
 
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
-     WRITE(6,*)"       Calculating new centre of mass..."
+     WRITE(6,*)"       Calculating centre of mass..."
      DO i=1,nsnaps
         CALL c_of_m(i,nstars(i))
      END DO

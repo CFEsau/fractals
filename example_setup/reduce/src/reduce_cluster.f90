@@ -20,16 +20,10 @@ SUBROUTINE reduce_cluster(ni)
      WRITE(6,'(a)') "Creating new directory: '"//TRIM(newPath)//"'"
      CALL system('mkdir -p '//TRIM(newPath))
   END IF
-
+  
   WRITE(6,*)""
   WRITE(6,'(a)') "Saving data in '"//TRIM(newPath)//"'..."
-
-!also create directory for lambda data:
-  INQUIRE(file = TRIM(newPath)//'/lambda', exist = dirExists)
-   IF (.NOT. dirExists) THEN
-     CALL system('mkdir -p '//TRIM(newPath)//'/lambda')
-  END IF
-
+  
   DO projnum = 1,4
      IF (projnum==1) THEN
         thisproj='xy'
@@ -57,6 +51,20 @@ SUBROUTINE reduce_cluster(ni)
 !
      incluster = .TRUE.
 
+
+! Don't need to call this here as all stars included
+!     open(10,file=trim(newPath)//'/escaped_'//thisproj//'.dat')
+!
+!     do i=1,nsnaps
+!       call in_cluster(i,nstars(i))
+!     end do
+!
+!     close(10)
+
+!
+!******************************************************************************!
+!
+! Find centre of mass of cluster after ejections.
 !
 ! Set centre of mass of cluster as (0,0,0). True when all in cluster.
      com_cluster=0.
@@ -70,31 +78,7 @@ SUBROUTINE reduce_cluster(ni)
      DO i=1, nsnaps
         CALL c_of_m(i,nstars(i))
      END DO
-! (Could comment out the above as c of m won't change when all
-! the stars are in the cluster, but keep for now... can check later.)
-
-
-!Don't need to call this here as all stars included
-!     open(10,file=trim(newPath)//'/escaped_'//thisproj//'.dat')
-!
-!     do i=1,nsnaps
-!       call in_cluster(i,nstars(i))
-!     end do
-!
-!     close(10)
-
-!
-!******************************************************************************!
-!
-! Find new centre of mass of cluster after ejections.
-
-! Loop over all snapshots
-! Calculate com in each case and populate the array
-!     WRITE(6,*)"       Calculating new centre of mass..."
-!     DO i=1, nsnaps
-!        CALL c_of_m(i,nstars(i))
-!     END DO
-
+     
 !******************************************************************************!
 !
 ! Find the Half mass radius.

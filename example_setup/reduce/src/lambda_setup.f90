@@ -12,7 +12,6 @@ subroutine lambda_setup
   integer :: nlam        ! number of lambda types
   integer :: lamunit     ! output unit
   character(len=5) :: Nmedstr
-  character(len=100) :: CDFpath
   LOGICAL :: dirExists
   
 !lambda: uses average random mst length & total obj length
@@ -49,10 +48,29 @@ subroutine lambda_setup
   cdfobjunit=11  ! file unit for edge lengths in object MST
   cdfranunit=300 ! file unit SHIFT for nCDF output files (u+1 to u+nranCDF)
   lamunit=12     ! format unit: 98
+
+! create directory for lambda data:
+  lampath = trim(newPath)//'/lambda'
+  INQUIRE(file = TRIM(lampath), exist = dirExists)
+   IF (.NOT. dirExists) THEN
+     CALL system('mkdir -p '//TRIM(lampath))
+  END IF
+! create directory for MST positions/edge coordinates:
+  INQUIRE(file = TRIM(lampath)//'/coords', exist = dirExists)
+   IF (.NOT. dirExists) THEN
+     CALL system('mkdir -p '//TRIM(lampath)//'/coords')
+  END IF
   
   nCDF = 20 !Number of CDFs plotted for random MSTs; must be =< nloop
+  
+  ! create directory for CDF data (edge lengths in MST for different subsets)
   CDFPath = TRIM(newPath)//'/CDFdata'
-  !directory for CDF data (edge lengths in MST for different subsets)
+  INQUIRE(file = TRIM(CDFPath), exist = dirExists)
+!(Works for gfortran. For ifort: ...directory=newDir,exist...)
+  IF (.NOT. dirExists) THEN
+     WRITE(6,'(a)') "Creating new directory: '"//TRIM(CDFPath)//"'"
+     CALL system('mkdir -p '//TRIM(CDFPath))
+  END IF
 !======================================================
 
 ! Lengths of the edges of object stars:
@@ -304,18 +322,11 @@ subroutine lambda_setup
   
   open(objmunit,file=trim(newPath)//'/objm_'//thisproj//'.dat')
   !open(objescunit,file=trim(newPath)//'/objescaped_lam_'//thisproj//'.dat')
-!(only need this if you want to check distances of escaped object stars)
+  !(only need this if you want to check distances of escaped object stars)
 
 !Files for CDFs:  (only bother doing this in xy)
 !  if(thisproj=='xy') then
-  
-  INQUIRE(file = TRIM(CDFPath), exist = dirExists)
-!(Works for gfortran. For ifort: ...directory=newDir,exist...)
-  IF (.NOT. dirExists) THEN
-     WRITE(6,'(a)') "Creating new directory: '"//TRIM(CDFPath)//"'"
-     CALL system('mkdir -p '//TRIM(CDFPath))
-  END IF
-  
+
 ! open file for MST of object stars
   OPEN(cdfobjunit,file=trim(CDFPath)//'/MSTedgeL_'//thisproj//'.dat',&
        & status='replace')

@@ -60,26 +60,8 @@ SUBROUTINE reduce_rhalf(ni)
 ! Initially all stars are in the cluster; none have escaped
 !
      incluster = .TRUE.
-
-!
-! Set centre of mass of cluster as (0,0,0). True when all in cluster.
-     com_cluster=0.
-
-! This means the distance between each star & cluster c of m
-! is the distance between ri_com and centre of grid, i.e. r
-     ri_com=rstar
-
-! Loop over all snapshots
-! Calculate com in each case and populate the array
-     !WRITE(6,*)"       Calculating centre of mass..."
-     !DO i=1, nsnaps
-     !   CALL c_of_m(i,nstars(i))
-     !END DO
-! (Actually don't bother, centre of mass will always
-! be centre of grid when all stars are included).
-
-
-!Then find the half-mass radius of all the stars in the cluster:
+     
+! Find the half-mass radius of all the stars in the cluster:
      r_halfmass=0.
 
      WRITE(6,*)"       Calculating half-mass radius..."
@@ -106,26 +88,21 @@ SUBROUTINE reduce_rhalf(ni)
 !
 !******************************************************************************!
 !
-! Find new centre of mass of cluster after ejections.
+! Centre of mass of cluster after ejections.
+
+!
+! Set centre of mass of cluster as (0,0,0). True when all in cluster.
+     com_cluster=0.
+
+! This means the distance between each star & cluster c of m
+! is the distance between ri_com and centre of grid, i.e. r
+     ri_com=rstar
 
 ! Loop over all snapshots
 ! Calculate com in each case and populate the array
-     WRITE(6,*)"       Calculating new centre of mass..."
+     WRITE(6,*)"       Calculating centre of mass..."
      DO i=1, nsnaps
         CALL c_of_m(i,nstars(i))
-     END DO
-
-!******************************************************************************!
-!
-! Find the Half mass radius.
-
-     r_halfmass=0.
-
-     WRITE(6,*)"       Calculating half-mass radius..."
-! Loop over all snapshots
-     DO i=1,nsnaps
-        CALL find_halfmass(i,nstars(i))
-!!$     PRINT *, i, r_halfmass(i)
      END DO
 
 

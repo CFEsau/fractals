@@ -11,9 +11,9 @@ SUBROUTINE in_cluster(snapi,ni)
   INTEGER, INTENT(IN) :: snapi,ni
 ! n_escaped = number of escaped stars in given snapshot & projection
   INTEGER :: n_escaped
-! ri_x, ri_y, ri_z = distance in x, y, z of star i from c of m
+! ri_x, ri_y, ri_z = distance in x, y, z of star i from cluster centre
   double precision :: ri_x, ri_y, ri_z
-! rmag = distance magnitude between star i and centre of mass
+! rmag = distance magnitude between each star and centre of grid
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: rmag
   INTEGER :: i,j
 ! number of stars in given projection of cluster:
@@ -31,12 +31,12 @@ SUBROUTINE in_cluster(snapi,ni)
   writeescaped=.FALSE.
 
   mi(1:ni)=mstar(1:ni,snapi)
-! Populate distance magnitude arrays in observer planes & 3D
-! between each star and centre of mass
+! Populate distance magnitude arrays in observer planes
+! & 3D between each star and centre of the cluster
   do i = 1, ni
-     ri_x = ri_com(1,i,snapi)
-     ri_y = ri_com(2,i,snapi)
-     ri_z = ri_com(3,i,snapi)
+     ri_x = rstar(1,i,snapi)
+     ri_y = rstar(2,i,snapi)
+     ri_z = rstar(3,i,snapi)
      if (thisproj=='xy') then
         rmag(i) = sqrt(ri_x**2 + ri_y**2)
      else if (thisproj=='yz') then
@@ -47,6 +47,10 @@ SUBROUTINE in_cluster(snapi,ni)
         rmag(i) = sqrt(ri_x**2 + ri_y**2 + ri_z**2)
      end if
   end do
+
+! The distribution is recentred on (0,0,0) for each snapshot
+! and positions are written relative to this, so just need to
+! find which stars fall in a circle of radius 5 pc.
 
 ! initially all stars are in the cluster
   n_proj = ni

@@ -1,6 +1,3 @@
-!***Modifications***
-!-Ignore stars a certain distance from the com / beyond n*half-mass-radius
-
 !This subroutine finds the value of mass segregation and its significance
 !for the set of OBJECT STARS that you provide it.
 !It works by calculating the MST for the OBJECT STARS, and then returning
@@ -19,32 +16,29 @@ SUBROUTINE find_lambda(snapi,ni)
 ! star data
 !-----------
   INTEGER, INTENT(in) :: snapi, ni !Snapshot number and star number
-! mi = mass of star i
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: mi
-! ri = position of star i
-  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: ri
-! ri_x, ri_y, ri_z = distance in x, y, z of star i from c of m
+  DOUBLE PRECISION :: mi(1:ni)     !mass of star i
+  DOUBLE PRECISION :: ri(1:3,1:ni) !position of star i
+! ri_x, ri_y, ri_z = distance in x, y, z of star i from cluster centre
   DOUBLE PRECISION :: ri_x, ri_y, ri_z
-! rmag = distance of star i from centre of mass
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: rmag
-  REAL :: ti !time of snapshot
-  INTEGER, DIMENSION(:), ALLOCATABLE :: mlist !ID numbers for heapsort
- !i_incluster = is star i still in the cluster?
-  LOGICAL, DIMENSION(:), ALLOCATABLE :: i_incluster
+  DOUBLE PRECISION :: rmag(1:ni) !distance of star i from cluster centre
+  REAL :: ti                     !time of snapshot
+  INTEGER :: IDs(1:ni)           !ID numbers for heapsort
+  LOGICAL :: i_incluster(1:ni)   !is star i in the cluster?
+                                 !(for when outliers are being ignored)
 
 !-----------
 ! MST stuff
 !-----------
   INTEGER :: nedge !number of edge lengths
   INTEGER :: nint_nedged2, ceint_nedged2 !NINT(... & CEILING(  REAL(nedge)/2.)
-  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: length !length of each MST edge
-  INTEGER, DIMENSION(:), ALLOCATABLE :: length_list !IDs of 'length' entries
-  double precision :: totallength  !total length of mst (sum of 'length')
+  DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: edgeL !length of each MST edge
+  INTEGER, DIMENSION(:), ALLOCATABLE :: edgeLlist !IDs of 'edgeL' entries
+  double precision, dimension(:,:), allocatable :: connections
+  double precision :: totallength  !total length of mst (sum of 'edgeL')
   double precision :: medianlength !median edge length in MST
   DOUBLE PRECISION :: obj_mst !Length of object tree (e.g. massive stars)
   DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: obj_r !positions of obj stars
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: x,y,z !split of obj_r
-  INTEGER, DIMENSION(:,:), ALLOCATABLE :: node  !node connections for mst
 
 !total lengths of random MSTs for different lambda:
   DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: l_ranmst, lbar_ranmst
@@ -55,11 +49,11 @@ SUBROUTINE find_lambda(snapi,ni)
 
   INTEGER, DIMENSION(:), ALLOCATABLE :: rand_list !IDs of _randmst list
 
-! done = record which stars have been randomly selected
-  LOGICAL, DIMENSION(:), ALLOCATABLE :: done
+  LOGICAL :: done(1:ni) !record which stars have been randomly selected
   REAL :: rand
   
   INTEGER :: i,j,k !generic counters
+  character(len=4) :: snapchar !snapi as string with leading zeroes
 
 !Frequently used expressions:
   nedge=nmst-1
@@ -67,19 +61,14 @@ SUBROUTINE find_lambda(snapi,ni)
   nint_nedged2=nint(real(nedge)/2.) !nint to round to nearest int from ~x.0
   ceint_nedged2=ceiling(real(nedge)/2.) !ceint to round up from x.5)
 
-! Allocate memory for arrays
-  ALLOCATE(mi(1:ni))
-  ALLOCATE(ri(1:3,1:ni))
-  ALLOCATE(rmag(1:ni))
-  ALLOCATE(mlist(1:ni))
-  ALLOCATE(done(1:ni))
 !Allocate memory for arrays of length nmst:
-  ALLOCATE(length(1:nedge))
-  ALLOCATE(length_list(1:nedge))
+  ALLOCATE(edgeL(1:nedge))
+  ALLOCATE(edgeLlist(1:nedge))
+! Coordinates of the edge connections: (xi,yi,zi,xj,yj,zj for each edge)
+  ALLOCATE(connections(1:6,1:nedge))
   ALLOCATE(x(1:nmst))
   ALLOCATE(y(1:nmst))
   ALLOCATE(z(1:nmst))
-  ALLOCATE(node(1:2,1:nedge))
   ALLOCATE(obj_r(1:3,1:nmst))
   
 ! And populate arrays 
@@ -88,21 +77,18 @@ SUBROUTINE find_lambda(snapi,ni)
   ti=tstar(1,snapi)
   
 !====================================
-!For when outliers are being ignored
-!====================================
-!
-  ALLOCATE(i_incluster(1:ni))
+!For when outliers are being ignored:
 ! first entry of obj_mass stores IDs of original most massive stars,
 ! second stores new most-massive stars
   IF (snapi==1) obj_mass(1,1:nmst)=0
 !=====================================
 
-!Find distance of each star from centre of mass:
+!Find distance of each star from cluster centre (spatial distribution):
   DO i = 1, ni
-
-     ri_x = ri_com(1,i,snapi)
-     ri_y = ri_com(2,i,snapi)
-     ri_z = ri_com(3,i,snapi)
+     
+     ri_x = rstar(1,i,snapi)
+     ri_y = rstar(2,i,snapi)
+     ri_z = rstar(3,i,snapi)
 
      IF (thisproj=='xy') THEN
         ri(3,i) = 0.          ! z coordinate is 0
@@ -126,40 +112,51 @@ SUBROUTINE find_lambda(snapi,ni)
 !============================================================
 !
   obj_r=0.
-  mlist=0
+  IDs=0
 
 !Assign IDs to stars for heapsort
   DO j=1,ni
-     mlist(j)=j
+     IDs(j)=j
   END DO
 
-  CALL heapsort(ni,mi,mlist)
+  CALL heapsort(ni,mi,IDs)
 
 !select nmst most massive stars:
 !(while checking whether star should be ignored)
   j=0 !j tracks with i but changes with each *attempted* iteration,
       ! even if i does not change
 
+! write snapshot number as string for output directory
+  write(snapchar,2) snapi
+2 format(I4.4)
+  
+! write positions of object stars:
+  open(1,file=trim(lampath)//'/coords/snap'//snapchar//'_objpositions_'&
+       &//thisproj//'.dat' ,status='replace')
+  
   DO i = 1,nmst
 5    j=j+1
-     k = mlist(ni+1-j) !heapsort orders from small to large - invert
-
+     k = IDs(ni+1-j) !heapsort orders from small to large - invert
+     
      IF (.NOT. i_incluster(k)) THEN
         !WRITE(objescunit,'(1X,I4,1X,I5,1X,I5,1X,F7.3,1X,F8.3,1X,A1)') &
              !& snapi, i, k, mi(k), rmag(k), i_incluster(k)
-
+        
 ! if star has escaped cluster, leave it out of the list
         GOTO 5 !don't use 'cycle' as we don't want i to inrease
      END IF
-
+     
      obj_r(1,i) = ri(1,k) !x position
      obj_r(2,i) = ri(2,k) !y position
      obj_r(3,i) = ri(3,k) !z position
-
+     write(1,'(3(2X,F10.4))') obj_r(1,i),obj_r(2,i),obj_r(3,i)
+     
 ! track masses selected after each snapshot for output file:
-     obj_mass(2,i) = mi(mlist(ni+1-j))
+     obj_mass(2,i) = mi(IDs(ni+1-j))
   END DO
-
+  
+  close(1) !close 'objpositions'
+  
 ! write snapshot, time, and list of object masses to output file
 ! when IDs of most massive stars change
   DO i=1, nmst
@@ -179,7 +176,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !*****************************************************
 !          *********************************
 
-  length = 0.
+  edgeL = 0.
 
 !Split obj_r across x,y,z arrays. Just helps readability in mst subroutine.
   x(1:nmst)=obj_r(1,1:nmst)
@@ -188,44 +185,53 @@ SUBROUTINE find_lambda(snapi,ni)
 
 !set unit for output to file (separation data, used in mst.f90)
   fileunit=sepunit1
-  CALL mst(snapi,nmst,x,y,z,node,length)
-
+  CALL mst(snapi,nmst,x,y,z,edgeL,connections)
+  
+! write out coordinates of all edge connections:
+  open(1,file=trim(lampath)//'/coords/snap'//snapchar//'_objconnections_'&
+       &//thisproj//'.dat',status='replace')
+  do i=1,nedge
+     write(1,'(6(2X,F10.4))') connections(1:6,i)
+  end do
+  close(1)
+  
 !Assign IDs for heapsort to order MST edges
   DO j=1,nedge
-     length_list(j)=j
+     edgeLlist(j)=j
   END DO
-  CALL heapsort(nedge,length,length_list)
+  CALL heapsort(nedge,edgeL,edgeLlist)
   
 ! Write out the edge lengths of the MST to plot a CDF:
   do i=1,nedge
-     edgelengths(i)=length(length_list(i))
+     edgelengths(i)=edgeL(edgeLlist(i))
   end do
   write(cdfobjunit,112) snapi,edgelengths(1:nedge)
 112 FORMAT(1X,I4,*(2X,F9.5))
-
+  
+  
 !######################################
 !Average edge lengths for object stars
 !######################################
 
   totallength=0.
   !DO i = 1,nedge
-  !   totallength = totallength + length(i)  !Add the edges of the mst
+  !   totallength = totallength + edgeL(i)  !Add the edges of the mst
   !END DO                                    ! to find the total length
-  totallength=SUM(length)
+  totallength=SUM(edgeL)
 
   !Median edge length:
   medianlength=0.
   DO i = 1, nedge
-     length_list(i) = i
+     edgeLlist(i) = i
   END DO
-  CALL heapsort(nedge, length, length_list)
+  CALL heapsort(nedge, edgeL, edgeLlist)
   
   if (MOD(nedge,2)==0) then !even nedge (odd nmst), take mean of median two
-     medianlength=length(length_list(nint_nedged2)) &
-          + length(length_list(nint_nedged2 + 1)) !nedge/2=x.0, ensure nearest
+     medianlength=edgeL(edgeLlist(nint_nedged2)) &
+          + edgeL(edgeLlist(nint_nedged2 + 1)) !nedge/2=x.0, ensure nearest
      medianlength=medianlength/2.
   else !.not. MOD(nedge,2)==0, odd nedge (even nmst), take median.
-     medianlength=length(length_list(ceint_nedged2)) !nedge/2=x.5, round up
+     medianlength=edgeL(edgeLlist(ceint_nedged2)) !nedge/2=x.5, round up
   end if
   
   
@@ -245,7 +251,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda rms MST:
   IF (findlamrms) THEN
      DO i=1,nedge
-        lrms_objmst(snapi) = lrms_objmst(snapi) + length(i)**2.
+        lrms_objmst(snapi) = lrms_objmst(snapi) + edgeL(i)**2.
      END DO
   END IF
   lrms_objmst(snapi) = ( (1./REAL(nedge))*lrms_objmst(snapi) )**0.5
@@ -254,7 +260,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda smr MST:
   IF (findlamsmr) THEN
      DO i=1,nedge
-        lsmr_objmst(snapi) = lsmr_objmst(snapi) + (length(i))**0.5
+        lsmr_objmst(snapi) = lsmr_objmst(snapi) + (edgeL(i))**0.5
      END DO
   END IF
   lsmr_objmst(snapi) = ( (1./REAL(nedge))*(lsmr_objmst(snapi)) )**2.
@@ -263,7 +269,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda har MST:
   IF (findlamhar) THEN
      DO i=1,nedge
-        lhar_objmst(snapi) = lhar_objmst(snapi) + (length(i))**(-1.)
+        lhar_objmst(snapi) = lhar_objmst(snapi) + (edgeL(i))**(-1.)
      END DO
   END IF
   lhar_objmst(snapi) = ( (1./REAL(nedge))*(lhar_objmst(snapi)) )**(-1.)
@@ -281,15 +287,15 @@ SUBROUTINE find_lambda(snapi,ni)
         do i=2,Nmed/2
            !take values either side of two median:
            lNmed_objmst(snapi)=lNmed_objmst(snapi) &
-                + length(length_list(nint_nedged2 - (i-1))) &
-                + length(length_list(nint_nedged2 + i))
+                + edgeL(edgeLlist(nint_nedged2 - (i-1))) &
+                + edgeL(edgeLlist(nint_nedged2 + i))
         end do
      else !odd edge lengths (even nmst), round to ceiling
         lNmed_objmst(snapi)=medianlength !i=1
         do i=2,(Nmed+1)/2        !take values either side of median:
            lNmed_objmst(snapi)=lNmed_objmst(snapi) &
-                + length(length_list(ceint_nedged2 - (i-1))) &
-                + length(length_list(ceint_nedged2 + (i-1)))
+                + edgeL(edgeLlist(ceint_nedged2 - (i-1))) &
+                + edgeL(edgeLlist(ceint_nedged2 + (i-1)))
         end do
      end if
      lNmed_objmst(snapi)=lNmed_objmst(snapi)/real(Nmed)
@@ -312,7 +318,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Gamma MST:
   IF (findgam) THEN
      DO i = 1,nedge
-        lgam_objmst(snapi) = lgam_objmst(snapi) + LOG(length(i))  !Add edges to
+        lgam_objmst(snapi) = lgam_objmst(snapi) + LOG(edgeL(i))  !Add edges to
      END DO                                                  !find total length
 !Calculate the geometric mean
      lgam_objmst(snapi) = EXP( (1./REAL(nedge)) * lgam_objmst(snapi))
@@ -322,7 +328,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda ln MST:
   IF (findlamln) THEN
      DO i = 1,nedge
-        lln_objmst(snapi) = lln_objmst(snapi) + EXP(length(i))  !Add edges to
+        lln_objmst(snapi) = lln_objmst(snapi) + EXP(edgeL(i))  !Add edges to
      END DO                                                !find total length
 !Calculate the geometric mean
      lln_objmst(snapi) = LOG( (1./REAL(nedge)) * lln_objmst(snapi))
@@ -335,7 +341,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !*****************************************************
 !          *********************************
 
-  length = 0.
+  edgeL = 0.
   
   !set lengths of random MSTs to 0:
   IF (findlam) then
@@ -380,13 +386,14 @@ SUBROUTINE find_lambda(snapi,ni)
   END IF
   
   ALLOCATE(rand_list(1:nloop))
-
+  
 !set unit for output to file (separation data, used in mst.f90)
   fileunit=sepunit2
-
+  
   DO j = 1,nloop          !Do nloop random MSTs
      x = 0. ; y = 0. ; z = 0.
-     done = .FALSE.          
+     done = .FALSE.
+     
      DO i = 1,nmst        !Select nmst random stars
 6       CALL RANDOM_NUMBER(rand) !random number between 0. and 1.
         k = NINT(rand*ni)
@@ -394,35 +401,36 @@ SUBROUTINE find_lambda(snapi,ni)
         IF (done(k)) GOTO 6    !Don't chose the same star twice
         IF (.NOT. i_incluster(k)) GOTO 6 !Don't use escaped stars
         done(k) = .TRUE.       !You're selected
+        
         x(i) = ri(1,k)
         y(i) = ri(2,k)
         z(i) = ri(3,k)
      END DO
-
-     CALL mst(snapi,nmst,x,y,z,node,length)
-
+     
+     CALL mst(snapi,nmst,x,y,z,edgeL,connections)
+     
 !######################################
 !Average edge lengths for random stars
 !######################################
 
      totallength=0.
      !DO i = 1,nedge
-     !   totallength = totallength + length(i)  !Add the edges of the mst
+     !   totallength = totallength + edgeL(i)  !Add the edges of the mst
      !END DO                                    ! to find the total length
-     totallength=SUM(length)
+     totallength=SUM(edgeL)
 
      medianlength=0.
      DO i = 1, nedge
-        length_list(i) = i
+        edgeLlist(i) = i
      END DO
-     CALL heapsort(nedge, length, length_list)
+     CALL heapsort(nedge, edgeL, edgeLlist)
      
 !CDFs of random stars:
      !if(thisproj=='3D') then
         if (j.le.nCDF) then
 ! Write out the edge lengths of the MST to plot a CDF:
            do k=1,nedge
-              edgelengths(k)=length(length_list(k))
+              edgelengths(k)=edgeL(edgeLlist(k))
            end do
            write(cdfranunit+j,300) snapi,edgelengths(1:nedge)
 300        FORMAT(1X,I4,*(2X,F9.5))
@@ -432,13 +440,13 @@ SUBROUTINE find_lambda(snapi,ni)
         !Median edge length of this MST (depends on even/odd nedge):
         if (MOD(nedge,2)==0) then
            ! if even no. of edge lengths, take mean of median 2.
-           medianlength=length(length_list(nint_nedged2 +1)) &
-                + length(length_list(nint_nedged2))
+           medianlength=edgeL(edgeLlist(nint_nedged2 +1)) &
+                + edgeL(edgeLlist(nint_nedged2))
            medianlength=medianlength/2.
         else !.not. MOD(nedge,2)==0
            !if odd no. of edge lengths (even nmst), take median edge length.
            !(Use CEILING as always need to round up from #.5)
-           medianlength=length(length_list(ceint_nedged2))
+           medianlength=edgeL(edgeLlist(ceint_nedged2))
         end if
      
 !Lambda MST:
@@ -457,7 +465,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda rms MST:
      IF (findlamrms) THEN
         DO i=1,nedge
-           lrms_ranmst(j) = lrms_ranmst(j) + (length(i))**2.
+           lrms_ranmst(j) = lrms_ranmst(j) + (edgeL(i))**2.
         END DO
      END IF
      lrms_ranmst(j) = ( (1./REAL(nedge))*(lrms_ranmst(j)) )**0.5
@@ -466,7 +474,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda smr MST:
      IF (findlamsmr) THEN
         DO i=1,nedge
-           lsmr_ranmst(j) = lsmr_ranmst(j) + (length(i))**0.5
+           lsmr_ranmst(j) = lsmr_ranmst(j) + (edgeL(i))**0.5
         END DO
      END IF
      lsmr_ranmst(j) = ( (1./REAL(nedge))*(lsmr_ranmst(j)) )**2.
@@ -475,7 +483,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda har MST:
      IF (findlamhar) THEN
         DO i=1,nedge
-           lhar_ranmst(j) = lhar_ranmst(j) + (length(i))**(-1.)
+           lhar_ranmst(j) = lhar_ranmst(j) + (edgeL(i))**(-1.)
         END DO
      END IF
      lhar_ranmst(j) = ( (1./REAL(nedge))*(lhar_ranmst(j)) )**(-1.)
@@ -494,16 +502,16 @@ SUBROUTINE find_lambda(snapi,ni)
            do i=2,Nmed/2
               !take values either side of two used for median:
               lNmed_ranmst(j)=lNmed_ranmst(j) &
-                   + length(length_list(nint_nedged2 - (i-1))) &
-                   + length(length_list(nint_nedged2 + i))
+                   + edgeL(edgeLlist(nint_nedged2 - (i-1))) &
+                   + edgeL(edgeLlist(nint_nedged2 + i))
            end do
         else !.not. mod(Nmed,2)==0, odd nedge (even nmst)
            lNmed_ranmst(j) = medianlength !i=1
            do i=2,(Nmed+1)/2
               !take values either side of median:
               lNmed_ranmst(j)=lNmed_ranmst(j) &
-                   + length(length_list(ceint_nedged2 - (i-1))) &
-                   + length(length_list(ceint_nedged2 + (i-1)))
+                   + edgeL(edgeLlist(ceint_nedged2 - (i-1))) &
+                   + edgeL(edgeLlist(ceint_nedged2 + (i-1)))
            end do
         end if
         lNmed_ranmst(j)=lNmed_ranmst(j)/real(Nmed)
@@ -526,7 +534,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Gamma MST:
      IF (findgam) THEN
         DO i = 1,nedge
-           lgam_ranmst(j) = lgam_ranmst(j) + LOG(length(i))  !Add edges to
+           lgam_ranmst(j) = lgam_ranmst(j) + LOG(edgeL(i))  !Add edges to
         END DO                                               !find total length
         lgam_ranmst(j) = EXP( (1./REAL(nedge)) * lgam_ranmst(j) )
      END IF
@@ -535,7 +543,7 @@ SUBROUTINE find_lambda(snapi,ni)
 !Lambda ln MST:
      IF (findlamln) THEN
         DO i = 1,nedge
-           lln_ranmst(j) = lln_ranmst(j) + EXP(length(i))  !Add edges to
+           lln_ranmst(j) = lln_ranmst(j) + EXP(edgeL(i))  !Add edges to
         END DO                                                !find total length
 !Calculate the geometric mean
         lln_ranmst(j) = LOG( (1./REAL(nedge)) * lln_ranmst(j))
@@ -634,18 +642,12 @@ SUBROUTINE find_lambda(snapi,ni)
   
   
 !Deallocate arrays:
-  DEALLOCATE(mi)
-  DEALLOCATE(ri)
-  DEALLOCATE(rmag)
-  DEALLOCATE(mlist)
-  DEALLOCATE(done)
-  DEALLOCATE(i_incluster)
-  DEALLOCATE(length)
-  DEALLOCATE(length_list)
+  DEALLOCATE(edgeL)
+  DEALLOCATE(edgeLlist)
+  deallocate(connections)
   DEALLOCATE(x)
   DEALLOCATE(y)
   DEALLOCATE(z)
-  DEALLOCATE(node)
   DEALLOCATE(obj_r)
   IF (findlam) DEALLOCATE(l_ranmst)
   IF (findlambar) DEALLOCATE(lbar_ranmst)

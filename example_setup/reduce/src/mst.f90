@@ -1,7 +1,7 @@
 ! ======================================================================
 ! ======================================================================
 !
-SUBROUTINE mst(snapi,n,x,y,z,node,length)
+SUBROUTINE mst(snapi,n,x,y,z,length,connections)
   use parameters_module
 ! generates a minimum spanning tree
 ! if 2d one of the x,y,z arrays must be a zero array
@@ -10,8 +10,8 @@ SUBROUTINE mst(snapi,n,x,y,z,node,length)
    INTEGER, INTENT(in) :: snapi,n
    double precision, INTENT(in) :: x(1:n),y(1:n),z(1:n)
 ! outputs
-   INTEGER, INTENT(out) :: node(1:n-1,1:2) ! node connections
    double precision, INTENT(out) :: length(1:n-1)      ! connections lengths
+   double precision, intent(out) :: connections(1:6,1:n-1)
 ! internals
    integer, dimension(:), allocatable :: list
    integer, dimension(:,:), allocatable :: idents
@@ -55,8 +55,8 @@ SUBROUTINE mst(snapi,n,x,y,z,node,length)
        end if
 
        list(nlist)=nlist
-       idents(1,nlist)=i  !every sep gets an identity, indicating included 
-       idents(2,nlist)=j  !particle (nodes?)
+       idents(1,nlist)=i  !every sep gets an identity,
+       idents(2,nlist)=j  !indicating included particle
      END DO
    END DO
 !
@@ -70,8 +70,8 @@ SUBROUTINE mst(snapi,n,x,y,z,node,length)
 
 !
 ! loop to allocate nodes
-   node=0
    length=0.
+   connections=0. ! coordinates of connecting edges
    ncount=1
    treemem=0
    memnum=1
@@ -79,12 +79,15 @@ SUBROUTINE mst(snapi,n,x,y,z,node,length)
    DO
 ! smallest distance
      nlist=nlist + 1
-     length(ncount)=sep(list(nlist))
-     imin=idents(1,list(nlist))
-     jmin=idents(2,list(nlist))
-!
-     node(ncount,1)=imin
-     node(ncount,2)=jmin
+     length(ncount)=sep(list(nlist)) ! edge length
+     imin=idents(1,list(nlist))      ! node i
+     jmin=idents(2,list(nlist))      ! node j
+     connections(1,ncount)=x(imin)
+     connections(2,ncount)=y(imin)
+     connections(3,ncount)=z(imin)
+     connections(4,ncount)=x(jmin)
+     connections(5,ncount)=y(jmin)
+     connections(6,ncount)=z(jmin)
 !
      IF (treemem(imin)/=0 .AND. treemem(imin)==treemem(jmin)) GOTO 23
 !

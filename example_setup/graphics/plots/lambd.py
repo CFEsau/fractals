@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+#from __future__ import print_function
 import os, sys, glob
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,10 +9,9 @@ from matplotlib.ticker import AutoMinorLocator #for minor ticks
 import plotconfig
     
 def printlambda():
-    print ("")
-    print ("------------")
-    print ("-- Lambda --")
-    print ("------------")
+    print "\n------------"
+    print "-- Lambda --"
+    print "------------"
 
 def lambdasetup():
     #This plots lambda values in user-specified
@@ -35,7 +34,7 @@ def lambdasetup():
     lambda_to_plot['lamrms']= 'Y'
     lambda_to_plot['lamsmr']= 'N'
     lambda_to_plot['lamhar']= 'N'
-    lambda_to_plot['lamtil']= 'Y'
+    lambda_to_plot['lamtil']= 'N'
     lambda_to_plot['lam3med']='Y'
     lambda_to_plot['lamstar']='N'
     lambda_to_plot['gam']=    'Y'
@@ -79,12 +78,12 @@ def lambdaprojections(thiscluster):
                 found=''
                 for filename in os.listdir(filepath):
                     if thislambda in filename:
-                        #print (thislambda)
+                        #print thislambda
                         found = 'found'
                         lamfilelist.append(filename)
                         #break #had this before moving 'lamfilelist' to here        
                 if not found:
-                    print ("WARNING:",thislambda,"doesn't exist. Skipping.")
+                    print "WARNING: %s doesn't exist. Skipping." % thislambda
                 
                 #read in data & make plots for this lambda
                 #set up plot:
@@ -121,7 +120,7 @@ def lambdaprojections(thiscluster):
                 #plot data for each projection:
                 for thisfile in lamfilelist:
                     for thisproj in projections:
-                        #print (thisproj)
+                        #print thisproj
                         if thisproj in thisfile:
                             #for thisfile in lamfilelist:
                             nsnap = np.loadtxt(filepath+'/'+thisfile)[:,0]
@@ -129,8 +128,8 @@ def lambdaprojections(thiscluster):
                             
                             lambda_data = np.loadtxt(filepath+'/'+thisfile)[:,3]
                             #if thislambda == 'lambar' and kval=='k01':
-                            #    print (thisfile)
-                            #    print (lambda_data[0:3])
+                            #    print thisfile
+                            #    print lambda_data[0:3]
                             lambda_min = np.loadtxt(filepath+'/'+thisfile)[:,4]
                             lambda_max = np.loadtxt(filepath+'/'+thisfile)[:,5]
                             lambda_maxerr = lambda_data - lambda_min
@@ -151,7 +150,8 @@ def lambdaprojections(thiscluster):
                                 kval+'_'+ctype+'_'+thislambda+'.pdf')
                 plt.tight_layout()
                 plt.savefig(saveplot, bbox_inches='tight')
-                print ("    ",kval,"_",ctype,"_",thislambda,".pdf",sep="")
+                #print ("    ",kval,"_",ctype,"_",thislambda,".pdf",sep="")
+                print "\t %s_%s_%s.pdf" % (kval, ctype, thislambda)
                 plt.close()
 
 def projectioncompare(thiscluster):
@@ -167,18 +167,18 @@ def projectioncompare(thiscluster):
                         thiscluster + '/lambda')
             
             for thislambda in plotconfig.lambdatypes:
-                #print("Doing",thislambda)
+                #print "Doing %s" % thislambda
                 #check that this file exists:
                 lamfilelist=[]
                 found=''
                 for filename in os.listdir(filepath):
                     if thislambda in filename:
-                        #print (thislambda)
+                        #print thislambda
                         found = 'found'
                         lamfilelist.append(filename)
                         #break #had this before moving 'lamfilelist' to here        
                 if not found:
-                    print ("WARNING:",thislambda,"doesn't exist. Skipping.")
+                    print "WARNING: %s doesn't exist. Skipping." % thislambda
                 
                 #read in data & make plots for this lambda
                 #set up plot:
@@ -221,7 +221,7 @@ def projectioncompare(thiscluster):
                         plt.plot(time,zero_line_data)
                         
                     for thisproj in projections2D:
-                        #print (thisproj)
+                        #print thisproj
                         if thisproj in thisfile:
                             #for thisfile in lamfilelist:
                             nsnap = np.loadtxt(filepath+'/'+thisfile)[:,0]
@@ -229,8 +229,8 @@ def projectioncompare(thiscluster):
                             
                             lambda_data = np.loadtxt(filepath+'/'+thisfile)[:,3]
                             #if thislambda == 'lambar' and kval=='k01':
-                            #    print (thisfile)
-                            #    print (lambda_data[0:3])
+                            #    print thisfile
+                            #    print lambda_data[0:3]
                             lambda_min = np.loadtxt(filepath+'/'+thisfile)[:,4]
                             lambda_max = np.loadtxt(filepath+'/'+thisfile)[:,5]
                             lambda_maxerr = lambda_data - lambda_min
@@ -248,7 +248,8 @@ def projectioncompare(thiscluster):
                                 kval+'_'+ctype+'_'+thislambda+'proj.pdf')
                 plt.tight_layout()
                 plt.savefig(saveplot, bbox_inches='tight')
-                print ("    ",kval,"_",ctype,"_",thislambda,"proj.pdf",sep="")
+                #print ("    ",kval,"_",ctype,"_",thislambda,"proj.pdf",sep="")
+                print ("\t %s_%s_%sproj.pdf" % (kval, ctype, thislambda))
                 plt.close()
 
 #def 3Ddivergence(thiscluster):
@@ -325,8 +326,8 @@ def lambdacompare(thiscluster):
                         break #move on to next file
                     
                 if not found:
-                    print ("WARNING: 3D data for",thislambda,\
-                           "doesn't exist. Skipping.")
+                    print ("WARNING: %s data for this projection don't exist.",
+                           " Skipping." % thislambda)
             
             plt.legend(loc="upper right", fontsize=10)
             #plt.show()
@@ -334,13 +335,14 @@ def lambdacompare(thiscluster):
                             kval+'_'+ctype+'_alllam.pdf')
             plt.tight_layout()
             plt.savefig(saveplot, bbox_inches='tight')
-            print ("    ",kval,"_",ctype,"_alllam.pdf",sep="")
+            #print ("    ",kval,"_",ctype,"_alllam.pdf",sep="")
+            print "\t %s_%s_alllam.pdf" % (kval, ctype)
             plt.close()
             
 
 def lambda_k(thiscluster):
     #Currently uses the 3D projection
-    print ("   Comparing across k...")
+    print "   Comparing across k..."
     
             #filepath = (plotconfig.outpath+'/'+simname+'/' + 
             #            thiscluster + '/lambda')
@@ -382,12 +384,13 @@ def lambda_k(thiscluster):
                     lambda_maxerr = lambda_data - lambda_min
                     lambda_minerr = lambda_max - lambda_data
                     
-                    print ("       Plotting ", simname, "...", sep="")
+                    print "\tPlotting %s..." % simname
                     plt.plot(time,lambda_data,label=kval)
                     #plt.show()
                     
                 else:
-                    print ("WARNING: file for",thislambda,"doesn't exist. Skipping.")
+                    print "WARNING: file for %s doesn't exist. Skipping." \
+                        % (thislambda)
                     
         plt.legend(loc="upper right", fontsize=10)
         saveplot = (plotconfig.outpath + '/plots/'+thislambda+'_'+ctype+
@@ -395,6 +398,6 @@ def lambda_k(thiscluster):
         #plt.show()
         plt.tight_layout()
         plt.savefig(saveplot, bbox_inches='tight')
-        print ("         ",thislambda,"_",ctype,"_comparek.pdf",sep="")
-        print ("")
+        #print ("         ",thislambda,"_",ctype,"_comparek.pdf",sep="")
+        print "\t %s_%s_comparek.pdf\n" % (thislambda, ctype)
         plt.close()

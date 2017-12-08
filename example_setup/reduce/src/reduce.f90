@@ -52,6 +52,22 @@ PROGRAM reduce
 !
 ! Make a directory for this simulation data
   CALL SYSTEM('mkdir -p '//TRIM(outarg))
+
+! Mean r(x,y,z) coordinates for each snapshot
+  allocate(rmean(1:3,1:nsnaps))
+
+!*****************************************************************************!
+!
+! Centre the cluster on (0,0,0)
+!
+! Use mean x, y, z coordinates in each snapshot to define cluster centre.
+! All stars needed for this & only needs to be done once so do here.
+  do j=1,nsnaps
+     do i=1,3
+        rmean(i,j)=sum(rstar(i,:,j))/real(nstars(1))
+        rstar(i,:,j)=rstar(i,:,j)-rmean(i,j)
+     end do
+  end do
 !
 !
 !******************************************************************************!
@@ -79,7 +95,7 @@ PROGRAM reduce
            WRITE(4,104) i,idstar(i,j),tstar(i,j),mstar(i,j),&
                 & rstar(1:3,i,j),vstar(1:3,i,j)
         END DO
-104     FORMAT (2(2X,I4),2X,F8.4,2X,F7.3,6(2X,F8.3))
+104     FORMAT (2(2X,I4),2X,F8.4,2X,F7.3,6(2X,F9.4))
         CLOSE(4)
      END DO
   END IF
@@ -153,6 +169,7 @@ SUBROUTINE DEALLOCATE
   DEALLOCATE(rmax)
   DEALLOCATE(vmax)
 
+  deallocate(rmean)
   DEALLOCATE(incluster)
 
   DEALLOCATE(com_cluster)

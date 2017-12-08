@@ -61,6 +61,8 @@
 ! Cluster parameters
 !====================
        DOUBLE PRECISION :: totalmass    ! Total mass of the distribution
+       ! mean r(x,y,z) of cluster for each snapshot
+       DOUBLE PRECISION, dimension(:,:), allocatable :: rmean
 ! com_cluster = the centre of mass of the cluster (x, y, z positions)
 ! ri_com = distance between each star and cluster centre of mass
        double precision, dimension(:,:),allocatable :: com_cluster
@@ -155,6 +157,8 @@
        CHARACTER*150 :: outarg  ! Destination directory (e.g. 'outputs')
        CHARACTER*150 :: newpath ! Output path with cluster type appended
 !                                 (e.g. all, FoV)
+       character(len=100) :: lampath
+       character(len=100) :: CDFpath
 
      END MODULE parameters_module
 !
