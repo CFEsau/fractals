@@ -1,8 +1,8 @@
 library(scatterplot3d)
-library(animation)
+#library(animation)
 source('~/Documents/Work/graphics/plots/3D/addgrids3d.r')
 
-nkvals <- 1 #10
+nkvals <- 10
 for (k in 1:nkvals){
   if (k<10) {
     knum=paste0('k0',k)}
@@ -24,8 +24,8 @@ for (k in 1:nkvals){
   fovlim <- 5.0 #Field of view limit in pc
 
 #Set delay between frames when replaying
-ani.options(interval=0.02,loop=1)
-saveVideo({
+#ani.options(interval=0.02,loop=1)
+#saveVideo({
   
   #find number of snapshots
   nsnaps <- length(list.files(pattern="^snap"))
@@ -154,5 +154,5 @@ saveVideo({
       
     #dev.off()
   }
-},video.name=paste0(outdir,"/movies/",knum,"_",fovlim,"pc.mp4"))
+#},video.name=paste0(outdir,"/movies/",knum,"_",fovlim,"pc.mp4"))
 }
