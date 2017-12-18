@@ -27,16 +27,16 @@ fdimval=''
 while not fdimval:
     fdimval=str(raw_input('Enter fractal dimension: '))
     if fdimval == '1.6':
-        fdim='fdim1p6'
+        fdim='f16'
         break
     elif fdimval == '2.0':
-        fdim='fdim2p0'
+        fdim='f20'
         break
     elif fdimval == '2.6':
-        fdim='fdim2p6'
+        fdim='f26'
         break
     elif fdimval == '3.0':
-        fdim='fdim3p0'
+        fdim='f30'
         break
     else:
         print '\n Warning: fractal dimension %s not recognised.' % fdimval
@@ -48,10 +48,10 @@ qvirval=''
 while not qvirval:
     qvirval  = str(raw_input('Enter virial ratio: '))
     if qvirval == '0.3':
-        qvir='qvir0p3'
+        qvir='q03'
         break
     elif qvirval == '0.5':
-        qvir='qvir0p5'
+        qvir='q05'
         break
     else:
 	print "\n Warning: virial ratio %s not recognised." % qvirval
@@ -59,7 +59,7 @@ while not qvirval:
 	print "     Enter new virial ratio: "
         qvirval=''
 
-modelpath='../'+fbin+'/'+fdim+'/'+qvir
+modelpath='../'+fbin+'/'+fdim+qvir
 
 ic  = str(raw_input('input the name of the directory with the .sl run files: '))
 outdir  = str(raw_input('input the name of the output directory: '))
