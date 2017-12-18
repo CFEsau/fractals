@@ -7,14 +7,14 @@ nkvals <- 10
 clustype <- 'cluster_FoV5pc' # one of _all, _FoV#pc, _r#rhalf
 
 #for (k in 1:nkvals){
-  k <- 9
+  k <- 1
   knum <- sprintf('k%02d',k)
   
   fbin='fbin0p0'
   fdim='f16'
   qvir='q03'
   
-  masterdir <- '/media/claire/Elements/Work'
+  masterdir <- '~/Documents/Work'
   outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'outputs')
   kdir <- file.path(outdir,paste0('runinv_',knum))
   snapdir <- file.path(kdir,'snapshots')

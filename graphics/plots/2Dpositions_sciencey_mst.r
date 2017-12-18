@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 #www.statmethods.net/advgraphs/layout.html
 #2D plots at given projection
+library(animation)
 
 nkvals <- 10
 clustype <- 'cluster_FoV5pc' # one of _all, _FoV#pc, _r#rhalf
@@ -9,10 +10,10 @@ for (k in 1:nkvals){
   knum <- sprintf('k%02d',k)
   
   fbin='fbin0p0'
-  fdim='f20'
+  fdim='f16'
   qvir='q03'
   
-  masterdir <- '/media/claire/Elements/Work'
+  masterdir <- '~/Documents/Work'
   outdir <- file.path(masterdir,fbin,paste0(fdim,qvir))
   kdir <- file.path(outdir,'outputs',paste0('runinv_',knum))
   snapdir <- file.path(kdir,'snapshots')
@@ -28,33 +29,36 @@ for (k in 1:nkvals){
   #find number of snapshots
   nsnaps <- length(list.files(pattern="^snap"))
   
-  #loop over all snapshots
-  for (i in 1:nsnaps){
-    #set input and output filenames
-    infn <- sprintf('snap%04d',i)
+  #loop over all projections
+  for (p in 1:3){
+    proj <- if (p==1) 'xy' else if (p==2) 'yz' else if (p==3) 'xz'
     
-    #read data and save to vectors
-    snapdata <- read.table(infn)
-    mstar_all <- snapdata$V4
-    rx_all <- snapdata$V5
-    ry_all <- snapdata$V6
-    rz_all <- snapdata$V7
+    ifelse(!dir.exists(file.path(snapdir, proj)),
+           dir.create(file.path(snapdir, proj)), FALSE)
     
-    #Define centre of cluster to be at mean x, y, z coordinates
-    xmean <- mean(rx_all)
-    ymean <- mean(ry_all)
-    zmean <- mean(rz_all)
+    #Movie: Set delay between frames when replaying
+    #ani.options(interval=0.02,loop=1)
+    #saveVideo({
     
-    #set up data frame with coordinates and masses ordered by decreasing mass
-    star_df <- data.frame(rx_all,ry_all,rz_all,mstar_all)[order(-mstar_all),]
-    
-    
-    #loop over all projections
-    for (p in 1:3){
-      proj <- if (p==1) 'xy' else if (p==2) 'yz' else if (p==3) 'xz'
+    #loop over all snapshots
+    for (i in 1:nsnaps){
+      #set input and output filenames
+      infn <- sprintf('snap%04d',i)
       
-      ifelse(!dir.exists(file.path(snapdir, proj)),
-             dir.create(file.path(snapdir, proj)), FALSE)
+      #read data and save to vectors
+      snapdata <- read.table(infn)
+      mstar_all <- snapdata$V4
+      rx_all <- snapdata$V5
+      ry_all <- snapdata$V6
+      rz_all <- snapdata$V7
+      
+      #Define centre of cluster to be at mean x, y, z coordinates
+      xmean <- mean(rx_all)
+      ymean <- mean(ry_all)
+      zmean <- mean(rz_all)
+      
+      #set up data frame with coordinates and masses ordered by decreasing mass
+      star_df <- data.frame(rx_all,ry_all,rz_all,mstar_all)[order(-mstar_all),]
       
       outfn <- sprintf('%02ssnap%04d.png',proj,i)
       #set up output plot
@@ -141,8 +145,7 @@ for (k in 1:nkvals){
       mtext(sprintf('t = %.2f Myr',(i/nsnaps)*10),side=3,adj=1)#,col.main = "gray80",cex.main=0.9)
       
       #dev.off() #close plot
-    }#end of projection loop
-    
-    
-  }#end of snapshot loop
+    }#end of snapshot loop
+    #},video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc.mp4")) #end of video
+  }#end of projection loop
 }#end of knum loop
