@@ -1,15 +1,17 @@
 library(ggplot2)
 library(ggpubr) # for multiplot
 
+origin <- getwd()
+
 # Data frame for results
 p_knum <- data.frame('k'=numeric(),'U'=numeric(),'t'=numeric())
 
 # Build the directory structure:
-fdim <- '26'; qvir <- '05' #strings to match directory structure (val*10)
+fdim <- '16'; qvir <- '03' #strings to match directory structure
 cluster <- 'cluster_FoV5pc'
 
 # General outputs directory: upper level for all simulation data, data analysis, and plots:
-outpath <- paste0('/media/claire/Elements/Work/fbin0p0/f',fdim,'q',qvir,'/outputs')
+outpath <- paste0('../../../r0p5/fbin0p0/f',fdim,'q',qvir,'/analysis')
 
 for (k in 1:10) {
   # Directory containing analysed data:
