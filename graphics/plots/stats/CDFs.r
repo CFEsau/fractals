@@ -15,8 +15,6 @@ snapshots <- c(200, 275, 400, 420)
 #knum <- 'k03'
 #snapshots <- c(58, 77, 400, 425)
 
-listnum <- 4
-
 simpath <- file.path(outpath,paste0('runinv_',knum),cluster)
 plotsdir <- paste0(outpath,'/plots/cdf_',knum) #outputs directory for plots
 
@@ -42,11 +40,11 @@ for (snap in 1:length(snapshots)){
 wilcox.test(lambdas3d[snap,],lambdasxy[snap,])
 pfromU <- wilcox.test(lambdas3d[snap,],lambdasxy[snap,])
 
-t.test(lambdas3d[listnum,],lambdasxy[listnum,])
-pfromt <- t.test(lambdas3d[listnum,],lambdasxy[listnum,])
+t.test(lambdas3d[snap,],lambdasxy[snap,])
+pfromt <- t.test(lambdas3d[snap,],lambdasxy[snap,])
 
-dens3d <- density(lambdas3d[listnum,])
-densxy <- density(lambdasxy[listnum,])
+dens3d <- density(lambdas3d[snap,])
+densxy <- density(lambdasxy[snap,])
 ylim <- max(range(dens3d$y, densxy$y))
 plot(dens3d,ylim=c(0, ylim))
 lines(densxy, col='red')
