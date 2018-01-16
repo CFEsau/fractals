@@ -157,8 +157,8 @@
        CHARACTER*150 :: outarg  ! Destination directory (e.g. 'outputs')
        CHARACTER*150 :: newpath ! Output path with cluster type appended
 !                                 (e.g. all, FoV)
-       character(len=100) :: lampath
-       character(len=100) :: CDFpath
+       character(len=200) :: lampath
+       character(len=200) :: CDFpath
 
      END MODULE parameters_module
 !

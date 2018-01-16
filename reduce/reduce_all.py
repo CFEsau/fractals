@@ -9,13 +9,13 @@ fbinval=''
 while not fbinval:
     fbinval=str(raw_input('Enter binary fraction: '))
     if fbinval == '0%':
-        fbin='fbin0p0'
+        fbin='fbinary0p0'
         break
     elif fbinval == '50%':
-        fbin='fbin0p5'
+        fbin='fbinary0p5'
         break
     elif fbinval == '100%':
-        fbin='fbin1p0'
+        fbin='fbinary1p0'
         break
     else:
         print '\n Warning: Binary fraction %s not recognised.' % fbinval
@@ -59,7 +59,8 @@ while not qvirval:
 	print "     Enter new virial ratio: "
         qvirval=''
 
-modelpath='../'+fbin+'/'+fdim+qvir
+#modelpath='../'+fbin+'/'+fdim+qvir
+modelpath='/local/cfe/backed_up_on_astro3/fractals/r1p0/'+fbin+'/'+fdim+qvir
 
 ic  = str(raw_input('input the name of the directory with the .sl run files: '))
 outdir  = str(raw_input('input the name of the output directory: '))
