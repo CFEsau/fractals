@@ -1,0 +1,21 @@
+There are various types of plots produced by the code in this directory.
+Before plots are created, ensure model output data has been reduced using the analysis code in ../reduce.
+
+-------------------------------------------------------------------
+2D positions - black bakground, coloured points of different sizes
+
+All 3 projections on one plot: 2Dpositions_pretty_all.r
+Plot one projection (set in code): 2Dpositions_pretty.r
+
+-------------------------------------------------------------------
+In plots,
+> python makeplots.py
+Plots energy, virial ratio, half-mass radius as function of time (can skip)
+Plots lambdas:
+      comparison between projections (lambdaprojections)
+      difference betwee each 2D projection & 3D (projectioncompare)
+      comparison of different lambdas (lambdacompare)
+      comparison across k (lambda_k)
+
+Edits to code for lambda plots made on 17/01/2018 for compatibility with matplotlib 2.0.
+Info on style changes available at matplotlib.org/users/dflt_style_changes.html
