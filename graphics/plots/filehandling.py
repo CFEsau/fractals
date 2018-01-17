@@ -27,15 +27,16 @@ def mergefiles():
     # List files beginning with 'k##_...'
     # List all files with pattern 'k##_...parameter...'
     # Merge these files & save under 'parameter_cluster.pdf'
+    #file format: {filepath}/k#_{cluster}_{param}.pdf
     #
     owd = os.getcwd()
-    #file format: {filepath}/k#_{cluster}_{param}.pdf
-    #outpath = '../../fbin0p0/fdim1p6/qvir0p3/outputs'
     filepath = plotconfig.outpath+'/plots'
     os.chdir(filepath)
-    #print(os.getcwd())
 
-    for thiskplot in glob.iglob('k*.pdf'):
+    flist = glob.glob('k*.pdf') 
+       
+    while flist:  #do while flist isn't empty
+        thiskplot=flist[0]  #take first filename
         filestructure = thiskplot.split('_')
         #kval = filestructure[0]
         thiscluster = filestructure[1]
@@ -54,8 +55,8 @@ def mergefiles():
             pdflist=[]
         else:
             break
+
+        flist = glob.glob('k*.pdf') #update file list
             
     os.chdir(owd)
-    
-    #print (os.getcwd())
     #time.sleep(0.4)

@@ -3,10 +3,15 @@
 #from __future__ import print_function
 import os, sys, glob
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import container #needed to remove error bars from legend
 from matplotlib.ticker import AutoMinorLocator #for minor ticks
 import plotconfig
+
+mpl.rcParams['lines.linewidth'] = 1.0 #set default line width to 1.0.
+# Changed to 1.5 in Matplotlib 2.0 (see matplotlib.org/users/dflt_style_changes.html)
+
     
 def printlambda():
     print "\n------------"
@@ -61,8 +66,9 @@ def lambdasetup():
 
 def lambdaprojections(thiscluster):
     #duration = 10. #Duration of simulation (Myr)
+    print ("   Comparing different projections...")
     projections=['3D','xy','xz','yz']
-    
+
     for simname in os.listdir(plotconfig.outpath + '/'):
         #loop through each simulation (k number):
         if 'runinv' in simname:
@@ -88,14 +94,17 @@ def lambdaprojections(thiscluster):
                 #read in data & make plots for this lambda
                 #set up plot:
                 saveplot = ''
-                my_dpi = 96
-                plt.figure()
+                #my_dpi = 96
+                fig, ax = plt.subplots()
+                #plt.figure()
                 plt.xlabel("Time (Myr)")
                 plt.ylabel(plotconfig.lambda_tex[thislambda])
                 plt.title("Mass segregation")
                 #n-1 minor ticks:
-                plt.axes().xaxis.set_minor_locator(AutoMinorLocator(4))
+                ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+                plt.xlim(0,plotconfig.duration)
                 plt.ylim(0,15)
+                
                 plt.annotate("fdim = "+plotconfig.fdim+", qvir = "+plotconfig.qvir,
                              xy=(1.0, -0.09), xycoords='axes fraction',
                              horizontalalignment='right',
@@ -136,22 +145,24 @@ def lambdaprojections(thiscluster):
                             lambda_minerr = lambda_max - lambda_data
                             #make plot
                             #exec(makeplot) #if 'if errorbars' loop takes ages
+                            
                             if plotconfig.errorbars=='y':
-                                plt.errorbar(time,lambda_data,
+                                ax.errorbar(time,lambda_data,
                                              yerr=[lambda_minerr,lambda_maxerr],
                                              errorevery=5,label=thisproj)
                             else:
-                                plt.plot(time,lambda_data,label=thisproj)
+                                ax.plot(time,lambda_data,label=thisproj)
+                                
                             break #skip next projections & move on to next file
                         
                 plt.legend(loc="upper right", fontsize=10)
-                #plt.show()
+                plt.tight_layout()
                 saveplot = (plotconfig.outpath+'/plots/'+
                                 kval+'_'+ctype+'_'+thislambda+'.pdf')
-                plt.tight_layout()
                 plt.savefig(saveplot, bbox_inches='tight')
                 #print ("    ",kval,"_",ctype,"_",thislambda,".pdf",sep="")
                 print "\t %s_%s_%s.pdf" % (kval, ctype, thislambda)
+                #plt.show()
                 plt.close()
 
 def projectioncompare(thiscluster):
@@ -183,13 +194,13 @@ def projectioncompare(thiscluster):
                 #read in data & make plots for this lambda
                 #set up plot:
                 saveplot = ''
-                my_dpi = 96
-                plt.figure()
+                fig, ax = plt.subplots()
                 plt.xlabel("Time (Myr)")
                 plt.ylabel(plotconfig.lambda_tex[thislambda])
                 plt.title("Mass segregation for 2D projections relative to 3D")
                 #n-1 minor ticks:
-                plt.axes().xaxis.set_minor_locator(AutoMinorLocator(4))
+                ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+                plt.xlim(0,plotconfig.duration)
                 plt.annotate("fdim = "+plotconfig.fdim+", qvir = "+plotconfig.qvir,
                              xy=(1.0, -0.09), xycoords='axes fraction',
                              horizontalalignment='right',
@@ -219,9 +230,12 @@ def projectioncompare(thiscluster):
                         zero_line_data = np.array([0 for i in xrange(len(time))])
                         plt.plot(time,data_3D,label="3D MST",linestyle='dotted')
                         plt.plot(time,zero_line_data)
-                        
-                    for thisproj in projections2D:
+                        break
+
+                    
+                for thisproj in projections2D:
                         #print thisproj
+                    for thisfile in lamfilelist:
                         if thisproj in thisfile:
                             #for thisfile in lamfilelist:
                             nsnap = np.loadtxt(filepath+'/'+thisfile)[:,0]
@@ -236,9 +250,9 @@ def projectioncompare(thiscluster):
                             lambda_maxerr = lambda_data - lambda_min
                             lambda_minerr = lambda_max - lambda_data
                             #make plot
-                            plt.plot(time,lambda_data-data_3D,label=thisproj+'-3D')
+                            ax.plot(time,lambda_data-data_3D,label=thisproj+'-3D')
                             ylow=min(min(lambda_data-data_3D),ylow)
-                            #break #skip next projections & move on to next file
+                            break #move to next projection in 'projections2D'
 
                 #find minimum y value for axis limit:
                 plt.ylim(ylow,15)
@@ -262,6 +276,7 @@ def projectioncompare(thiscluster):
     
 
 def lambdacompare(thiscluster):
+    print ("   Comparing lambda types...")
     for simname in os.listdir(plotconfig.outpath + '/'):
         #loop through each simulation (k number):
         if 'runinv' in simname:
@@ -272,15 +287,15 @@ def lambdacompare(thiscluster):
             
             #set up plot:
             saveplot = ''
-            my_dpi = 96
-            minorLocator = AutoMinorLocator(4) #n-1 minor tick marks
-            plt.figure()
+            fig, ax = plt.subplots()
             plt.xlabel("Time (Myr)")
             plt.ylabel(r"$\Lambda$")
             plt.title("Different measures of mass segregation")
             #n-1 minor ticks:
-            plt.axes().xaxis.set_minor_locator(minorLocator)
+            ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+            plt.xlim(0,plotconfig.duration)
             plt.ylim(0,15)
+            
             plt.annotate("fdim = "+plotconfig.fdim+", qvir = "+plotconfig.qvir,
                          xy=(1.0, -0.09), xycoords='axes fraction',
                          horizontalalignment='right',
@@ -292,7 +307,6 @@ def lambdacompare(thiscluster):
                          xycoords='axes fraction', horizontalalignment='right',
                          verticalalignment='bottom', fontsize=10)
             #plt.show() #check setup
-
             
             #thislambda is given in lambdatypes
             #lamfilelist=[]
@@ -316,12 +330,12 @@ def lambdacompare(thiscluster):
                         lambda_minerr = lambda_max - lambda_data
                         
                         if plotconfig.errorbars=='y':
-                            plt.errorbar(time,lambda_data,
+                            ax.errorbar(time,lambda_data,
                                  yerr=[lambda_minerr,lambda_maxerr],
                                  errorevery=5,
                                  label=plotconfig.lambda_tex[thislambda])
                         else:
-                            plt.plot(time,lambda_data,
+                            ax.plot(time,lambda_data,
                                      label=plotconfig.lambda_tex[thislambda])
                         break #move on to next file
                     
@@ -350,14 +364,15 @@ def lambda_k(thiscluster):
     
     for thislambda in plotconfig.lambdatypes:
         #set up plot:
-        my_dpi=96
         duration = 10. #Duration of simulation (Myr)
-        #plt.figure(figsize=(11.7,8.3), dpi=my_dpi) # A4 landscape
         saveplot = ''
-        plt.figure()
+        fig, ax = plt.subplots()
         plt.xlabel("Time (Myr)")
         plt.ylabel(plotconfig.lambda_tex[thislambda])
         plt.title("Mass segregation")
+        #n-1 minor ticks:
+        ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+        plt.xlim(0,plotconfig.duration)
         plt.ylim(ymax = 15, ymin = 0)
         plt.annotate("fdim = "+plotconfig.fdim+
                      ", qvir = "+plotconfig.qvir,
@@ -385,17 +400,21 @@ def lambda_k(thiscluster):
                     lambda_minerr = lambda_max - lambda_data
                     
                     print "\tPlotting %s..." % simname
-                    plt.plot(time,lambda_data,label=kval)
+                    ax.plot(time,lambda_data,label=kval)
                     #plt.show()
                     
                 else:
                     print "WARNING: file for %s doesn't exist. Skipping." \
                         % (thislambda)
-                    
-        plt.legend(loc="upper right", fontsize=10)
-        saveplot = (plotconfig.outpath + '/plots/'+thislambda+'_'+ctype+
-                    '_comparek.pdf')
+        handles, labels = ax.get_legend_handles_labels()
+        #sort order of legend by labels
+        import operator
+        hl = sorted(zip(handles, labels), key=operator.itemgetter(1))
+        handles, labels = zip(*hl)
+        ax.legend(handles, labels, loc="upper right", fontsize=10)
         #plt.show()
+        saveplot = (plotconfig.outpath + '/plots/'+thislambda+'_'+ctype+
+                    '_compareksorted.pdf')
         plt.tight_layout()
         plt.savefig(saveplot, bbox_inches='tight')
         #print ("         ",thislambda,"_",ctype,"_comparek.pdf",sep="")

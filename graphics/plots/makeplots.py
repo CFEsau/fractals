@@ -16,11 +16,11 @@ plotconfig.fbin = ''
 while not plotconfig.fbin:
     plotconfig.fbin = raw_input('Enter binary fraction: ')
     if plotconfig.fbin == '0%':
-        fbinstr = 'fbin0p0'
+        fbinstr = 'fbinary0p0'
     elif plotconfig.fbin == '50%':
-        fbinstr = 'fbin0p5'
+        fbinstr = 'fbinary0p5'
     elif plotconfig.fbin == '100%':
-        fbinstr = 'fbin1p0'
+        fbinstr = 'fbinary1p0'
     else:
         print "\n Warning: Binary fraction %s not recognised." % (
             plotconfig.fbin)
@@ -57,14 +57,17 @@ while not plotconfig.qvir:
         print "\tOptions are 0.3, 0.5."
         plotconfig.qvir = ''
 
-modelpath = "../../%s/%s%s" % (fbinstr, fdimstr, qvirstr)
+#modelpath = "../../%s/%s%s" % (fbinstr, fdimstr, qvirstr)
+modelpath = "/local/cfe/backed_up_on_astro3/fractals/r1p0/%s/%s%s"% (
+    fbinstr, fdimstr, qvirstr)
 print "\nModel path is %s" % modelpath
 
 print "\n**************************"
 print "*      Making plots      *"
 print "**************************"
 
-plotconfig.outpath = '%s/outputs' % modelpath
+plotconfig.outpath = '%s/analysis' % modelpath
+print (plotconfig.outpath)
 
 #get different types of cluster (all, FoV, etc):
 plotconfig.clustertypes = []
@@ -126,19 +129,19 @@ for thiscluster in plotconfig.clustertypes:
     
     lambd.lambdaprojections(thiscluster) #compare projections for each lambda
     filehandling.mergefiles() #merge plots into one document
-    
+
     #plot 2D projections relative to 3D for each lambda:
     #saved as plots/k##_cluster_lambdatype_proj.pdf before merging
     lambd.projectioncompare(thiscluster)
     filehandling.mergefiles() #merge plots into one document
 
     #Measure divergence from 3D
-    
+
     #--------------------
     #   Lambda methods
     #--------------------
     lambd.lambdacompare(thiscluster) #compare lambda methods (uses 3D)
-    #filehandling.mergefiles()
+    filehandling.mergefiles()
     print "\n"
     
     #--------------------
