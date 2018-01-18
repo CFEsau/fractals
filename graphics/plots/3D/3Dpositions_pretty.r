@@ -1,6 +1,6 @@
 library(scatterplot3d)
 #library(animation)
-source('~/Documents/Work/graphics/plots/3D/addgrids3d.r')
+source('/local/cfe/backed_up_on_astro3/fractals/graphics/plots/3D/addgrids3d.r')
 
 nkvals <- 10
 for (k in 1:nkvals){
@@ -9,12 +9,12 @@ for (k in 1:nkvals){
   else {
     knum=paste0('k',k)}
   
-  fbin='fbin0p0'
+  fbin='fbinary1p0'
   fdim='f16'
-  qvir='q03'
+  qvir='q05'
 
-  masterdir <- '~/Documents/Work'
-  outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'outputs')
+  masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
+  outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
   kdir <- file.path(outdir,paste0('runinv_',knum))
   snapdir <- file.path(kdir,'snapshots')
   setwd(snapdir)

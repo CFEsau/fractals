@@ -2,6 +2,7 @@
 #www.statmethods.net/advgraphs/layout.html
 #2D plots at given projection
 library(animation)
+library(Hmisc) #for minor tick marks
 
 nkvals <- 10
 clustype <- 'cluster_FoV5pc' # one of _all, _FoV#pc, _r#rhalf
@@ -9,21 +10,21 @@ clustype <- 'cluster_FoV5pc' # one of _all, _FoV#pc, _r#rhalf
 for (k in 1:nkvals){
   knum <- sprintf('k%02d',k)
   
-  fbin='fbin0p0'
+  fbin='fbinary1p0'
   fdim='f16'
-  qvir='q03'
+  qvir='q05'
   
-  masterdir <- '~/Documents/Work'
-  outdir <- file.path(masterdir,fbin,paste0(fdim,qvir))
-  kdir <- file.path(outdir,'outputs',paste0('runinv_',knum))
+  masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
+  outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
+  kdir <- file.path(outdir,paste0('runinv_',knum))
   snapdir <- file.path(kdir,'snapshots')
   clusterdir <- file.path(kdir,clustype)
   #paste0('/media/claire/Elements/Work/',fbin,fdim,qvir)
-  #modeldir <- paste0('/media/claire/Elements/Work/fbin0p0/',fdim,qvir,'/outputs')
+  #modeldir <- paste0('/media/claire/Elements/Work/fbin0p0/',fdim,qvir,'/output')
   #snapdir <- file.path(modeldir,paste0('runinv_',knum),'snapshots')
   setwd(snapdir)
   
-  axlim <- 5.0
+  axlim <- 4.7 #limits not working... This actually gives ~5
   fovlim <- 5.0 #Field of view limit in pc
   
   #find number of snapshots
@@ -37,8 +38,8 @@ for (k in 1:nkvals){
            dir.create(file.path(snapdir, proj)), FALSE)
     
     #Movie: Set delay between frames when replaying
-    #ani.options(interval=0.02,loop=1)
-    #saveVideo({
+    ani.options(interval=0.02,loop=1)
+    saveVideo({
     
     #loop over all snapshots
     for (i in 1:nsnaps){
@@ -66,19 +67,24 @@ for (k in 1:nkvals){
       
       
       #Get subset of data containing stars within FoV (centred around mean (x,y,z))
-      plotstars_df <- if (p==1) subset(star_df, star_df[,1]<fovlim+xmean & 
-                                         star_df[,1]>-fovlim+xmean &
-                                         star_df[,2]<fovlim+ymean &
-                                         star_df[,2]>-fovlim+ymean) else if(
-                                           p==2) subset(star_df, star_df[,2]<fovlim+ymean &
-                                                          star_df[,2]>-fovlim+ymean &
-                                                          star_df[,3]<fovlim+zmean &
-                                                          star_df[,3]>-fovlim+zmean) else if(
-                                                            p==3) subset(star_df, star_df[,1]<fovlim+xmean &
-                                                                           star_df[,1]>-fovlim+xmean &
-                                                                           star_df[,3]<fovlim+zmean &
-                                                                           star_df[,3]>-fovlim+zmean)
+      #plotstars_df <- if (p==1) subset(star_df, star_df[,1]<fovlim+xmean & 
+      #                                   star_df[,1]>-fovlim+xmean &
+      #                                   star_df[,2]<fovlim+ymean &
+      #                                   star_df[,2]>-fovlim+ymean) else if(
+      #                                     p==2) subset(star_df, star_df[,2]<fovlim+ymean &
+      #                                                    star_df[,2]>-fovlim+ymean &
+      #                                                    star_df[,3]<fovlim+zmean &
+      #                                                    star_df[,3]>-fovlim+zmean) else if(
+      #                                                      p==3) subset(star_df, star_df[,1]<fovlim+xmean &
+      #                                                                     star_df[,1]>-fovlim+xmean &
+      #                                                                     star_df[,3]<fovlim+zmean &
+      #                                                                     star_df[,3]>-fovlim+zmean)
+      plotstars_df <- if (
+        p==1) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,2]-ymean)^2 ) < fovlim) else if(
+          p==2) subset(star_df, sqrt( (star_df[,2]-ymean)^2 + (star_df[,3]-zmean)^2 ) < fovlim) else if(
+            p==3) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,3]-zmean)^2 ) < fovlim)
       
+      #centre stars around mean:
       rx <- plotstars_df[,1] - xmean
       ry <- plotstars_df[,2] - ymean
       rz <- plotstars_df[,3] - zmean
@@ -126,7 +132,11 @@ for (k in 1:nkvals){
           xlim=c(-axlim,axlim), ylim=c(-axlim,axlim), xlab=paste0(as.name(substr(proj,1,1)),' (pc)'),
               ylab=paste0(as.name(substr(proj,2,2)),' (pc)'), cex.lab=1)
       points(xobjdat,yobjdat,col='darkred',cex=1.2,pch=20)
+      minor.tick(nx=2,ny=2,tick.ratio=0.4)
+      curve(sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
+      curve(-sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
       
+      #use 'segments' to draw a line between pairs of points
         #if (p==1) {
         #  segments(x0[j], y0[j], x1[j], y1[j])#, col = par("fg"), lty = par("lty"), xpd = FALSE)
         #} else if (p==2) {
@@ -146,6 +156,6 @@ for (k in 1:nkvals){
       
       #dev.off() #close plot
     }#end of snapshot loop
-    #},video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc.mp4")) #end of video
+    },video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc_new.mp4")) #end of video
   }#end of projection loop
 }#end of knum loop

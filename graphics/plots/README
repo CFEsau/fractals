@@ -2,10 +2,23 @@ There are various types of plots produced by the code in this directory.
 Before plots are created, ensure model output data has been reduced using the analysis code in ../reduce.
 
 -------------------------------------------------------------------
-2D positions - black bakground, coloured points of different sizes
+2D positions
 
-All 3 projections on one plot: 2Dpositions_pretty_all.r
-Plot one projection (set in code): 2Dpositions_pretty.r
+Black bakground, coloured points of different sizes
+ - All 3 projections on one plot: 2Dpositions_pretty_all.r
+ - Plot one projection (defined in code): 2Dpositions_pretty.r
+
+White background, 'object' stars in red with others in grey
+ - As above: 2Dpositions_sciencey.r
+ - Plots showing MST edges: 2Dpositions_sciencey_mst.r
+
+
+-------------------------------------------------------------------
+3D positions
+
+Black background, coloured points of different sizes (3Dpositions_pretty.r)
+White background, 'object' stars in red with vertical lines to xy plane
+
 
 -------------------------------------------------------------------
 In plots,
