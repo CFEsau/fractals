@@ -7,21 +7,22 @@ origin <- getwd()
 p_knum <- data.frame('k'=numeric(),'U'=numeric(),'t'=numeric())
 
 # Build the directory structure:
-fdim <- '16'; qvir <- '03' #strings to match directory structure
+fdim <- '16'; qvir <- '05' #strings to match directory structure
 cluster <- 'cluster_FoV5pc'
 
 # General outputs directory: upper level for all simulation data, data analysis, and plots:
-outpath <- paste0('../../../r0p5/fbin0p0/f',fdim,'q',qvir,'/analysis')
+outpath <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary1p0/f',fdim,'q',qvir,'/analysis')
 
 for (k in 1:10) {
   # Directory containing analysed data:
   knum <- ifelse(k<10,paste0('0',as.character(k)),as.character(k))
   simpath <- file.path(outpath,paste0('runinv_k',knum),cluster)
   
-  # Output directory for plots:
-  plotsdir <- paste0(outpath,'/plots/cdf_',knum)
+  plotsdir <- paste0(outpath,'/plots/cdf_',knum) #output directory for plots
+  #create output directory if it doesn't exist:
+  ifelse(!dir.exists(plotsdir), dir.create(plotsdir), FALSE)
   
-  # Filenames:
+  # Input filenames for lambda data:
   fn3d <- 'allMSTs_lambar_3D.dat'; fnxy <- 'allMSTs_lambar_xy.dat'
   # Read in data as data frames:
   df3D <- read.table(file.path(simpath,'CDFdata/allMSTs_lambar_3D.dat'), row.names=1)
@@ -48,6 +49,7 @@ for (k in 1:10) {
   pvals$t <- ifelse(pvals$t<1.e-99,1.e-99,pvals$t)
   
   #Find p-vales that fall below 0.001 (3 sigma)
+  #If true, projection is in agreement with 3D distribution
   pvals$agree_U <- ifelse(pvals$U<1.e-3,TRUE,FALSE)
   pvals$agree_t <- ifelse(pvals$t<1.e-3,TRUE,FALSE)
   
@@ -85,16 +87,17 @@ for (k in 1:10) {
   #  geom_histogram() +  
   #  ggtitle("(2) countScale with ggplot") +  
   #  scale_x_log10()
-  plot1t <- ggplot(data=pvals, aes(pvals$t)) + geom_histogram(binwidth=1.e0) +
+  plot1t <- ggplot(data=pvals, aes(pvals$t)) + 
+    geom_histogram(binwidth=1.e0) +
     #scale_x_log10(limits = c(1e-12, 1), breaks = seq(min(1e-12),max(1), by = 1.e0))
     scale_x_log10(limits = c(1e-40, 1),
                   breaks = scales::trans_breaks("log10", function(x) 10^x),
                   labels = scales::trans_format("log10", scales::math_format(.x)))+ #or format (10^.x)
     #expand=c(0,0)) + #(change close par to comma on above line if uncommenting)
-    labs(x = "log(p-value), e^-40 -- 1") +
+    labs(x = "log(p-value), e^-40 -- 1") + 
     scale_y_continuous(expand=c(0,0)) +
     theme_bw() #+
-  #annotation_logticks(sides='b')   #log ticks on x-axis
+    #annotation_logticks(sides='b')   #log ticks on x-axis
   
   plot2t <- ggplot(data=pvals, aes(pvals$t)) + geom_histogram(binwidth=1.e0) +
     scale_x_log10(limits = c(1e-12, 1),
@@ -105,11 +108,14 @@ for (k in 1:10) {
     scale_y_continuous(expand=c(0,0)) +
     theme_bw()
   
-  # Add plots
-  plot(ggarrange(plot1U, plot1t, plot2U, plot2t,
+  # Add plots (ggarrange adds multiple to same page)
+  figure <- ggarrange(plot1U, plot1t, plot2U, plot2t,
                  labels = c("U", "t", "U", "t"),
-                 ncol = 2, nrow = 2))
-  
+                 ncol = 2, nrow = 2)
+  #plot(figure)
+  annotate_figure(figure,
+                  top=text_grob("k01",face="bold",size=10)
+  )
   #------------------------------------------------------------
   # Find fraction of lambdas that agree between projections
   nU <- 0; nt <- 0
@@ -117,4 +123,7 @@ for (k in 1:10) {
   pfrac_U <- sum(nU)/nlambdas; pfrac_t <- sum(nt)/nsnaps
   
   p_knum[as.numeric(knum),] <- c(as.numeric(knum),pfrac_U,pfrac_t)
+  
 }
+
+boxplot(p_knum$U,p_knum$t,names=c("U","t"),range=0,ylim=c(0.5,1))
