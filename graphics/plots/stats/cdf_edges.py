@@ -26,13 +26,13 @@ fbinval=''
 while not fbinval:
     fbinval=str(raw_input('Enter binary fraction: '))
     if fbinval == '0%':
-        fbin='fbin0p0'
+        fbin='fbinary0p0'
         break
     elif fbinval == '50%':
-        fbin='fbin0p5'
+        fbin='fbinary0p5'
         break
     elif fbinval == '100%':
-        fbin='fbin1p0'
+        fbin='fbinary1p0'
         break
     else:
         print '\n Warning: Binary fraction %s not recognised.' % fbinval
@@ -44,16 +44,16 @@ fdimval=''
 while not fdimval:
     fdimval=str(raw_input('Enter fractal dimension: '))
     if fdimval == '1.6':
-        fdim='fdim1p6'
+        fdim='f16'
         break
     elif fdimval == '2.0':
-        fdim='fdim2p0'
+        fdim='f20'
         break
     elif fdimval == '2.6':
-        fdim='fdim2p6'
+        fdim='f26'
         break
     elif fdimval == '3.0':
-        fdim='fdim3p0'
+        fdim='f30'
         break
     else:
         print '\n Warning: fractal dimension %s not recognised.' % fdimval
@@ -65,10 +65,10 @@ qvirval=''
 while not qvirval:
     qvirval  = str(raw_input('Enter virial ratio: '))
     if qvirval == '0.3':
-        qvir='qvir0p3'
+        qvir='q03'
         break
     elif qvirval == '0.5':
-        qvir='qvir0p5'
+        qvir='q05'
         break
     else:
 	print "\n Warning: virial ratio %s not recognised." % qvirval
@@ -77,7 +77,7 @@ while not qvirval:
         qvirval=''
 
 
-outpath='../'+fbin+'/'+fdim+'/'+qvir+'/outputs'
+outpath='/local/cfe/backed_up_on_astro3/fractals/r1p0/'+fbin+'/'+fdim+qvir+'/analysis'
 simpath=outpath+'/runinv_k'+simnum+'/'+cluster+'/' #path to data
 plotsdir=outpath+'/plots/cdf_k'+simnum #directory for saving plots
 
@@ -249,7 +249,7 @@ for thissnap in snapshots:
     plt.text(xlabelgeo, ylabelgeo, '$\Gamma$',color='g',fontsize=11)
     
     #plt.show()
-    saveplot = (plotsdir+'/cdf_snap'+'%03d'%thissnap+'_obj.png')
+    saveplot = (plotsdir+'/edges_snap'+'%03d'%thissnap+'_obj.png')
     plt.savefig(saveplot, bbox_inches='tight')
     print "Plot saved at " + saveplot
     plt.close()
