@@ -15,6 +15,7 @@ White background, 'object' stars in red with others in grey
 
 -------------------------------------------------------------------
 3D positions
+Kept in separate directory for clarity as it needs the 'addgrids3d' code.
 
 Black background, coloured points of different sizes (3Dpositions_pretty.r)
 White background, 'object' stars in red with vertical lines to xy plane
@@ -32,3 +33,16 @@ Plots lambdas:
 
 Edits to code for lambda plots made on 17/01/2018 for compatibility with matplotlib 2.0.
 Info on style changes available at matplotlib.org/users/dflt_style_changes.html
+
+
+-------------------------------------------------------------------
+Stats
+
+CDFs.r: Plots CDFs for all lambda values (for all random MSTs) at given snapshots, comparing given 2D projection with 3D
+      Plots probability density functions for these snapshots
+      Runs wilcoxon test & t-test for each of these distributions
+
+pvals.r: Finds how often 2D projection agrees with 3D distribution (p_knum)
+	 Plots p-values at each snapshot in a histogram
+
+cdf_edges.py: plots CDFs of edge lengths for a number of random MSTs at different snapshots
