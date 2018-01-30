@@ -29,7 +29,7 @@ PROGRAM reduce
   CHARACTER*4 :: ofilen
   CHARACTER*8 :: outfile
 
-  writesnap=.FALSE.
+  writesnap=.TRUE.
   
   CALL GETARG(1,inarg) ! Get name & path of runfile from command line
   PRINT *, 'Input file: ',TRIM(inarg)
