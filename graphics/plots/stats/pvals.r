@@ -1,17 +1,19 @@
 library(ggplot2)
+library(Hmisc) # for minor tick marks
 library(ggpubr) # for multiplot
 
 origin <- getwd()
 
 # Data frame for results
-p_knum <- data.frame('k'=numeric(),'U'=numeric(),'t'=numeric())
+p_knum <- data.frame('fdim'=numeric(),'qvir'=numeric(),
+                     'k'=numeric(),'U'=numeric(),'t'=numeric())
 
 # Build the directory structure:
-fdim <- '16'; qvir <- '05' #strings to match directory structure
+fdim <- '16'; qvir <- '03' #strings to match directory structure
 cluster <- 'cluster_FoV5pc'
 
 # General outputs directory: upper level for all simulation data, data analysis, and plots:
-outpath <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary1p0/f',fdim,'q',qvir,'/analysis')
+outpath <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0/f',fdim,'q',qvir,'/analysis')
 
 for (k in 1:10) {
   # Directory containing analysed data:
@@ -122,8 +124,17 @@ for (k in 1:10) {
   nU <- ifelse(pvals$agree_U,nU+1,nU); nt <- ifelse(pvals$agree_t,nt+1,nt)
   pfrac_U <- sum(nU)/nlambdas; pfrac_t <- sum(nt)/nsnaps
   
-  p_knum[as.numeric(knum),] <- c(as.numeric(knum),pfrac_U,pfrac_t)
+  #update knum'th row of data frame:
+  p_knum[as.numeric(knum),] <- c(as.numeric(fdim)/10,as.numeric(qvir)/10,
+                                 as.numeric(knum),pfrac_U,pfrac_t)
   
 }
 
+#Output dataframe as table with p-vals to 4 d.p.
+write.table(format(p_knum,digits=3),file=file.path(outpath,"pvals.dat"),
+            quote=FALSE, row.names=FALSE, sep="\t")
+
 boxplot(p_knum$U,p_knum$t,names=c("U","t"),range=0,ylim=c(0.5,1))
+minor.tick(ny=4,tick.ratio=0.3)
+#grid(NA,NULL,col="lightgray",lty=2) #nx=NA; ny=NULL (defult major tick positions)
+abline(h=seq(from=0.5,to=1,by=0.05),col="lightgray",lty=2)
