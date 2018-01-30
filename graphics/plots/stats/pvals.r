@@ -130,11 +130,16 @@ for (k in 1:10) {
   
 }
 
+#Format columns for output file:
+table_format <- c(rep("%.1f",2),"%2d",rep("%.3f",2))
+p_knum_fmt <- p_knum
+p_knum_fmt[] <- mapply(sprintf, table_format, p_knum)
+
 #Output dataframe as table with p-vals to 4 d.p.
-write.table(format(p_knum,digits=3),file=file.path(outpath,"pvals.dat"),
+write.table(p_knum_fmt,file=file.path(outpath,"pvals.dat"),
             quote=FALSE, row.names=FALSE, sep="\t")
 
 boxplot(p_knum$U,p_knum$t,names=c("U","t"),range=0,ylim=c(0.5,1))
 minor.tick(ny=4,tick.ratio=0.3)
 #grid(NA,NULL,col="lightgray",lty=2) #nx=NA; ny=NULL (defult major tick positions)
-abline(h=seq(from=0.5,to=1,by=0.05),col="lightgray",lty=2)
+abline(h=seq(from=0.5,to=1,by=0.05),col="lightgray",lty=2) #more control than 'grid'
