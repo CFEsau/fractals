@@ -1,6 +1,7 @@
 library(ggplot2)
 library(Hmisc) # for minor tick marks
 library(ggpubr) # for multiplot
+library(png) # for reading in & overwriting png at the end
 
 origin <- getwd()
 
@@ -14,6 +15,8 @@ cluster <- 'cluster_FoV5pc'
 
 # General outputs directory: upper level for all simulation data, data analysis, and plots:
 outpath <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0/f',fdim,'q',qvir,'/analysis')
+pvaldir <- file.path(outpath,"pvals")
+ifelse(!dir.exists(pvaldir), dir.create(pvaldir), FALSE)
 
 for (k in 1:10) {
   # Directory containing analysed data:
@@ -114,10 +117,10 @@ for (k in 1:10) {
   figure <- ggarrange(plot1U, plot1t, plot2U, plot2t,
                  labels = c("U", "t", "U", "t"),
                  ncol = 2, nrow = 2)
-  #plot(figure)
-  annotate_figure(figure,
-                  top=text_grob("k01",face="bold",size=10)
-  )
+  png(filename=paste0(pvaldir,"/pvals_",knum,".png"))
+  plot(figure)
+  #annotate_figure(figure, top=text_grob(paste0("k",knum), face="bold", size=10))
+  dev.off()
   #------------------------------------------------------------
   # Find fraction of lambdas that agree between projections
   nU <- 0; nt <- 0
@@ -136,10 +139,30 @@ p_knum_fmt <- p_knum
 p_knum_fmt[] <- mapply(sprintf, table_format, p_knum)
 
 #Output dataframe as table with p-vals to 4 d.p.
-write.table(p_knum_fmt,file=file.path(outpath,"pvals.dat"),
+write.table(p_knum_fmt,file=file.path(pvaldir,"pvals.dat"),
             quote=FALSE, row.names=FALSE, sep="\t")
 
 boxplot(p_knum$U,p_knum$t,names=c("U","t"),range=0,ylim=c(0.5,1))
 minor.tick(ny=4,tick.ratio=0.3)
 #grid(NA,NULL,col="lightgray",lty=2) #nx=NA; ny=NULL (defult major tick positions)
 abline(h=seq(from=0.5,to=1,by=0.05),col="lightgray",lty=2) #more control than 'grid'
+#dev.off() #close plot
+
+#'annotate_figure' isn't working in the loop - figure not updating.
+#May just be my version of Rstudio (1.1.383).
+#In the meantime, load and annotate the png with knum, then overwrite.
+for (k in 1:10) {
+  knum <- ifelse(k<10,paste0('0',as.character(k)),as.character(k))
+  
+  img <- readPNG(paste0(pvaldir,"/pvals_",knum,".png"))
+  h <- dim(img)[1]
+  w <- dim(img)[2]
+  png(paste0(pvaldir,"/pvals_",knum,".png"),width=w,height=h)
+  par(mar=c(0,0,0,0),xpd=NA,mgp=c(0,0,0),oma=c(0,0,0,0),ann=F)
+  plot.new()
+  plot.window(0:1,0:1)
+  usr <- par("usr")
+  rasterImage(img, usr[1], usr[3], usr[2], usr[4]*0.95)
+  text(.52,1.01,paste0("k",knum),cex=1)
+  dev.off()
+}
