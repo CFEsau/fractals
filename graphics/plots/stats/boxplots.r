@@ -1,3 +1,6 @@
+library(ggplot2)
+library(data.table)
+
 #Must run pvals.r first to get data
 origin <- getwd()
 
@@ -26,6 +29,20 @@ for (f in 1:length(fvals)) {
     }
   }
 }
-fbin = "fbinary1p0"
-fdim <- c("16", "20", "26", "30")
-qvir <- c("03", "05")
+alldata.m <- melt(alldata[,c("qvir","fdim","t")],id=c("qvir","fdim","t"))
+
+#Create boxplot:
+ggplot(data=alldata.m,                       #plot melted data
+       aes(x=as.character(fdim),y=t)) +      #x- & y-axis variables
+  geom_boxplot(aes(fill=as.character(qvir)), #colour boxes depending on qvir
+               coef=20,                 #include outliers in whiskers (arbitrary large-ish number)
+               position=position_dodge(width=0.85), #make space between boxes
+               width = 0.8)                 #change width of boxes
+
+for (i in 1:length(fvals)){
+  boxplot(alldata$fdim[[i]],range=0)
+}
+
+#fbin = "fbinary1p0"
+#fdim <- c("16", "20", "26", "30")
+#qvir <- c("03", "05")
