@@ -44,8 +44,8 @@ for (k in 1:10) {
       #perform t-test on data:
       t.test(as.numeric(df3D[i,]), as.numeric(dfxy[i,]))$p.value
       )
-    )
-  }
+    ) #end of pvals rbind
+  } #end of nsnaps loop
   colnames(pvals) <- c( 'U', 't')
   
   #Change p-values of 0 to be really really small
@@ -146,10 +146,10 @@ p_knum_fmt[] <- mapply(sprintf, table_format, p_knum)
 write.table(p_knum_fmt,file=file.path(pvaldir,"pvals.dat"),
             quote=FALSE, row.names=FALSE, sep="\t")
 
-boxplot(p_knum$U,p_knum$t,names=c("U","t"),range=0,ylim=c(0.5,1))
+boxplot(p_knum$U,p_knum$t,names=c("U","t"),range=0,ylim=c(0,0.5))
 minor.tick(ny=4,tick.ratio=0.3)
 #grid(NA,NULL,col="lightgray",lty=2) #nx=NA; ny=NULL (defult major tick positions)
-abline(h=seq(from=0.5,to=1,by=0.05),col="lightgray",lty=2) #more control than 'grid'
+abline(h=seq(from=0.0,to=0.5,by=0.05),col="lightgray",lty=2) #more control than 'grid'
 #dev.off() #close plot
 
 #'annotate_figure' isn't working in the loop - figure not updating.
