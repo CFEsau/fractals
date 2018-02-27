@@ -33,19 +33,6 @@ macro2d <- read.table(file.path(simpath,'CDFdata/allMSTs_lambar_xy.dat'), row.na
 lambdas3d <- data.matrix(macro3d[snapshots,])
 lambdas2d <- data.matrix(macro2d[snapshots,])
 
-#'ecdf': Empirical Cumulative Distribution Function
-#for (snap in 1:length(snapshots)){
-#  CDF1 <- ecdf(lambdas3d[snap,])
-#  CDF2 <- ecdf(lambdas2d[snap,])
-#  outfn <- sprintf('lambdas%02s_snap%04d.png',proj,snapshots[snap]) # output file name
-#  #set up output plot:
-#  png(filename=file.path(plotsdir,outfn),width = 500, height = 500)#,res=40)
-#  plot(CDF1, do.points=FALSE) #plot CDF1
-#  lines(CDF2, col='red', do.points=FALSE) #overplot CDF2
-#  legend("topleft",legend=c("3D","xy"),col=c('black','red'),lty=c(1,1))
-#  dev.off() #close plot
-#}
-
 #kernel density estimates
 #(see https://www.r-bloggers.com/the-density-function/ for good summary)
 for (snap in 1:length(snapshots)){
@@ -55,7 +42,11 @@ for (snap in 1:length(snapshots)){
   df_long <- melt(df) #convert data to long format
   
   pval <- wilcox.test(as.numeric(lambdas3d[snap,]),as.numeric(lambdas2d[snap,]),paired=FALSE)$p.value
-
+  
+  #set up output plot:
+  outfn_pdf <- sprintf('pdf%02s_snap%04d.png',proj,snapshots[snap]) # output file name
+  png(filename=file.path(plotsdir,outfn_pdf),width = 500, height = 500)#,res=40)
+  
   plot(
     ggplot(df_long, aes(x=value,color=variable)) +
       geom_line(stat="density") +
@@ -72,39 +63,19 @@ for (snap in 1:length(snapshots)){
              label=ifelse(pval>1.e-3,TRUE,FALSE)) +
       annotate("text",x=-Inf,y=Inf,hjust=0,vjust=1,label=sprintf("snap %04d",snapshots[snap]))
   )
-  
-  ##density data (nloop lambdas) taken from each row of data table (1st PDF from 1st snapshot, etc).
-  #dens3d <- density(lambdas3d[snap,])
-  #dens2d <- density(lambdas2d[snap,])
-  #outfn2 <- sprintf('pdf%02s_snap%04d.png',proj,snapshots[snap]) # output file name
-  ##set up output plot:
-  #png(filename=file.path(plotsdir,outfn2),width = 500, height = 500)#,res=40)
-  #ylim <- max(range(dens3d$y, dens2d$y))
-  #plot(dens3d,ylim=c(0, ylim),main=snapshots[snap])
-  #lines(dens2d, col='red')
-  #legend("topright",legend=c("3D","xy"),col=c('black','red'),lty=c(1,1))
-  
-  ##calculate the p-value for the distribution & annotate
-  #pval <- wilcox.test(as.numeric(lambdas3d[snap,]), as.numeric(lambdas2d[snap,]),paired=FALSE)$p.value
-  #usr <- par("usr")
-  #text(usr[1]*1.02,usr[4]*0.99,labels=sprintf("p = %4.2e",pval),adj=c(0,1))
-  #text(usr[1]*1.02,usr[4]*0.92,labels=ifelse(pval>1.e-3,TRUE,FALSE),adj=c(0,0))
-  
-  ##add vertical line at median lambda
-  #med3d <- median(lambdas3d[snap,])
-  #abline(v=med3d,col="blue")
-  ##add shaded region to +- 10% median
-  #rect(xleft=med3d*0.9,ybottom=usr[3],xright=med3d*1.1,ytop=usr[4],col="lightblue",lty=0)
-  
-  #dev.off() #close plot
+  dev.off() #close plot
 }
 
 
-
-#ks.test(lambdas3d[3,],lambdasxy[3,])
-
-#wilcox.test(lambdas3d[snap,],lambdasxy[snap,])
-#pfromU <- wilcox.test(lambdas3d[snap,],lambdasxy[snap,])
-
-#t.test(lambdas3d[snap,],lambdasxy[snap,])
-#pfromt <- t.test(lambdas3d[snap,],lambdasxy[snap,])
+#'ecdf': Empirical Cumulative Distribution Function
+#for (snap in 1:length(snapshots)){
+#  CDF1 <- ecdf(lambdas3d[snap,])
+#  CDF2 <- ecdf(lambdas2d[snap,])
+#  outfn_cdf <- sprintf('lambdas%02s_snap%04d.png',proj,snapshots[snap]) # output file name
+#  #set up output plot:
+#  png(filename=file.path(plotsdir,outfn_cdf),width = 500, height = 500)#,res=40)
+#  plot(CDF1, do.points=FALSE) #plot CDF1
+#  lines(CDF2, col='red', do.points=FALSE) #overplot CDF2
+#  legend("topleft",legend=c("3D","xy"),col=c('black','red'),lty=c(1,1))
+#  dev.off() #close plot
+#}
