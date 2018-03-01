@@ -12,7 +12,7 @@ import plotconfig
 mpl.rcParams['lines.linewidth'] = 1.0 #set default line width to 1.0.
 # Changed to 1.5 in Matplotlib 2.0 (see matplotlib.org/users/dflt_style_changes.html)
 
-    
+
 def printlambda():
     print "\n------------"
     print "-- Lambda --"
@@ -70,6 +70,7 @@ def lambdaprojections(thiscluster):
     projections=['3D','xy','xz','yz']
 
     for simname in os.listdir(plotconfig.outpath + '/'):
+        
         #loop through each simulation (k number):
         if 'runinv' in simname:
             kval = simname.split("_")[1] #get k01, k02, etc
@@ -127,11 +128,9 @@ def lambdaprojections(thiscluster):
                 #    makeplot='plt.plot(time,lambda_data,label=thisproj)'
                 
                 #plot data for each projection:
-                for thisfile in lamfilelist:
-                    for thisproj in projections:
-                        #print thisproj
+                for thisproj in projections:
+                    for thisfile in lamfilelist:
                         if thisproj in thisfile:
-                            #for thisfile in lamfilelist:
                             nsnap = np.loadtxt(filepath+'/'+thisfile)[:,0]
                             time = (nsnap/nsnap[-1])*plotconfig.duration
                             
@@ -164,7 +163,7 @@ def lambdaprojections(thiscluster):
                 print "\t %s_%s_%s.pdf" % (kval, ctype, thislambda)
                 #plt.show()
                 plt.close()
-
+            
 def projectioncompare(thiscluster):
     #duration = 10. #Duration of simulation (Myr)
     projections2D=['xy','xz','yz']
