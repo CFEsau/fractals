@@ -129,15 +129,15 @@ for thiscluster in plotconfig.clustertypes:
     lambd.lambdaprojections(thiscluster) #compare projections for each lambda
     filehandling.mergefiles() #merge plots into one document
     print "\n"
-
+    
     #plot 2D projections relative to 3D for each lambda:
     #saved as plots/k##_cluster_lambdatype_proj.pdf before merging
     lambd.projectioncompare(thiscluster)
     filehandling.mergefiles() #merge plots into one document
     print "\n"
-
+    
     #Measure divergence from 3D
-
+    
     #--------------------
     #   Lambda methods
     #--------------------

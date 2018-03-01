@@ -15,7 +15,10 @@ def getclusters():
         #print ("This model:",kmodel)
         if 'runinv_k' in kmodel:
             for thiscluster in os.listdir(kmodel):
-                if 'cluster_' in thiscluster:
+                #check that directory starts with 'cluster_' and is a directory
+                if ('cluster_' in thiscluster) and (
+                        os.path.isdir(kmodel+'/'+thiscluster)):
+                    #append this cluster to 'clustertypes' if not present
                     if thiscluster not in plotconfig.clustertypes:
                         plotconfig.clustertypes.append(thiscluster)
     os.chdir(owd)
@@ -32,9 +35,9 @@ def mergefiles():
     owd = os.getcwd()
     filepath = plotconfig.outpath+'/plots'
     os.chdir(filepath)
-
+    
     flist = glob.glob('k*.pdf') 
-       
+    
     while flist:  #do while flist isn't empty
         thiskplot=flist[0]  #take first filename
         filestructure = thiskplot.split('_')
@@ -49,14 +52,14 @@ def mergefiles():
                 mergelist.append(thispdf)
             newfile = parameter+'_'+thiscluster+'.pdf'
             mergelist.write(newfile)
-            print ("Files merged: "+newfile)
+            #print ("Files merged: "+newfile)
             for thispdf in pdflist:
                 os.remove(thispdf)
             pdflist=[]
         else:
             break
-
+        
         flist = glob.glob('k*.pdf') #update file list
-            
+    
     os.chdir(owd)
     #time.sleep(0.4)
