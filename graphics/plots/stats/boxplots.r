@@ -1,7 +1,8 @@
+#Must make sure pvals.r has been run first to get data!
+
 library(ggplot2)
 library(data.table)
 
-#Must run pvals.r first to get data
 origin <- getwd()
 
 #Only variable needed is binary fraction.
@@ -14,8 +15,24 @@ qstr <- c("q03", "q05")
 
 alldata <- data.table()
 
-fn <- 'alldata.txt'
-alldata <- read.table(fn, header=TRUE)
+#go into each model directory to build data table:
+for (f in 1:length(fvals)) {
+  for (q in 1:length(qvals)) {
+    pdir <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0/',fstr[f],qstr[q],
+                   '/analysis/pvals')
+    fn <- file.path(pdir,"pvals.dat")
+    
+    if (file.exists(fn)) {
+      print(sprintf("f = %.1f, q = %.1f",fvals[f],qvals[q]))
+      mydata <- read.table(fn,header=TRUE)
+      alldata <- rbind(alldata,mydata)
+    } else {
+      print(sprintf("%s doesn't exist. Skipping.",file))
+      next
+    }
+  }
+}
+
 alldata.m <- melt(alldata[,c("qvir","fdim","U")],id=c("qvir","fdim","U"))
 
 #Create boxplot:
@@ -30,8 +47,8 @@ plot(ggplot(data=alldata.m,                      #plot melted data
        theme_bw() +
        theme(text = element_text(size = 11, family = "Tahoma")) +
        scale_y_continuous(name = "% agreement 2D vs. 3D",
-                          breaks = seq(0.5, 1.0, 0.1), #major ticks
-                          limits=c(0.5,1.0)) +         #y-axis limits
+                          breaks = seq(0.0, 1.0, 0.1), #major ticks
+                          limits=c(0.0,0.5)) +         #y-axis limits
        scale_x_discrete(name = "Fractal dimension") +
        labs(fill = "Virial ratio")
      )
