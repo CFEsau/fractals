@@ -20,7 +20,7 @@ knum <- 'k10'
 snapshots <- c(25:42,60:80,120:135)
 
 simpath <- file.path(outpath,paste0('runinv_',knum),cluster)
-plotsdir <- paste0(outpath,'/plots/cdf_',knum,'_test') #outputs directory for plots
+plotsdir <- paste0(outpath,'/plots/cdf_',knum) #outputs directory for plots
 #create output directory if it doesn't exist:
 ifelse(!dir.exists(plotsdir), dir.create(plotsdir), FALSE)
 
