@@ -8,12 +8,12 @@ nkvals <- 10
 for (k in 1:nkvals){
   knum <- sprintf('k%02d',k)
   
-  fbin='fbin0p0'
+  fbin='fbinary0p0'
   fdim='f16'
   qvir='q05'
   
-  masterdir <- '/media/claire/Elements/Work'
-  outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'outputs')
+  masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
+  outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
   kdir <- file.path(outdir,paste0('runinv_',knum))
   snapdir <- file.path(kdir,'snapshots')
   setwd(snapdir)

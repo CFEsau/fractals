@@ -6,14 +6,15 @@ nkvals <- 10
 for (k in 1:nkvals){
   knum <- sprintf('k%02d',k)
   
-  fbin <- 'fbinary1p0'
+  fbin <- 'fbinary0p0'
   fdim <- 'f16'
-  qvir <- 'q05'
+  qvir <- 'q03'
   
   masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
   outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
   snapdir <- file.path(outdir,paste0('runinv_',knum),'snapshots')
   setwd(snapdir)
+  ifelse(!dir.exists('3D'), dir.create('3D'), FALSE)
   
   nmst <- 10
   axlim <- 6  #I'm not sure why the plot doesn't like '5'/certain numbers...
@@ -33,7 +34,7 @@ for (k in 1:nkvals){
       infn <- sprintf('snap%04d',i)
       outfn <- sprintf('3D/3Dsnap%04d.png',i)
       #set up output plot
-      #png(filename=outfn)
+      png(filename=outfn)
       
       #read data and save to vectors
       snapdata <- read.table(infn,col.names=c('IDdat','IDstar','tstar',
@@ -97,7 +98,7 @@ for (k in 1:nkvals){
         ylab_x <- dims[1]+ 0.9*diff(dims[1:2])
         ylab_y <- dims[3]+ 0.1*diff(dims[3:4])
         text(ylab_x,ylab_y,"y (pc)",srt=45)
-      #dev.off()
+      dev.off()
     }
 #  },video.name=paste0(outdir,"/movies/",knum,"_",fovlim,"pc.mp4"))
 } #end of kvals

@@ -10,9 +10,9 @@ clustype <- 'cluster_FoV5pc' # one of _all, _FoV#pc, _r#rhalf
 for (k in 1:nkvals){
   knum <- sprintf('k%02d',k)
   
-  fbin='fbinary1p0'
+  fbin='fbinary0p0'
   fdim='f16'
-  qvir='q05'
+  qvir='q03'
   
   masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
   outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
@@ -32,6 +32,7 @@ for (k in 1:nkvals){
   
   #loop over all projections
   for (p in 1:3){
+  
     proj <- if (p==1) 'xy' else if (p==2) 'yz' else if (p==3) 'xz'
     
     ifelse(!dir.exists(file.path(snapdir, proj)),
@@ -61,9 +62,9 @@ for (k in 1:nkvals){
       #set up data frame with coordinates and masses ordered by decreasing mass
       star_df <- data.frame(rx_all,ry_all,rz_all,mstar_all)[order(-mstar_all),]
       
-      outfn <- sprintf('%02ssnap%04d.png',proj,i)
+      outfn <- sprintf('mst%02ssnap%04d.png',proj,i)
       #set up output plot
-      #png(filename=file.path(proj,outfn),width = 500, height = 500)#,res=40)
+      png(filename=file.path(proj,outfn),width = 500, height = 500)#,res=40)
       
       
       #Get subset of data containing stars within FoV (centred around mean (x,y,z))
@@ -154,7 +155,8 @@ for (k in 1:nkvals){
       
       mtext(sprintf('t = %.2f Myr',(i/nsnaps)*10),side=3,adj=1)#,col.main = "gray80",cex.main=0.9)
       
-      #dev.off() #close plot
+      dev.off() #close plot
+      
     }#end of snapshot loop
     },video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc_new.mp4")) #end of video
   }#end of projection loop
