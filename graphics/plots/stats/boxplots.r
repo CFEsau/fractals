@@ -14,12 +14,12 @@ qvals <- c(0.3, 0.5)
 qstr <- c("q03", "q05")
 
 alldata <- data.table()
+fbinarydir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0'
 
 #go into each model directory to build data table:
 for (f in 1:length(fvals)) {
   for (q in 1:length(qvals)) {
-    pdir <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0/',fstr[f],qstr[q],
-                   '/analysis/pvals')
+    pdir <- paste0(fbinarydir,'/',fstr[f],qstr[q],'/analysis/pvals')
     fn <- file.path(pdir,"pvals.dat")
     
     if (file.exists(fn)) {
@@ -33,12 +33,14 @@ for (f in 1:length(fvals)) {
   }
 }
 
-alldata.m <- melt(alldata[,c("qvir","fdim","U")],id=c("qvir","fdim","U"))
+alldata.m <- melt(alldata[,c("qvir","fdim","total")],id=c("qvir","fdim","total"))
 
 #Create boxplot:
-plot(ggplot(data=alldata.m,                      #plot melted data
+png(filename=paste0(fbinarydir,"/boxplot_agreements.png"))
+plot(
+  ggplot(data=alldata.m,                      #plot melted data
             aes(x=as.character(format(fdim,digits=2)), #x-axis variables formatted to 1 d.p.
-                y=U)) +  #y-axis variables
+                y=total)) +  #y-axis variables
        geom_boxplot(alpha=0.7,
                     aes(fill=as.character(qvir)), #colour boxes depending on qvir
                     coef=20,    #include outliers in whiskers (arbitrary large-ish number)
@@ -48,10 +50,11 @@ plot(ggplot(data=alldata.m,                      #plot melted data
        theme(text = element_text(size = 11, family = "Tahoma")) +
        scale_y_continuous(name = "% agreement 2D vs. 3D",
                           breaks = seq(0.0, 1.0, 0.1), #major ticks
-                          limits=c(0.0,0.5)) +         #y-axis limits
+                          limits=c(0.0,0.65)) +         #y-axis limits
        scale_x_discrete(name = "Fractal dimension") +
        labs(fill = "Virial ratio")
      )
+dev.off()
 #need plot() around ggplot() for Source... fine without if running from command line...
 
 #box plot using all data combined:
