@@ -1,4 +1,4 @@
-
+#Calculate p-values
 library(ggplot2)
 library(Hmisc) # for minor tick marks
 library(ggpubr) # for multiplot
@@ -7,6 +7,10 @@ library(png) # for reading in & overwriting png at the end
 origin <- getwd()
 
 # Data frame for results
+#Data frame lists fdim | qvir | knum | U | t | gt2 | total
+#U, t, gt2 give agreement frequency: U & t % of time p > 0.01 (using all values),
+# gt2 % of time 2D & 3D are within 10% of each other when lambda > 2.
+#'total' gives agreement % for U-test with lambda < 2 and gt2 for lambda >= 2.
 agreement_df <- data.frame('fdim'=numeric(),'qvir'=numeric(),'k'=integer(),
                      'U'=numeric(),'t'=numeric(),'gt2'=numeric(),'total'=numeric())
 
@@ -16,8 +20,8 @@ cluster <- 'cluster_FoV5pc'
 
 # General outputs directory: upper level for all simulation data, data analysis, and plots:
 outpath <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0/f',fdim,'q',qvir,'/analysis')
-plotsdir <- file.path(outpath,"plots")
-pvaldir <- file.path(plotsdir,"pvals")
+#plotsdir <- file.path(outpath,"plots")
+pvaldir <- file.path(outpath,"pvals")
 ifelse(!dir.exists(pvaldir), dir.create(pvaldir), FALSE)
 
 for (k in 1:10) {
@@ -177,6 +181,7 @@ for (k in 1:10) {
   png(filename=paste0(pvaldir,"/pvals_",knum,".png"))
   plot(figure)
   #annotate_figure(figure, top=text_grob(paste0("k",knum), face="bold", size=10))
+  
   dev.off()
   
 } #end of k loop
@@ -191,7 +196,8 @@ write.table(agreement_fmt,file=file.path(pvaldir,"pvals.dat"),
             quote=FALSE, row.names=FALSE, sep="\t")
 
 
-#box plot of all results across k for this parameter set:
+#box plot of all results across k for this parameter set.
+#x-axis: U-test box plot, t-test box plot, within 10% & >2 box plot, 'total' in agreement.
 png(filename=paste0(outpath,"/boxplot_f",fdim,"q",qvir,".png"))
 
 boxplot(agreement_df$U,agreement_df$t,agreement_df$gt2,agreement_df$total,
