@@ -6,13 +6,14 @@ library(png) # for reading in & overwriting png at the end
 
 origin <- getwd()
 
-# Data frame for results
-#Data frame lists fdim | qvir | knum | U | t | gt2 | total
+#Set up data frame for results: fdim | qvir | k | U | t | in10 | in20 | total
 #U, t, gt2 give agreement frequency: U & t % of time p > 0.01 (using all values),
-# gt2 % of time 2D & 3D are within 10% of each other when lambda > 2.
-#'total' gives agreement % for U-test with lambda < 2 and gt2 for lambda >= 2.
+# in10 gives % of time 2D OR 3D are within 10% of each other when lambda3D > 2.
+# in20 gives % of time 2D AND 3D are within 20% of each other when both lambda > 2.
+#'total' gives agreement % for U-test with lambda < 2 and gt10/20 for lambda >= 2.
 agreement_df <- data.frame('fdim'=numeric(),'qvir'=numeric(),'k'=integer(),
-                     'U'=numeric(),'t'=numeric(),'gt2'=numeric(),'total'=numeric())
+                     'U'=numeric(),'t'=numeric(),
+                     'in10'=numeric(), 'in20'=numeric(), 'total'=numeric())
 
 # Build the directory structure:
 fdim <- '16'; qvir <- '03' #strings to match directory structure
@@ -32,9 +33,10 @@ for (k in 1:10) {
   
   # Input filenames for lambda data:
   fn3d <- 'allMSTs_lambar_3D.dat'; fnxy <- 'allMSTs_lambar_xy.dat'
+  
   # Read in data as data frames:
-  df3D <- read.table(file.path(simpath,'CDFdata/allMSTs_lambar_3D.dat'), row.names=1)
-  dfxy <- read.table(file.path(simpath,'CDFdata/allMSTs_lambar_xy.dat'), row.names=1)
+  df3D <- read.table(file.path(simpath,'CDFdata',fn3d), row.names=1)
+  dfxy <- read.table(file.path(simpath,'CDFdata',fnxy), row.names=1)
   if (ncol(df3D) != ncol(dfxy)) stop("Data frames not of equal size") #check data frame sizes
   nlambdas <- ncol(df3D)  #data frames have 'nloop' columns
   nsnaps <- nrow(df3D)    #and nsnaps rows
@@ -43,6 +45,9 @@ for (k in 1:10) {
   pvals <- data.frame();  medianlam <- data.frame()
   
   for (i in 1:nsnaps) {
+    #===========================================
+    # Perform U-test & t-test for each snapshot
+    #===========================================
     #make list of p-values for all snapshots
     pvals <- rbind(pvals,
                    c(
@@ -53,7 +58,6 @@ for (k in 1:10) {
                      )
                    ) #end of pvals rbind
     #Find median lambda for 2D & 3D.
-    #med3D <- median(as.numeric(df3D[i,]));  med2D <- median(as.numeric(dfxy[i,]))
     medianlam <- rbind(medianlam,
                        c(
                          median(as.numeric(df3D[i,])), median(as.numeric(dfxy[i,]))
@@ -62,13 +66,60 @@ for (k in 1:10) {
     } #end of nsnaps loop
   
   colnames(pvals) <- c( 'U', 't')
+  colnames(medianlam) <- c('med_3D', 'med_2D')
   
   #Change p-values of 0 to be really really small
   pvals$U <- ifelse(pvals$U<1.e-99,1.e-99,pvals$U)
   pvals$t <- ifelse(pvals$t<1.e-99,1.e-99,pvals$t)
   
   
-  colnames(medianlam) <- c('med_3D', 'med_2D')
+  
+  #---------------
+  
+  #save medianlam$med_3D and medianlam$med_2D as 1D data structures to help readability in the next ifelse bit...
+  median3D <- medianlam$med_3D
+  median2D <- medianlam$med_2D
+  
+  #If only one of 2D or 3D are >= 2.0, see if other lies within 10%:
+  medianlam$gt2_10pc <- ifelse(
+    (median3D & !median2D >= 2.0) | (median2D & !median3D >= 2.0),
+    
+    # One and not other is >= 2. If one is within 10% of other, TRUE. If not, FALSE.
+    ifelse((median2D >= 0.9*median3D & median2D <= 1.1*median3D) | 
+             (median3D >= 0.9*median2D & median3D <= 1.1*median2D),TRUE,FALSE),
+    
+    # If both or neither are >= 2, NA.
+    'NA')
+  
+  #If both 2D and 3D are >= 2.0, see if other lies within 20%:
+  medianlam$gt2_20pc <- ifelse(
+    (median3D & median2D >= 2.0),
+    
+    # Both are >= 2. If one is within 20% of other, TRUE. If not, FALSE.
+    ifelse((median2D >= 0.8*median3D & median2D <= 1.2*median3D) | 
+             (median3D >= 0.8*median2D & median3D <= 1.2*median2D),TRUE,FALSE),
+    
+    # If only one or neither are >= 2, NA.
+    'NA'
+  )
+  
+  #test code used in console:
+  #a <- c(1.8, 2.1, 2.3, 1.81, 2.3, 2.7, 2.0, 2.4, 2.4)
+  #b <- c(1.8, 1.7, 1.9, 2.0, 2.1, 2.4, 1.81, 2.7, 3.0)
+  #ifelse((!a >= 2 & b >= 2) | (a >= 2 & !b >= 2),
+  #        ifelse((b > 0.9*a & b < 1.1*a) |
+  #                   (a > 0.9*b & a < 1.1*b), TRUE, FALSE),
+  #        'NA')
+  #ifelse(a >= 2 & b >= 2,
+  #       ifelse((b > 0.8*a & b < 1.2*a) |
+  #                  (a > 0.8*b & a < 1.2*b), TRUE, FALSE),
+  #       'NA')
+  
+  #medianlam <- data.frame(a,b)
+  #a_name <- "med_3D"; b_name <- "med_2D"
+  #names(medianlam) <- c(a_name,b_name)
+  
+  #---------------
   
   #Find whether 3D (& 2D?) median lambdas are above 2.0
   medianlam$agree_median <- ifelse(medianlam$med_3D >= 2.0,# & medianlam$med_2D >= 2.0,
