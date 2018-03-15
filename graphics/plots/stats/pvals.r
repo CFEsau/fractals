@@ -11,7 +11,7 @@ origin <- getwd()
 # in10 gives % of time 2D OR 3D are within 10% of each other when lambda3D > 2.
 # in20 gives % of time 2D AND 3D are within 20% of each other when both lambda > 2.
 #'total' gives agreement % for U-test with lambda < 2 and gt10/20 for lambda >= 2.
-agreement_df <- data.frame('fdim'=numeric(),'qvir'=numeric(),'k'=integer(),
+tot_agreement <- data.frame('fdim'=numeric(),'qvir'=numeric(),'k'=integer(),
                      'U'=numeric(),'t'=numeric(),
                      'in10'=numeric(), 'in20'=numeric(), 'total'=numeric())
 
@@ -72,36 +72,30 @@ for (k in 1:10) {
   pvals$U <- ifelse(pvals$U<1.e-99,1.e-99,pvals$U)
   pvals$t <- ifelse(pvals$t<1.e-99,1.e-99,pvals$t)
   
-  
+  #Find p-vales that fall above 0.001 (3 sigma)
+  #If true, projection is in agreement with 3D distribution (2D & 3D are same)
+  pvals$agree_U <- ifelse(pvals$U>1.e-3,TRUE,FALSE)
+  pvals$agree_t <- ifelse(pvals$t>1.e-3,TRUE,FALSE)
   
   #---------------
   
   #save medianlam$med_3D and medianlam$med_2D as 1D data structures to help readability in the next ifelse bit...
-  median3D <- medianlam$med_3D
-  median2D <- medianlam$med_2D
+  #median3D <- medianlam$med_3D
+  #median2D <- medianlam$med_2D
+  largest <- pmax(medianlam$med_3D,medianlam$med_2D)
+  smallest <- pmin(medianlam$med_3D,medianlam$med_2D)
   
-  #If only one of 2D or 3D are >= 2.0, see if other lies within 10%:
-  medianlam$gt2_10pc <- ifelse(
-    (median3D & !median2D >= 2.0) | (median2D & !median3D >= 2.0),
-    
-    # One and not other is >= 2. If one is within 10% of other, TRUE. If not, FALSE.
-    ifelse((median2D >= 0.9*median3D & median2D <= 1.1*median3D) | 
-             (median3D >= 0.9*median2D & median3D <= 1.1*median2D),TRUE,FALSE),
-    
-    # If both or neither are >= 2, NA.
-    'NA')
+  #note on rounding: the 'equals' bit probably won't work due to floating point problems.
+  #Instead could use 'round' - e.g. 3*0.8==2.4 gives FALSE, but round(3*0.8-2.40,2)==0 (where the '2' is 2 d.p.) is TRUE.
+  #Similarly, could do round(3*0.8,2)==round(2.4,2) (gives TRUE). Maybe implement later on, e.g. with #d.p.=3 or 4...
+  
+  #If the largest of the 2D and 3D values are >= 2.0, see if the smaller lies within 10%:
+  medianlam$one_gt2_10 <- ifelse(largest >= 2.0 & smallest < 2.0,
+    ifelse(smallest >= 0.9*largest & smallest <= 1.1*largest,TRUE,FALSE),'NA')
   
   #If both 2D and 3D are >= 2.0, see if other lies within 20%:
-  medianlam$gt2_20pc <- ifelse(
-    (median3D & median2D >= 2.0),
-    
-    # Both are >= 2. If one is within 20% of other, TRUE. If not, FALSE.
-    ifelse((median2D >= 0.8*median3D & median2D <= 1.2*median3D) | 
-             (median3D >= 0.8*median2D & median3D <= 1.2*median2D),TRUE,FALSE),
-    
-    # If only one or neither are >= 2, NA.
-    'NA'
-  )
+  medianlam$two_gt2_20 <- ifelse(smallest >= 2.0,
+    ifelse(smallest >= 0.8*largest & smallest <= 1.2*largest,TRUE,FALSE),'NA')
   
   #test code used in console:
   #a <- c(1.8, 2.1, 2.3, 1.81, 2.3, 2.7, 2.0, 2.4, 2.4)
@@ -118,29 +112,24 @@ for (k in 1:10) {
   #medianlam <- data.frame(a,b)
   #a_name <- "med_3D"; b_name <- "med_2D"
   #names(medianlam) <- c(a_name,b_name)
+  #largest <- pmax(medianlam$med_2D,medianlam$med_3D)
+  #smallest <- pmin(medianlam$med_2D,medianlam$med_3D)
+  #ifelse((largest >= 2.0 & smallest < 2.0),
+  #ifelse((smallest >= 0.9*largest & smallest <= 1.1*largest),TRUE,FALSE),'NA')
+  #ifelse(smallest >= 2.0,
+  #ifelse(smallest >= 0.8*largest & smallest <= 1.2*largest,TRUE,FALSE),'NA')
   
-  #---------------
-  
-  #Find whether 3D (& 2D?) median lambdas are above 2.0
-  medianlam$agree_median <- ifelse(medianlam$med_3D >= 2.0,# & medianlam$med_2D >= 2.0,
-                                #find whether 2D median is within 10% bracket of 3D median
-                                ifelse(medianlam$med_2D >= 0.9*medianlam$med_3D & medianlam$med_2D <= 1.1*medianlam$med_3D,
-                                       TRUE,
-                                       FALSE),
-                                #if not both above 2, use p-values
-                                'pval')
-  medianlam#$pval <- pvals$U
-  
-  
-  #Find p-vales that fall above 0.001 (3 sigma)
-  #If true, projection is in agreement with 3D distribution (2D & 3D are same)
-  pvals$agree_U <- ifelse(pvals$U>1.e-3,TRUE,FALSE)
-  pvals$agree_t <- ifelse(pvals$t>1.e-3,TRUE,FALSE)
-  
-  #Find projections in agreement using both 10% criterion for lambda>2, and p-value agreement for lambda<2
-  medianlam$agree <- ifelse(medianlam$agree_median != 'pval',
-                            medianlam$agree_median,
-                            pvals$agree_U)
+  #Set up master data frame with TRUE/FALSE for each snapshot depending on comparison method
+  snaps_test <- cbind(pvals,medianlam)
+  #if both 2D & 3D median lambda <2, use p-value
+  snaps_test$method <- ifelse(largest<2.0,'pval',
+                              ifelse(medianlam$one_gt2!='NA','10%',
+                                     ifelse(medianlam$two_gt2!='NA','20%','unknown'))
+                              )
+  snaps_test$agreement <- ifelse(snaps_test$method == 'pval',snaps_test$agree_U,
+                                 ifelse(snaps_test$method == '10%',snaps_test$one_gt2,
+                                        ifelse(snaps_test$method == '20%',snaps_test$two_gt2,'NA'))
+                                 )
   
   #------------------------------------------------------------
   #
@@ -165,10 +154,10 @@ for (k in 1:10) {
   frac_total <- sum(ntotal)/nsnaps
   
   #update knum'th row of data frame:
-  agreement_df[as.integer(knum),] <- c(as.numeric(fdim)/10,as.numeric(qvir)/10,
+  tot_agreement[as.integer(knum),] <- c(as.numeric(fdim)/10,as.numeric(qvir)/10,
                                     as.integer(knum),pfrac_U,pfrac_t,frac_gt2,frac_total)
   #the above makes 'knum' numeric class. Change column 3 (knum) to 'integer' for formatting
-  agreement_df[,3] <- sapply(agreement_df[,3],as.integer)
+  tot_agreement[,3] <- sapply(tot_agreement[,3],as.integer)
   
   #==========================
   # Wilcoxon/U-test p-val histograms:
@@ -239,8 +228,8 @@ for (k in 1:10) {
 
 #Format columns for output file:
 table_format <- c(rep("%.1f",2),"%2d",rep("%.3f",4))
-agreement_fmt <- agreement_df
-agreement_fmt[] <- mapply(sprintf, table_format, agreement_df)
+agreement_fmt <- tot_agreement
+agreement_fmt[] <- mapply(sprintf, table_format, tot_agreement)
 
 #Output dataframe as table with p-vals to 4 d.p.
 write.table(agreement_fmt,file=file.path(pvaldir,"pvals.dat"),
@@ -251,7 +240,7 @@ write.table(agreement_fmt,file=file.path(pvaldir,"pvals.dat"),
 #x-axis: U-test box plot, t-test box plot, within 10% & >2 box plot, 'total' in agreement.
 png(filename=paste0(outpath,"/boxplot_f",fdim,"q",qvir,".png"))
 
-boxplot(agreement_df$U,agreement_df$t,agreement_df$gt2,agreement_df$total,
+boxplot(tot_agreement$U,tot_agreement$t,tot_agreement$gt2,tot_agreement$total,
         names=c("U","t",expression(paste(Lambda,"_2D within 10%")),
                 "total"),range=0,ylim=c(0,0.6))
 
