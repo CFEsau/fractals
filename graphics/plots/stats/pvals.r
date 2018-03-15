@@ -86,8 +86,9 @@ for (k in 1:10) {
   smallest <- pmin(medianlam$med_3D,medianlam$med_2D)
   
   #note on rounding: the 'equals' bit probably won't work due to floating point problems.
-  #Instead could use 'round' - e.g. 3*0.8==2.4 gives FALSE, but round(3*0.8-2.40,2)==0 (where the '2' is 2 d.p.) is TRUE.
-  #Similarly, could do round(3*0.8,2)==round(2.4,2) (gives TRUE). Maybe implement later on, e.g. with #d.p.=3 or 4...
+  #Instead could use 'round' - e.g. 3*0.8==2.4 gives FALSE, but round(3*0.8,2)==round(2.4,2) gives TRUE.
+  #Similarly, coul do something with tol <- 1e-2; abs(x-y) <= tol
+  #Maybe implement later on, e.g. with #d.p.=3 or 4, or 'tol'=1e-4...
   
   #If the largest of the 2D and 3D values are >= 2.0, see if the smaller lies within 10%:
   medianlam$one_gt2_10 <- ifelse(largest >= 2.0 & smallest < 2.0,
@@ -124,42 +125,46 @@ for (k in 1:10) {
   #if both 2D & 3D median lambda <2, use p-value
   snaps_test$method <- ifelse(largest<2.0,'pval',
                               ifelse(medianlam$one_gt2!='NA','10%',
-                                     ifelse(medianlam$two_gt2!='NA','20%','unknown'))
+                                     ifelse(medianlam$two_gt2!='NA','20%',
+                                            'unknown')) #if none of the above, 'unknown' (something is wrong!)
                               )
-  snaps_test$agreement <- ifelse(snaps_test$method == 'pval',snaps_test$agree_U,
+  snaps_test$in_agreement <- ifelse(snaps_test$method == 'pval',snaps_test$agree_U,
                                  ifelse(snaps_test$method == '10%',snaps_test$one_gt2,
-                                        ifelse(snaps_test$method == '20%',snaps_test$two_gt2,'NA'))
+                                        ifelse(snaps_test$method == '20%',snaps_test$two_gt2,
+                                               'NA')) #should all be T/F. An 'NA' here means something is wrong.
                                  )
   
-  #------------------------------------------------------------
-  #
-  # Find fraction of lambdas that agree between projections
-  #
-  nU <- 0; nt <- 0; ngt2 <- 0; ngt2_tot <- 0; ntotal <- 0
+  #----------------------------------------------------------#
+  # Find fractions of time that projections are in agreement #
+  #----------------------------------------------------------#
   
-  #add 1 to nU / nt if agreement is TRUE
-  nU <- ifelse(pvals$agree_U,nU+1,nU); nt <- ifelse(pvals$agree_t,nt+1,nt)
+  #Count the number of times each method is used:
+  npval <- length(snaps_agreement$method[snaps_agreement$method=='pval'])
+  n10pc <- length(snaps_agreement$method[snaps_agreement$method=='10%'])
+  n20pc <- length(snaps_agreement$method[snaps_agreement$method=='20%'])
+  #Count the number of times each method was *successful*:
+  npval_agree <- length(snaps_agreement$method[snaps_agreement$method=='pval' & snaps_agreement$agree_U=='TRUE'])
+  n10pc_agree <- length(snaps_agreement$method[snaps_agreement$method=='10%' & snaps_agreement$one_gt2=='TRUE'])
+  n20pc_agree <- length(snaps_agreement$method[snaps_agreement$method=='20%' & snaps_agreement$two_gt2=='TRUE'])
+  #Fraction of pvals in within 3sigma (when lambda < 2.0):
+  frac_p <- npval_agree/npval
+  #Fraction of snapshots within 10/20% of each other:
+  frac_10pc <- n10pc_agree/n10pc; frac_20pc <- n20pc_agree/n20pc
   
-  #find number of snaphots where lambda3D is above 2.0,
-  #and number of times 2D is within 10% of this:
-  ngt2 <- ifelse(medianlam$med_2D >= 0.9*medianlam$med_3D & medianlam$med_2D <= 1.1*medianlam$med_3D
-                 & medianlam$med_3D >= 2.0, ngt2+1, ngt2)
+  #Total number of snapshots in agreement for this k:
+  ntot <- length(snaps_agreement$in_agreement)
+  ntot_agree <- length(snaps_agreement$in_agreement[snaps_agreement$in_agreement=='TRUE'])
+  frac_agree <- ntot_agree/ntot
   
-  ngt2_tot <- sum(ifelse(medianlam$med_3D >= 2.0, ngt2_tot+1, ngt2_tot))
-  ntotal <- ifelse(medianlam$agree, ntotal+1, ntotal)
-  
-  #divide number of TRUEs by number of random MSTs to find % agreement 
-  pfrac_U <- sum(nU)/nsnaps; pfrac_t <- sum(nt)/nsnaps
-  frac_gt2 <- sum(ngt2)/ngt2_tot
-  frac_total <- sum(ntotal)/nsnaps
   
   #update knum'th row of data frame:
   tot_agreement[as.integer(knum),] <- c(as.numeric(fdim)/10,as.numeric(qvir)/10,
-                                    as.integer(knum),pfrac_U,pfrac_t,frac_gt2,frac_total)
+                                    as.integer(knum),frac_p,frac_10pc,frac_20pc,frac_agree)
   #the above makes 'knum' numeric class. Change column 3 (knum) to 'integer' for formatting
   tot_agreement[,3] <- sapply(tot_agreement[,3],as.integer)
   
-  #==========================
+  #
+  #===================================
   # Wilcoxon/U-test p-val histograms:
   
   #countScale.ggplot <- ggplot(p_U$V1, aes(x = p-vals)) +  
