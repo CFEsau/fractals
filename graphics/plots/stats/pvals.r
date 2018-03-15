@@ -12,11 +12,10 @@ origin <- getwd()
 # in20 gives % of time 2D AND 3D are within 20% of each other when both lambda > 2.
 #'total' gives agreement % for U-test with lambda < 2 and gt10/20 for lambda >= 2.
 tot_agreement <- data.frame('fdim'=numeric(),'qvir'=numeric(),'k'=integer(),
-                     'U'=numeric(),'t'=numeric(),
-                     'in10'=numeric(), 'in20'=numeric(), 'total'=numeric())
+                     'U'=numeric(), 'in10'=numeric(), 'in20'=numeric(), 'total'=numeric())
 
 # Build the directory structure:
-fdim <- '16'; qvir <- '03' #strings to match directory structure
+fdim <- '20'; qvir <- '05' #strings to match directory structure
 cluster <- 'cluster_FoV5pc'
 
 # General outputs directory: upper level for all simulation data, data analysis, and plots:
@@ -139,21 +138,21 @@ for (k in 1:10) {
   #----------------------------------------------------------#
   
   #Count the number of times each method is used:
-  npval <- length(snaps_agreement$method[snaps_agreement$method=='pval'])
-  n10pc <- length(snaps_agreement$method[snaps_agreement$method=='10%'])
-  n20pc <- length(snaps_agreement$method[snaps_agreement$method=='20%'])
+  npval <- length(snaps_test$method[snaps_test$method=='pval'])
+  n10pc <- length(snaps_test$method[snaps_test$method=='10%'])
+  n20pc <- length(snaps_test$method[snaps_test$method=='20%'])
   #Count the number of times each method was *successful*:
-  npval_agree <- length(snaps_agreement$method[snaps_agreement$method=='pval' & snaps_agreement$agree_U=='TRUE'])
-  n10pc_agree <- length(snaps_agreement$method[snaps_agreement$method=='10%' & snaps_agreement$one_gt2=='TRUE'])
-  n20pc_agree <- length(snaps_agreement$method[snaps_agreement$method=='20%' & snaps_agreement$two_gt2=='TRUE'])
+  npval_agree <- length(snaps_test$method[snaps_test$method=='pval' & snaps_test$agree_U=='TRUE'])
+  n10pc_agree <- length(snaps_test$method[snaps_test$method=='10%' & snaps_test$one_gt2=='TRUE'])
+  n20pc_agree <- length(snaps_test$method[snaps_test$method=='20%' & snaps_test$two_gt2=='TRUE'])
   #Fraction of pvals in within 3sigma (when lambda < 2.0):
   frac_p <- npval_agree/npval
   #Fraction of snapshots within 10/20% of each other:
   frac_10pc <- n10pc_agree/n10pc; frac_20pc <- n20pc_agree/n20pc
   
   #Total number of snapshots in agreement for this k:
-  ntot <- length(snaps_agreement$in_agreement)
-  ntot_agree <- length(snaps_agreement$in_agreement[snaps_agreement$in_agreement=='TRUE'])
+  ntot <- length(snaps_test$in_agreement)
+  ntot_agree <- length(snaps_test$in_agreement[snaps_test$in_agreement=='TRUE'])
   frac_agree <- ntot_agree/ntot
   
   
