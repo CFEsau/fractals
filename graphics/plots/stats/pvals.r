@@ -1,4 +1,5 @@
 #Calculate p-values
+library(data.table) # for melting data frames
 library(ggplot2)
 library(Hmisc) # for minor tick marks
 library(ggpubr) # for multiplot
@@ -162,7 +163,46 @@ for (k in 1:10) {
   #the above makes 'knum' numeric class. Change column 3 (knum) to 'integer' for formatting
   tot_agreement[,3] <- sapply(tot_agreement[,3],as.integer)
   
-  #
+  ###############################################################
+  #                                                             #
+  #                        PLOTS                                #
+  #                                                             #
+  ###############################################################
+  #===================================
+  # Lambda(t) showing 3D & 2D lines with colour coding for T/F:
+  # Use median lambdas, saved in both medianlam and snaps_test.
+  # Add 'time_Myr' column to snaps_test: 0.01 Myr per row
+  snaps_test <- cbind(time_Myr=as.numeric(row.names(snaps_test))*0.01,snaps_test)
+    
+  # Melt 'snapts_test' data frame so 2D are listed under 3D:
+  snaps_melt <- melt(snaps_test, id=c("time_Myr","method","in_agreement"),
+                      measure=c("med_3D","med_2D"),
+                      variable="dimension", value.name="medianlam") #rename new columns
+  
+  shading <- data.frame(xstart=snaps_test[,"time_Myr"]-0.01, xend=snaps_test[,"time_Myr"],
+                        #shade=ifelse(snaps_test[,"in_agreement"]=='TRUE','green',
+                        #             ifelse(snaps_test[,"in_agreement"]=='FALSE','red',
+                        #                    'gray100')))
+                        shade=snapstest[,"in_agreement"])
+  
+  
+  cols <- c("TRUE" = "green", "FALSE" = "red")
+  ggplot() +
+   geom_line(data=snaps_melt,aes(x=time_Myr,y=medianlam,group=dimension),
+             colour="gray20") + 
+    #for colour: geom_line(aes(color=dimension)) +  #colour not relevant - doesn't matter which is 3D/2D
+    #scale_color_manual(values=c("brown1", "blue2"))
+    geom_rect(data=snaps_test,aes(xmin=time_Myr-0.01,xmax=time_Myr,
+                               ymin=-Inf,ymax=Inf,fill=in_agreement),alpha=0.2) +
+    scale_color_manual(values=cols) +
+    theme_minimal() +
+    theme(legend.position="none",
+          panel.grid.minor = element_blank()) + #remove minor grid lines
+    scale_x_continuous(breaks=seq(0,10,1)) +
+    scale_y_continuous(breaks=scales::pretty_breaks(n=6))
+  
+  
+  
   #===================================
   # Wilcoxon/U-test p-val histograms:
   
