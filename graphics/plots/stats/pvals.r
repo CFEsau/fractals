@@ -179,12 +179,6 @@ for (k in 1:10) {
                       measure=c("med_3D","med_2D"),
                       variable="dimension", value.name="medianlam") #rename new columns
   
-  shading <- data.frame(xstart=snaps_test[,"time_Myr"]-0.01, xend=snaps_test[,"time_Myr"],
-                        #shade=ifelse(snaps_test[,"in_agreement"]=='TRUE','green',
-                        #             ifelse(snaps_test[,"in_agreement"]=='FALSE','red',
-                        #                    'gray100')))
-                        shade=snapstest[,"in_agreement"])
-  
   
   cols <- c("TRUE" = "green", "FALSE" = "red")
   ggplot() +
