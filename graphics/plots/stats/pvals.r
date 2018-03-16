@@ -181,19 +181,22 @@ for (k in 1:10) {
   
   
   cols <- c("TRUE" = "green", "FALSE" = "red")
+  plot(
   ggplot() +
    geom_line(data=snaps_melt,aes(x=time_Myr,y=medianlam,group=dimension),
              colour="gray20") + 
     #for colour: geom_line(aes(color=dimension)) +  #colour not relevant - doesn't matter which is 3D/2D
     #scale_color_manual(values=c("brown1", "blue2"))
     geom_rect(data=snaps_test,aes(xmin=time_Myr-0.01,xmax=time_Myr,
-                               ymin=-Inf,ymax=Inf,fill=in_agreement),alpha=0.2) +
+                               ymin=-Inf,ymax=15,fill=in_agreement),alpha=0.2) +
     scale_color_manual(values=cols) +
     theme_minimal() +
     theme(legend.position="none",
           panel.grid.minor = element_blank()) + #remove minor grid lines
     scale_x_continuous(breaks=seq(0,10,1)) +
-    scale_y_continuous(breaks=scales::pretty_breaks(n=6))
+    scale_y_continuous(breaks=seq(0,15,2)) # ymax 15 is conistent with previous python plots
+    #scale_y_continuous(breaks=scales::pretty_breaks(n=6))
+    )
   
   
   
