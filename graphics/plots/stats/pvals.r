@@ -98,27 +98,6 @@ for (k in 1:10) {
   medianlam$two_gt2_20 <- ifelse(smallest >= 2.0,
     ifelse(smallest >= 0.8*largest & smallest <= 1.2*largest,TRUE,FALSE),'NA')
   
-  #test code used in console:
-  #a <- c(1.8, 2.1, 2.3, 1.81, 2.3, 2.7, 2.0, 2.4, 2.4)
-  #b <- c(1.8, 1.7, 1.9, 2.0, 2.1, 2.4, 1.81, 2.7, 3.0)
-  #ifelse((!a >= 2 & b >= 2) | (a >= 2 & !b >= 2),
-  #        ifelse((b > 0.9*a & b < 1.1*a) |
-  #                   (a > 0.9*b & a < 1.1*b), TRUE, FALSE),
-  #        'NA')
-  #ifelse(a >= 2 & b >= 2,
-  #       ifelse((b > 0.8*a & b < 1.2*a) |
-  #                  (a > 0.8*b & a < 1.2*b), TRUE, FALSE),
-  #       'NA')
-  
-  #medianlam <- data.frame(a,b)
-  #a_name <- "med_3D"; b_name <- "med_2D"
-  #names(medianlam) <- c(a_name,b_name)
-  #largest <- pmax(medianlam$med_2D,medianlam$med_3D)
-  #smallest <- pmin(medianlam$med_2D,medianlam$med_3D)
-  #ifelse((largest >= 2.0 & smallest < 2.0),
-  #ifelse((smallest >= 0.9*largest & smallest <= 1.1*largest),TRUE,FALSE),'NA')
-  #ifelse(smallest >= 2.0,
-  #ifelse(smallest >= 0.8*largest & smallest <= 1.2*largest,TRUE,FALSE),'NA')
   
   #Set up master data frame with TRUE/FALSE for each snapshot depending on comparison method
   snaps_test <- cbind(pvals,medianlam)
