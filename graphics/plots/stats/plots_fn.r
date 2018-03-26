@@ -3,8 +3,6 @@
 timeseries_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
                           bckcols=c("TRUE" = "green", "FALSE" = "red")){
   
-  # Add 'time_Myr' column to data frame: 0.01 Myr per row
-  df <- cbind(time_Myr=as.numeric(row.names(df))*0.01,df)
 
   df_melt <- melt(df, id=c("time_Myr","method","in_agreement"),
                      measure=c("med_3D","med_2D"),
@@ -14,6 +12,7 @@ timeseries_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
   timeseries <- ggplot() +
     geom_line(data=df_melt,aes(x=time_Myr,y=medianlam,group=dimension),
             colour="gray20") +
+    labs(x = "Time (Myr)", y = expression(Lambda)) +
     #for colour: geom_line(aes(color=dimension)) +  #colour not relevant - doesn't matter which is 3D/2D
     #scale_color_manual(values=c("brown1", "blue2"))
     geom_rect(data=df,aes(xmin=time_Myr-0.01,xmax=time_Myr,
@@ -25,14 +24,14 @@ timeseries_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
     scale_x_continuous(breaks=seq(xmin,xmax,dx)) +
     scale_y_continuous(breaks=seq(ymin,ymax,dy))
   
-  png(filename=paste0(statsdir,"/lambda_",fdim,"q",qvir,"_k",knum,".png"))
+  #png(filename=paste0(statsdir,"/lambda_",fdim,"q",qvir,"_k",knum,".png"))
   plot(timeseries)
-  dev.off()
+  #dev.off()
 }
 
 
 
-histUt_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
+hist_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
                      xlab="log(p)",ylab="nsnaps",ttest=FALSE){
   
   # Wilcoxon/U-test p-val histograms:
