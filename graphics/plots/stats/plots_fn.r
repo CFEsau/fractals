@@ -24,9 +24,9 @@ timeseries_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
     scale_x_continuous(breaks=seq(xmin,xmax,dx)) +
     scale_y_continuous(breaks=seq(ymin,ymax,dy))
   
-  #png(filename=paste0(statsdir,"/lambda_",fdim,"q",qvir,"_k",knum,".png"))
-  plot(timeseries)
-  #dev.off()
+    png(filename=paste0(statsdir,"/lambda_",fstr,qstr,"_k",knum,".png"))
+    plot(timeseries)
+    dev.off()
 }
 
 
@@ -34,16 +34,17 @@ timeseries_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
 hist_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
                      xlab="log(p)",ylab="nsnaps",ttest=FALSE){
   
-  # Wilcoxon/U-test p-val histograms:
+  # Plot Wilcoxon/U-test p-val histograms:
   plot1U <- histplot_fn(df,plotdat="U",xmin=xmin1,xmax=xmax1,xlab,ylab)
   plot2U <- histplot_fn(df,plotdat="U",xmin=xmin2,xmax=xmax2,xlab,ylab)
   
   
   if(ttest==TRUE){
     
-  # t-test p-val histograms:
+  # Plot t-test p-val histograms:
   plot1t <- histplot_fn(df,plotdat="t",xmin=xmin1,xmax=xmax1,xlab,ylab)
   plot2t <- histplot_fn(df,plotdat="t",xmin=xmin2,xmax=xmax2,xlab,ylab)
+  histname <- paste0("pvalsUt_",fstr,qstr,"_k",knum,".png")
   
   # Add plots (ggarrange adds multiple to same page)
   figure <- ggarrange(plot1U, plot1t, plot2U, plot2t,
@@ -52,13 +53,14 @@ hist_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
   
   } else {
     
+    histname <- paste0("pvalsU_",fstr,qstr,"_k",knum,".png")
     figure <- ggarrange(plot1U, plot2U, labels = c("U", ""),ncol = 2, nrow = 1)
   }
-  #png(filename=paste0(statsdir,"/pvals_",knum,".png"))
-  plot(figure)
-  #annotate_figure(figure, top=text_grob(paste0("k",knum), face="bold", size=10))
   
-  #dev.off()
+  png(filename=file.path(statsdir,histname))
+  plot(figure)
+  annotate_figure(figure, top=text_grob(paste0("k",knum), face="bold", size=10))
+  dev.off()
 }
 
 histplot_fn <-function(df,plotdat,xmin,xmax,xlab,ylab){
