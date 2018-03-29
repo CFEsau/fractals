@@ -46,7 +46,7 @@ def mergefiles():
         parameter = (filestructure[2]).split('.',1)[0] #strip .pdf extension
         
         pdflist = sorted(glob.glob('k*_'+thiscluster+'_'+parameter+'.pdf'))
-        if pdflist:
+        if pdflist: #shouldn't need if/else break now, as flist will empty first
             mergelist = PdfFileMerger()
             for thispdf in pdflist:
                 mergelist.append(thispdf)

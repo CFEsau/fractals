@@ -413,7 +413,7 @@ def lambda_k(thiscluster):
         ax.legend(handles, labels, loc="upper right", fontsize=10)
         #plt.show()
         saveplot = (plotconfig.outpath + '/plots/'+thislambda+'_'+ctype+
-                    '_compareksorted.pdf')
+                    '_comparek.pdf')
         plt.tight_layout()
         plt.savefig(saveplot, bbox_inches='tight')
         #print ("         ",thislambda,"_",ctype,"_comparek.pdf",sep="")
