@@ -16,17 +16,45 @@ timeseries_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
     #for colour: geom_line(aes(color=dimension)) +  #colour not relevant - doesn't matter which is 3D/2D
     #scale_color_manual(values=c("brown1", "blue2"))
     geom_rect(data=df,aes(xmin=time_Myr-0.01,xmax=time_Myr,
-                                  ymin=-Inf,ymax=ymax,fill=in_agreement),alpha=0.2) +
-    scale_color_manual(values=bckcols) +
+                                  ymin=-Inf,ymax=ymax,fill=in_agreement),alpha=0.1) +
+    scale_fill_manual(values=bckcols) +
     theme_minimal() +
     theme(legend.position="none",
           panel.grid.minor = element_blank()) + #remove minor grid lines
     scale_x_continuous(breaks=seq(xmin,xmax,dx)) +
     scale_y_continuous(breaks=seq(ymin,ymax,dy))
   
-    png(filename=paste0(statsdir,"/lambda_",fstr,qstr,"_k",knum,".png"))
+    png(filename=paste0(statsdir,"/lambda_",fstr[f],qstr[q],"_k",knum,".png"))
     plot(timeseries)
     dev.off()
+}
+
+
+
+methods_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
+                          bckcols=c("pval" = "gold", "10%" = "darkcyan", "20%" = "magenta")){
+  
+  df_melt <- melt(df, id=c("time_Myr","method","in_agreement"),
+                  measure=c("med_3D","med_2D"),
+                  variable="dimension", value.name="medianlam") #rename new columns
+  
+
+    timeseries <- ggplot() +
+    geom_line(data=df_melt,aes(x=time_Myr,y=medianlam,group=dimension),
+              colour="gray20") +
+    labs(x = "Time (Myr)", y = expression(Lambda)) +
+    geom_rect(data=df,aes(xmin=time_Myr-0.01,xmax=time_Myr,ymin=-Inf,ymax=ymax,fill=method),
+              alpha=ifelse(df$in_agreement,0.2,0.1)) + #fill transparency
+    scale_fill_manual(values=bckcols) +
+    theme_minimal() +
+    theme(legend.position="none",
+          panel.grid.minor = element_blank()) + #remove minor grid lines
+    scale_x_continuous(breaks=seq(xmin,xmax,dx)) +
+    scale_y_continuous(breaks=seq(ymin,ymax,dy))
+  
+  png(filename=paste0(statsdir,"/lambda_",fstr[f],qstr[q],"_k",knum,"_method.png"))
+  plot(timeseries)
+  dev.off()
 }
 
 
@@ -44,7 +72,7 @@ hist_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
   # Plot t-test p-val histograms:
   plot1t <- histplot_fn(df,plotdat="t",xmin=xmin1,xmax=xmax1,xlab,ylab)
   plot2t <- histplot_fn(df,plotdat="t",xmin=xmin2,xmax=xmax2,xlab,ylab)
-  histname <- paste0("pvalsUt_",fstr,qstr,"_k",knum,".png")
+  histname <- paste0("pvalsUt_",fstr[f],qstr[q],"_k",knum,".png")
   
   # Add plots (ggarrange adds multiple to same page)
   figure <- ggarrange(plot1U, plot1t, plot2U, plot2t,
@@ -53,7 +81,7 @@ hist_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
   
   } else {
     
-    histname <- paste0("pvalsU_",fstr,qstr,"_k",knum,".png")
+    histname <- paste0("pvalsU_",fstr[f],qstr[q],"_k",knum,".png")
     figure <- ggarrange(plot1U, plot2U, labels = c("U", ""),ncol = 2, nrow = 1)
   }
   

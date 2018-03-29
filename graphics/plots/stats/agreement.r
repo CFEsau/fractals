@@ -1,3 +1,6 @@
+#To do: Check 'NA' values in tot_agreements. Probably a divide by zero thing.
+#       Annotate plots with parameter space/model info
+
 #Calculate p-values
 library(data.table) # for melting data frames
 library(ggplot2)
@@ -191,6 +194,8 @@ for (f in 1:length(fvals)) {
       
       timeseries_fn(df=snaps_test) #uses median lambdas, saved in both medianlam and snaps_test.
       
+      methods_fn(df=snaps_test)
+      
       #===================================
       # Histograms of p-values from U-test (pval vs. count)
       hist_fn(df=pvals)
@@ -237,7 +242,7 @@ for (f in 1:length(fvals)) {
     #  
     #  dev.off()
     #}
-    
+  
   }#end of qvals loop
 }#end of fvals loop
 
