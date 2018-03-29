@@ -24,9 +24,9 @@ timeseries_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
     scale_x_continuous(breaks=seq(xmin,xmax,dx)) +
     scale_y_continuous(breaks=seq(ymin,ymax,dy))
   
-    png(filename=paste0(statsdir,"/lambda_",fstr[f],qstr[q],"_k",knum,".png"))
+    #png(filename=paste0(statsdir,"/lambda_",fstr[f],qstr[q],"_k",knum,".png"))
     plot(timeseries)
-    dev.off()
+    #dev.off()
 }
 
 
@@ -52,9 +52,9 @@ methods_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
     scale_x_continuous(breaks=seq(xmin,xmax,dx)) +
     scale_y_continuous(breaks=seq(ymin,ymax,dy))
   
-  png(filename=paste0(statsdir,"/lambda_",fstr[f],qstr[q],"_k",knum,"_method.png"))
+  #png(filename=paste0(statsdir,"/lambda_",fstr[f],qstr[q],"_k",knum,"_method.png"))
   plot(timeseries)
-  dev.off()
+  #dev.off()
 }
 
 

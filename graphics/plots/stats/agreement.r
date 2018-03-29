@@ -70,7 +70,13 @@ for (f in 1:length(fvals)) {
   
     message(sprintf("\nf = %.1f, q = %.1f", fvals[f],qvals[q])) #print fdim & qvir to console
     
+    
+    #open plot devices for 'timeseries' and 'method' plots:
+    pdf(file=paste0(statsdir,"/lambda_",fstr[f],qstr[q],".pdf")); timeserdev = dev.cur()
+    pdf(file=paste0(statsdir,"/lambda_",fstr[f],qstr[q],"_method.pdf")); methoddev = dev.cur()
+    
     for (k in 1:10) {
+      #starttime <- Sys.time()
       message(sprintf("\tk = %d",k)) #print knum
       
       knum <- ifelse(k<10,paste0('0',as.character(k)),as.character(k)) #k as string for filepath
@@ -192,8 +198,10 @@ for (f in 1:length(fvals)) {
       #===================================
       # Lambda(t) showing 3D & 2D lines with colour coding for T/F:
       
+      dev.set(timeserdev) #set plotting device defined earlier
       timeseries_fn(df=snaps_test) #uses median lambdas, saved in both medianlam and snaps_test.
       
+      dev.set(methoddev) #set plotting device defined earlier
       methods_fn(df=snaps_test)
       
       #===================================
@@ -203,7 +211,11 @@ for (f in 1:length(fvals)) {
       # Histograms of p-values from U- and t-tests (pval vs. count)
       #hist_fn(df=pvals,ttest=TRUE)
       
+      #endtime <- Sys.time()
+      #message(sprintf("\ttime for one k loop = %f s",endtime-starttime)) #time k loop
       } #end of k loop
+    
+    dev.off(which=timeserdev); dev.off(which=methoddev) #switch off plotting devices
       
       
     #box plot of all results across k for this parameter set
