@@ -62,8 +62,10 @@ while not qvirval:
 #modelpath='../'+fbin+'/'+fdim+qvir
 modelpath='/local/cfe/backed_up_on_astro3/fractals/r1p0/'+fbin+'/'+fdim+qvir
 
-ic  = str(raw_input('input the name of the directory with the .sl run files: '))
-outdir  = str(raw_input('input the name of the output directory: '))
+#ic  = str(raw_input('input the name of the directory with the .sl run files: '))
+ic='output'
+#outdir  = str(raw_input('input the name of the output directory: '))
+outdir='analysis'
 
 nfile=0
 for fname in os.listdir(modelpath+'/'+ic +'/'):
