@@ -10,7 +10,8 @@ library(png) # for reading in & overwriting png at the end
 source('/local/cfe/backed_up_on_astro3/Github/fractals/graphics/plots/stats/plots_fn.r')
 
 
-find_agreement <- function(dfcol_method,dfcol_agree,method_type){
+find_agreement <- function(dfcol_method,dfcol_agree,method_type,
+                           fdim,qvir,knum,notused){
   
   if(method_type=='all'){
     # Count number of snapshots tested, ntot:
@@ -25,6 +26,13 @@ find_agreement <- function(dfcol_method,dfcol_agree,method_type){
     
     #Count the number of times the method is used:
     n_method <- length(dfcol_method[dfcol_method==method_type])
+    
+    
+    #Make a note of the model parameters if this method isn't used
+    if (n_method == 0) {
+      notused[nrow(notused)+1,] <- c(fdim,qvir,knum,method_type)
+      assign('notused',notused,envir=.GlobalEnv) #equivalent to notused <<- notused (just more explicit)
+    }
     
     #Count the number of times the method was *successful*:
     nmethod_agree <- length(dfcol_method[dfcol_method==method_type &
@@ -62,6 +70,10 @@ rootdir <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/',fbin)
 #output directory for stats-related plots - create if doesn't exist
 statsdir <- file.path(rootdir,'stats')
 ifelse(!dir.exists(statsdir), dir.create(statsdir), FALSE)
+
+#track instances where lambda doesn't reach 2.0 to cross reference with NaN results in 'agreement':
+notused <- data.frame(fdim=double(), qvir=double(), k=integer(),
+                      method=character(), stringsAsFactors=FALSE)
 
 for (f in 1:length(fvals)) {
   for (q in 1:length(qvals)) {
@@ -172,11 +184,16 @@ for (f in 1:length(fvals)) {
       #Count the number of times each method is used using 'find_agreement' function.
       #Pass in data frame columns containing method types and T/F, and one method type
       
-      frac_p <- find_agreement(snaps_test$method,snaps_test$in_agreement,'pval')
-      frac_10pc <- find_agreement(snaps_test$method,snaps_test$in_agreement,'10%')
-      frac_20pc <- find_agreement(snaps_test$method,snaps_test$in_agreement,'20%')
+      
+      frac_p <- find_agreement(snaps_test$method,snaps_test$in_agreement,'pval',
+                               fvals[f],qvals[q],k,notused)
+      frac_10pc <- find_agreement(snaps_test$method,snaps_test$in_agreement,'10%',
+                                  fvals[f],qvals[q],k,notused)
+      frac_20pc <- find_agreement(snaps_test$method,snaps_test$in_agreement,'20%',
+                                  fvals[f],qvals[q],k,notused)
       #Total number of snapshots in agreement for this k:
-      frac_agree <- find_agreement(snaps_test$method,snaps_test$in_agreement,'all')
+      frac_agree <- find_agreement(snaps_test$method,snaps_test$in_agreement,'all',
+                                   fvals[f],qvals[q],k,notused)
       
       
       #-----------------------
@@ -186,7 +203,6 @@ for (f in 1:length(fvals)) {
       index = index+1
       tot_agreement[index,] <- c(fvals[f], qvals[q], as.integer(knum),
                                           frac_p, frac_10pc, frac_20pc, frac_agree)
-      
       
       
       ###############################################################
@@ -261,8 +277,10 @@ for (f in 1:length(fvals)) {
 
 #Format columns for output file.
 tot_agreement[,3] <- sapply(tot_agreement[,3],as.integer) #Change column 3 (knum) to 'integer'
-table_format <- c(rep("%.1f",2),"%2d",rep("%.3f",4))      #Set formatting
-agreement_fmt <- tot_agreement                            #Copy df so unformatted one not overwritten
+
+table_fmt <- c(rep("%.1f",2),"%2d",rep("%.3f",4)) #Set formatting
+
+agreement_fmt <- tot_agreement    #Copy df so unformatted one not overwritten
 agreement_fmt[] <- mapply(sprintf, table_format, tot_agreement) #Make new formatted df
 
 
