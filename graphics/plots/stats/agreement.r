@@ -31,6 +31,7 @@ find_agreement <- function(dfcol_method,dfcol_agree,method_type,
     #Make a note of the model parameters if this method isn't used
     if (n_method == 0) {
       notused[nrow(notused)+1,] <- c(fdim,qvir,knum,method_type)
+      #(rbind didn't work... https://stackoverflow.com/questions/5231540/r-losing-column-names-when-adding-rows-to-an-empty-data-frame)
       assign('notused',notused,envir=.GlobalEnv) #equivalent to notused <<- notused (just more explicit)
     }
     
