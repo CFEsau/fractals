@@ -5,27 +5,38 @@ library(animation)
 library(Hmisc) #for minor tick marks
 
 nkvals <- 10
-clustype <- 'cluster_FoV5pc' # one of _all, _FoV#pc, _r#rhalf
+clustype <- 'cluster_all' # one of _all, _FoV#pc, _r#rhalf
+
+
+fbin='fbinary0p0'
+fvals <- c(1.6, 2.0, 2.6, 3.0); fstr <- c("f16", "f20", "f26", "f30")
+qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
+#fdim='f16'
+#qvir='q03'
+masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
+
+#use larger axis limits if using all stars in cluster
+axlim <- 10 #4.7 #limits not working... 4.7 actually gives ~5
+dynamicallim <- TRUE #increase/decrease axis limits with time? Initial limits given by axlim
+fovlim <- 5.0 #Field of view limit in pc
+usefovlim <- ifelse(clustype!="cluster_all",TRUE,FALSE)
+
+for (f in 1:length(fvals)) {
+  for (q in 1:length(qvals)) {
+    
+    fdim <- fstr[f]; qvir <- qstr[q]
+    
+message(file.path(fbin,paste0(fdim,qvir),'analysis'))
 
 for (k in 1:nkvals){
   knum <- sprintf('k%02d',k)
+  message(sprintf("k = %d",k))
   
-  fbin='fbinary0p0'
-  fdim='f16'
-  qvir='q03'
-  
-  masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
   outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
   kdir <- file.path(outdir,paste0('runinv_',knum))
   snapdir <- file.path(kdir,'snapshots')
   clusterdir <- file.path(kdir,clustype)
-  #paste0('/media/claire/Elements/Work/',fbin,fdim,qvir)
-  #modeldir <- paste0('/media/claire/Elements/Work/fbin0p0/',fdim,qvir,'/output')
-  #snapdir <- file.path(modeldir,paste0('runinv_',knum),'snapshots')
   setwd(snapdir)
-  
-  axlim <- 4.7 #limits not working... This actually gives ~5
-  fovlim <- 5.0 #Field of view limit in pc
   
   #find number of snapshots
   nsnaps <- length(list.files(pattern="^snap"))
@@ -34,13 +45,14 @@ for (k in 1:nkvals){
   for (p in 1:3){
   
     proj <- if (p==1) 'xy' else if (p==2) 'yz' else if (p==3) 'xz'
+    message(sprintf("\t%s...",proj))
     
     ifelse(!dir.exists(file.path(snapdir, proj)),
            dir.create(file.path(snapdir, proj)), FALSE)
     
     #Movie: Set delay between frames when replaying
-    ani.options(interval=0.02,loop=1)
-    saveVideo({
+    #ani.options(interval=0.02,loop=1)
+    #saveVideo({
     
     #loop over all snapshots
     for (i in 1:nsnaps){
@@ -80,16 +92,26 @@ for (k in 1:nkvals){
       #                                                                     star_df[,1]>-fovlim+xmean &
       #                                                                     star_df[,3]<fovlim+zmean &
       #                                                                     star_df[,3]>-fovlim+zmean)
-      plotstars_df <- if (
-        p==1) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,2]-ymean)^2 ) < fovlim) else if(
-          p==2) subset(star_df, sqrt( (star_df[,2]-ymean)^2 + (star_df[,3]-zmean)^2 ) < fovlim) else if(
-            p==3) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,3]-zmean)^2 ) < fovlim)
+      
+      ifelse(usefovlim,
+             plotstars_df <- if (
+               p==1) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,2]-ymean)^2 ) < fovlim) else if(
+                 p==2) subset(star_df, sqrt( (star_df[,2]-ymean)^2 + (star_df[,3]-zmean)^2 ) < fovlim) else if(
+                   p==3) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,3]-zmean)^2 ) < fovlim),
+             plotstars_df <- star_df
+      )
       
       #centre stars around mean:
       rx <- plotstars_df[,1] - xmean
       ry <- plotstars_df[,2] - ymean
       rz <- plotstars_df[,3] - zmean
       mstar <- plotstars_df[,4]
+      
+      #axis limits
+      if (dynamicallim){
+        maxcoord <- if (proj=='xy') max(rx,ry) else if (proj=='yz') max(ry,rz) else if (proj=='xz') max(rx,rz)
+        axlim <- ifelse(maxcoord>axlim,maxcoord,5)
+    }
       
       #get object star positions
       obj_infn <- paste0('../',clustype,'/lambda/coords/',infn,'_objpositions_',proj,'.dat')
@@ -158,6 +180,8 @@ for (k in 1:nkvals){
       dev.off() #close plot
       
     }#end of snapshot loop
-    },video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc_new.mp4")) #end of video
+    #},video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc_new.mp4")) #end of video
   }#end of projection loop
 }#end of knum loop
+  }#end of qvals loop
+}#end of fvals loop
