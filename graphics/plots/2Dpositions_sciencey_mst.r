@@ -15,11 +15,11 @@ qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
 masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
 
 #use larger axis limits if using all stars in cluster
-axlim <- 10 #4.7 #limits not working... 4.7 actually gives ~5
-dynamicallim <- TRUE #increase/decrease axis limits with time? Initial limits given by axlim
-fovlim <- 5.0 #Field of view limit in pc
+axlim <- 10           #4.7 #limits not working... 4.7 actually gives ~5
+dynamicallim <- TRUE  #increase/decrease axis limits with time. Initial limits given by axlim
+fovlim <- 5.0         #Field of view limit in pc
 usefovlim <- ifelse(clustype!="cluster_all",TRUE,FALSE) #don't restrict massive stars selection
-#to field of view if using 'cluster_all'
+                                                        #to field of view if using 'cluster_all'
 
 for (f in 1:length(fvals)) {
   for (q in 1:length(qvals)) {
@@ -91,9 +91,11 @@ for (f in 1:length(fvals)) {
             rz <- plotstars_df[,3] - zmean
             mstar <- plotstars_df[,4]
             
-            #axis limits
+            #axis limits: maximum absolute position coordinate
             if (dynamicallim){
-              maxcoord <- if (proj=='xy') max(rx,ry) else if (proj=='yz') max(ry,rz) else if (proj=='xz') max(rx,rz)
+              maxcoord <- if (proj=='xy') max(abs(c(rx,ry))) else if (
+                proj=='yz') max(abs(c(ry,rz))) else if (
+                  proj=='xz') max(abs(c(rx,rz)))
               axlim <- ifelse(maxcoord>axlim,maxcoord,5)
             }
             
@@ -140,8 +142,11 @@ for (f in 1:length(fvals)) {
                  ylab=paste0(as.name(substr(proj,2,2)),' (pc)'), cex.lab=1)
             points(xobjdat,yobjdat,col='darkred',cex=1.2,pch=20)
             minor.tick(nx=2,ny=2,tick.ratio=0.4)
-            curve(sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
-            curve(-sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
+            if (usefovlim){
+              #add circle for FoV limit (have to do as 2 curves, because R...)
+              curve(sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
+              curve(-sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
+            }
             
             #use 'segments' to draw a line between pairs of points
             if (p==1) {
