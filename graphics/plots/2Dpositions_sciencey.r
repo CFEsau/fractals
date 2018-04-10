@@ -8,15 +8,15 @@ nkvals <- 10
 clustype <- "cluster_all" # one of _all, _FoV#pc, _r#rhalf
 
 fbin <- "fbinary0p0"
-fvals <- c(1.6, 2.0, 2.6, 3.0); fstr <- c("f16","f20","f26","f30")
-qvals <- c(0.3, 0.5); qstr <- c("q03","q05")
+fvals <- c(1.6, 2.0, 2.6, 3.0); fstr <- c("f16", "f20", "f26", "f30")
+qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
 
-masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
+masterdir <- "/local/cfe/backed_up_on_astro3/fractals/r1p0"
 
 #use larger axis limits if using all stars in cluster
-axlim <- 10 #4.7 #limits not working... 4.7 actually gives ~5
-dynamicallim <- TRUE #increase/decrease axis limits with time? Initial limits given by axlim
-fovlim <- 5.0 #Field of view limit in pc
+axlim <- c(10,10)  #1st & current limit (not x & y!) Used for dynamicallim. #limits not working... 4.7 actually gives ~5
+dynamicallim <- TRUE  #increase/decrease axis limits with time? Initial limits given by axlim
+fovlim <- 5.0         #Field of view limit in pc
 usefovlim <- ifelse(clustype!="cluster_all",TRUE,FALSE) #don't restrict massive stars selection
                                                         #to field of view if using 'cluster_all'
 
@@ -33,7 +33,7 @@ for (f in 1:length(fvals)) {
       message(sprintf("k = %d",k))
       
       kdir <- file.path(outdir,paste0('runinv_',knum))
-      snapdir <- file.path(kdir,'snapshots')
+      snapdir <- file.path(kdir,"snapshots")
       clusterdir <- file.path(kdir,clustype)
       setwd(snapdir)
       
@@ -91,10 +91,12 @@ for (f in 1:length(fvals)) {
             rz <- plotstars_df[,3] - zmean
             mstar <- plotstars_df[,4]
             
-            #dynamical axis limits
+            #dynamical axis limits: maximum absolute position coordinate
             if (dynamicallim){
-              maxcoord <- if (proj=='xy') max(rx,ry) else if (proj=='yz') max(ry,rz) else if (proj=='xz') max(rx,rz)
-              axlim <- ifelse(maxcoord>axlim,maxcoord,5)
+              maxcoord <- if (proj=='xy') max(abs(c(rx,ry))) else if (
+                proj=='yz') max(abs(c(ry,rz))) else if (
+                  proj=='xz') max(abs(c(rx,rz)))
+              axlim[2] <- ifelse(maxcoord>axlim[1],maxcoord,axlim[1]) #axlim 1 is initial axis limit (i.e. minimum limit)
             }
             
             #get object star positions
@@ -136,7 +138,7 @@ for (f in 1:length(fvals)) {
             plot(xdat, ydat, col='gray60', cex=0.5, pch=20,
                  #axes = FALSE,
                  #ann = FALSE,
-                 xlim=c(-axlim,axlim), ylim=c(-axlim,axlim), xlab=paste0(as.name(substr(proj,1,1)),' (pc)'),
+                 xlim=c(-axlim[2],axlim[2]), ylim=c(-axlim[2],axlim[2]), xlab=paste0(as.name(substr(proj,1,1)),' (pc)'),
                  ylab=paste0(as.name(substr(proj,2,2)),' (pc)'), cex.lab=1)
             points(xobjdat,yobjdat,col='darkred',cex=1.2,pch=20)
             minor.tick(nx=2,ny=2,tick.ratio=0.4)

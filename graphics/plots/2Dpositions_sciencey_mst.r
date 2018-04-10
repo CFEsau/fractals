@@ -11,10 +11,10 @@ fbin <- "fbinary0p0"
 fvals <- c(1.6, 2.0, 2.6, 3.0); fstr <- c("f16", "f20", "f26", "f30")
 qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
 
-masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
+masterdir <- "/local/cfe/backed_up_on_astro3/fractals/r1p0"
 
 #use larger axis limits if using all stars in cluster
-axlim <- c(10,10)  #1st & current limit, not x & y! Used for dynamicallim. #limits not working... 4.7 actually gives ~5
+axlim <- c(10,10)  #1st & current limit (not x & y!) Used for dynamicallim. #limits not working... 4.7 actually gives ~5
 dynamicallim <- TRUE  #increase/decrease axis limits with time. Initial limits given by axlim
 fovlim <- 5.0         #Field of view limit in pc
 usefovlim <- ifelse(clustype!="cluster_all",TRUE,FALSE) #don't restrict massive stars selection
@@ -29,12 +29,11 @@ for (f in 1:length(fvals)) {
     message(file.path(fbin,paste0(fdim,qvir),'analysis')) #print model directory (no prefix)
     
     for (k in 1:nkvals){
-      
       knum <- sprintf('k%02d',k)
       message(sprintf("k = %d",k))
       
       kdir <- file.path(outdir,paste0('runinv_',knum))
-      snapdir <- file.path(kdir,'snapshots')
+      snapdir <- file.path(kdir,"snapshots")
       clusterdir <- file.path(kdir,clustype)
       setwd(snapdir)
       
@@ -143,6 +142,7 @@ for (f in 1:length(fvals)) {
                  ylab=paste0(as.name(substr(proj,2,2)),' (pc)'), cex.lab=1)
             points(xobjdat,yobjdat,col='darkred',cex=1.2,pch=20)
             minor.tick(nx=2,ny=2,tick.ratio=0.4)
+            
             if (usefovlim){
               #add circle for FoV limit (have to do as 2 curves, because R...)
               curve(sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
