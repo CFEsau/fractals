@@ -15,19 +15,21 @@ qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
 masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
 
 #use larger axis limits if using all stars in cluster
-axlim <- 10           #4.7 #limits not working... 4.7 actually gives ~5
+axlim <- c(10,10)  #1st & current limit, not x & y! Used for dynamicallim. #limits not working... 4.7 actually gives ~5
 dynamicallim <- TRUE  #increase/decrease axis limits with time. Initial limits given by axlim
 fovlim <- 5.0         #Field of view limit in pc
 usefovlim <- ifelse(clustype!="cluster_all",TRUE,FALSE) #don't restrict massive stars selection
                                                         #to field of view if using 'cluster_all'
 
 for (f in 1:length(fvals)) {
+
   for (q in 1:length(qvals)) {
     
     fdim <- fstr[f]; qvir <- qstr[q]
     message(file.path(fbin,paste0(fdim,qvir),'analysis'))
     
     for (k in 1:nkvals){
+      
       knum <- sprintf('k%02d',k)
       message(sprintf("k = %d",k))
       
@@ -96,7 +98,7 @@ for (f in 1:length(fvals)) {
               maxcoord <- if (proj=='xy') max(abs(c(rx,ry))) else if (
                 proj=='yz') max(abs(c(ry,rz))) else if (
                   proj=='xz') max(abs(c(rx,rz)))
-              axlim <- ifelse(maxcoord>axlim,maxcoord,5)
+              axlim[2] <- ifelse(maxcoord>axlim[1],maxcoord,axlim[1]) #axlim 1 is initial axis limit (i.e. minimum limit)
             }
             
             #get object star positions
@@ -138,7 +140,7 @@ for (f in 1:length(fvals)) {
             plot(xdat, ydat, col='gray60', cex=0.5,pch=20,
                  #axes = FALSE,
                  #ann = FALSE,
-                 xlim=c(-axlim,axlim), ylim=c(-axlim,axlim), xlab=paste0(as.name(substr(proj,1,1)),' (pc)'),
+                 xlim=c(-axlim[2],axlim[2]), ylim=c(-axlim[2],axlim[2]), xlab=paste0(as.name(substr(proj,1,1)),' (pc)'),
                  ylab=paste0(as.name(substr(proj,2,2)),' (pc)'), cex.lab=1)
             points(xobjdat,yobjdat,col='darkred',cex=1.2,pch=20)
             minor.tick(nx=2,ny=2,tick.ratio=0.4)
