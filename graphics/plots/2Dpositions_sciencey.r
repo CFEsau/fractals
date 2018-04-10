@@ -5,11 +5,11 @@ library(animation)
 library(Hmisc) #for minor tick marks
 
 nkvals <- 10
-clustype <- 'cluster_all' # one of _all, _FoV#pc, _r#rhalf
+clustype <- "cluster_all" # one of _all, _FoV#pc, _r#rhalf
 
-fbin <- 'fbinary0p0'
-fvals <- c(1.6, 2.0, 2.6, 3.0); fstr <- c('f16','f20','f26','f30')
-qvals <- c(0.3, 0.5); qstr <- c('q03','q05')
+fbin <- "fbinary0p0"
+fvals <- c(1.6, 2.0, 2.6, 3.0); fstr <- c("f16","f20","f26","f30")
+qvals <- c(0.3, 0.5); qstr <- c("q03","q05")
 
 masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
 
