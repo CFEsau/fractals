@@ -15,23 +15,25 @@ qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
 masterdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0'
 
 #use larger axis limits if using all stars in cluster
-axlim <- 10 #4.7 #limits not working... 4.7 actually gives ~5
-dynamicallim <- TRUE #increase/decrease axis limits with time? Initial limits given by axlim
-fovlim <- 5.0 #Field of view limit in pc
+axlim <- c(10,10)  #1st & current limit, not x & y! Used for dynamicallim. #limits not working... 4.7 actually gives ~5
+dynamicallim <- TRUE  #increase/decrease axis limits with time. Initial limits given by axlim
+fovlim <- 5.0         #Field of view limit in pc
 usefovlim <- ifelse(clustype!="cluster_all",TRUE,FALSE) #don't restrict massive stars selection
-#to field of view if using 'cluster_all'
+                                                        #to field of view if using 'cluster_all'
 
 for (f in 1:length(fvals)) {
+  fdim <- fstr[f]
+  
   for (q in 1:length(qvals)) {
-    
-    fdim <- fstr[f]; qvir <- qstr[q]
-    message(file.path(fbin,paste0(fdim,qvir),'analysis'))
+    qvir <- qstr[q]
+    outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
+    message(file.path(fbin,paste0(fdim,qvir),'analysis')) #print model directory (no prefix)
     
     for (k in 1:nkvals){
+      
       knum <- sprintf('k%02d',k)
       message(sprintf("k = %d",k))
       
-      outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
       kdir <- file.path(outdir,paste0('runinv_',knum))
       snapdir <- file.path(kdir,'snapshots')
       clusterdir <- file.path(kdir,clustype)
@@ -55,8 +57,7 @@ for (f in 1:length(fvals)) {
           
           #loop over all snapshots
           for (i in 1:nsnaps){
-            #set input and output filenames
-            infn <- sprintf('snap%04d',i)
+            infn <- sprintf('snap%04d',i) #input file name
             
             #read data and save to vectors
             snapdata <- read.table(infn)
@@ -73,10 +74,11 @@ for (f in 1:length(fvals)) {
             #set up data frame with coordinates and masses ordered by decreasing mass
             star_df <- data.frame(rx_all,ry_all,rz_all,mstar_all)[order(-mstar_all),]
             
-            outfn <- sprintf('mst%02ssnap%04d.png',proj,i)
+            outfn <- sprintf('mst%02ssnap%04d.png',proj,i) #output file name
             #set up output plot
             png(filename=file.path(proj,outfn),width = 500, height = 500)#,res=40)
             
+            #Get subset of data containing stars within FoV (centred around mean (x,y,z))
             ifelse(usefovlim,
                    plotstars_df <- if (
                      p==1) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,2]-ymean)^2 ) < fovlim) else if(
@@ -91,10 +93,12 @@ for (f in 1:length(fvals)) {
             rz <- plotstars_df[,3] - zmean
             mstar <- plotstars_df[,4]
             
-            #axis limits
+            #dynamical axis limits: maximum absolute position coordinate
             if (dynamicallim){
-              maxcoord <- if (proj=='xy') max(rx,ry) else if (proj=='yz') max(ry,rz) else if (proj=='xz') max(rx,rz)
-              axlim <- ifelse(maxcoord>axlim,maxcoord,5)
+              maxcoord <- if (proj=='xy') max(abs(c(rx,ry))) else if (
+                proj=='yz') max(abs(c(ry,rz))) else if (
+                  proj=='xz') max(abs(c(rx,rz)))
+              axlim[2] <- ifelse(maxcoord>axlim[1],maxcoord,axlim[1]) #axlim 1 is initial axis limit (i.e. minimum limit)
             }
             
             #get object star positions
@@ -133,15 +137,18 @@ for (f in 1:length(fvals)) {
             if (length(xcoord)<1) {xdat <- 0; ydat <- 0; xobjdat <- 0; yobjdat <- 0} #Set values to 0 if no points in data frame
             
             #Add stars:
-            plot(xdat, ydat, col='gray60', cex=0.5,pch=20,
+            plot(xdat, ydat, col='gray60', cex=0.5, pch=20,
                  #axes = FALSE,
                  #ann = FALSE,
-                 xlim=c(-axlim,axlim), ylim=c(-axlim,axlim), xlab=paste0(as.name(substr(proj,1,1)),' (pc)'),
+                 xlim=c(-axlim[2],axlim[2]), ylim=c(-axlim[2],axlim[2]), xlab=paste0(as.name(substr(proj,1,1)),' (pc)'),
                  ylab=paste0(as.name(substr(proj,2,2)),' (pc)'), cex.lab=1)
             points(xobjdat,yobjdat,col='darkred',cex=1.2,pch=20)
             minor.tick(nx=2,ny=2,tick.ratio=0.4)
-            curve(sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
-            curve(-sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
+            if (usefovlim){
+              #add circle for FoV limit (have to do as 2 curves, because R...)
+              curve(sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
+              curve(-sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
+            }
             
             #use 'segments' to draw a line between pairs of points
             if (p==1) {
@@ -157,7 +164,7 @@ for (f in 1:length(fvals)) {
             dev.off() #close plot
             
           }#end of snapshot loop
-        #},video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc_new.mp4")) #end of video
+        #},video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc_mst.mp4")) #end of video
       }#end of projection loop
     }#end of knum loop
   }#end of qvals loop
