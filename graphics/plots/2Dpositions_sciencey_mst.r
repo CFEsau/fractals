@@ -3,38 +3,49 @@
 #2D plots at given projection
 library(animation)
 library(Hmisc) #for minor tick marks
+source('/local/cfe/backed_up_on_astro3/Github/fractals/graphics/plots/plots2Dfn.r')
 
-nkvals <- 10
-clustype <- "cluster_all" # one of _all, _FoV#pc, _r#rhalf
+
+clustype <- "FoV5pc" # one of all, FoV#pc, r#rhalf (check obj star selection if using rhalf... may only work for 'all' & 'FoV')
+plotmst = TRUE
+
+axlim_start <- 5       #axis limits for initial plot
+dynamicallim <- FALSE  #increase/decrease axis limits with time
+
+fovlim <- 5        #Field of view limit in pc
+usefovlim <- ifelse(clustype!="all",TRUE,FALSE) #don't restrict massive stars selection
+#to field of view if using 'cluster_all'
+
+ifelse(dynamicallim, plottype <- 'plot', plottype <- 'ggplot') #either plot or ggplot.
+                                  #Haven't tested ggplot with dynamical axis limits so don't allow for now
 
 fbin <- "fbinary0p0"
 fvals <- c(1.6, 2.0, 2.6, 3.0); fstr <- c("f16", "f20", "f26", "f30")
 qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
 
-masterdir <- "/local/cfe/backed_up_on_astro3/fractals/r1p0"
+nkvals <- 10
 
-#use larger axis limits if using all stars in cluster
-axlim <- c(10,10)  #1st & current limit (not x & y!) Used for dynamicallim. #limits not working... 4.7 actually gives ~5
-dynamicallim <- TRUE  #increase/decrease axis limits with time. Initial limits given by axlim
-fovlim <- 5.0         #Field of view limit in pc
-usefovlim <- ifelse(clustype!="cluster_all",TRUE,FALSE) #don't restrict massive stars selection
-                                                        #to field of view if using 'cluster_all'
+masterpath <- "/local/cfe/backed_up_on_astro3/fractals/r1p0"
+
+theme_set(theme_bw() + theme(panel.grid.major = element_blank(),
+                             panel.grid.minor = element_blank())) #pre-set the bw theme for ggplots
 
 for (f in 1:length(fvals)) {
+
   fdim <- fstr[f]
   
   for (q in 1:length(qvals)) {
+
     qvir <- qstr[q]
-    outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
+    modeldir <- file.path(masterpath,fbin,paste0(fdim,qvir),'analysis')
     message(file.path(fbin,paste0(fdim,qvir),'analysis')) #print model directory (no prefix)
     
     for (k in 1:nkvals){
+  
       knum <- sprintf('k%02d',k)
       message(sprintf("k = %d",k))
       
-      kdir <- file.path(outdir,paste0('runinv_',knum))
-      snapdir <- file.path(kdir,"snapshots")
-      clusterdir <- file.path(kdir,clustype)
+      snapdir <- file.path(modeldir,paste0('runinv_',knum),"snapshots")
       setwd(snapdir)
       
       #find number of snapshots
@@ -46,8 +57,11 @@ for (f in 1:length(fvals)) {
         proj <- if (p==1) 'xy' else if (p==2) 'yz' else if (p==3) 'xz'
         message(sprintf("\t%s...",proj))
         
-        ifelse(!dir.exists(file.path(snapdir, proj)),
-               dir.create(file.path(snapdir, proj)), FALSE)
+        ifelse(dynamicallim,
+               outdir <- file.path(snapdir, sprintf('%s_dynamical_%s',proj,clustype)), #dynamical limits
+               outdir <- file.path(snapdir, sprintf('%s_%s',proj,clustype)))      #fixed limits
+        
+        ifelse(!dir.exists(outdir), dir.create(outdir), FALSE)
         
         #Movie: Set delay between frames when replaying
         #ani.options(interval=0.02,loop=1)
@@ -55,26 +69,20 @@ for (f in 1:length(fvals)) {
           
           #loop over all snapshots
           for (i in 1:nsnaps){
+            axlim <- axlim_start
             infn <- sprintf('snap%04d',i) #input file name
             
             #read data and save to vectors
             snapdata <- read.table(infn)
-            mstar_all <- snapdata$V4
-            rx_all <- snapdata$V5
-            ry_all <- snapdata$V6
-            rz_all <- snapdata$V7
-            
-            #Define centre of cluster to be at mean x, y, z coordinates
-            xmean <- mean(rx_all)
-            ymean <- mean(ry_all)
-            zmean <- mean(rz_all)
             
             #set up data frame with coordinates and masses ordered by decreasing mass
-            star_df <- data.frame(rx_all,ry_all,rz_all,mstar_all)[order(-mstar_all),]
+            star_df <- data.frame("rx_all"=snapdata$V5,"ry_all"=snapdata$V6,"rz_all"=snapdata$V7,
+                                  "mstar_all"=snapdata$V4)[order(-snapdata$V4),]
             
-            outfn <- sprintf('mst%02ssnap%04d.png',proj,i) #output file name
-            #set up output plot
-            png(filename=file.path(proj,outfn),width = 500, height = 500)#,res=40)
+            #Define centre of cluster to be at mean x, y, z coordinates
+            xmean <- mean(star_df$rx_all)
+            ymean <- mean(star_df$ry_all)
+            zmean <- mean(star_df$rz_all)
             
             #Get subset of data containing stars within FoV (centred around mean (x,y,z))
             ifelse(usefovlim,
@@ -85,85 +93,80 @@ for (f in 1:length(fvals)) {
                    plotstars_df <- star_df
             )
             
+            colnames(plotstars_df) <- c("rx","ry","rz","mstar")
             #centre stars around mean:
-            rx <- plotstars_df[,1] - xmean
-            ry <- plotstars_df[,2] - ymean
-            rz <- plotstars_df[,3] - zmean
-            mstar <- plotstars_df[,4]
+            plotstars_df$rx <- plotstars_df$rx - xmean
+            plotstars_df$ry <- plotstars_df$ry - ymean
+            plotstars_df$rz <- plotstars_df$rz - zmean
             
             #dynamical axis limits: maximum absolute position coordinate
             if (dynamicallim){
-              maxcoord <- if (proj=='xy') max(abs(c(rx,ry))) else if (
-                proj=='yz') max(abs(c(ry,rz))) else if (
-                  proj=='xz') max(abs(c(rx,rz)))
-              axlim[2] <- ifelse(maxcoord>axlim[1],maxcoord,axlim[1]) #axlim 1 is initial axis limit (i.e. minimum limit)
+              maxcoord <- if (proj=='xy') max(abs(c(plotstars_df$rx,plotstars_df$ry))) else if (
+                proj=='yz') max(abs(c(plotstars_df$ry,plotstars_df$rz))) else if (
+                  proj=='xz') max(abs(c(plotstars_df$rx,plotstars_df$rz)))
+              axlim <- ifelse(maxcoord>axlim,maxcoord,axlim)
+              #axlim[2] <- ifelse(maxcoord>axlim[1],maxcoord,axlim[1]) #axlim 1 is initial axis limit (i.e. minimum limit)
             }
             
             #get object star positions
-            obj_infn <- paste0('../',clustype,'/lambda/coords/',infn,'_objpositions_',proj,'.dat')
+            obj_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objpositions_',proj,'.dat')
             obj_df <- read.table(obj_infn)
-            objrx <- obj_df[,1] - xmean
-            objry <- obj_df[,2] - ymean
-            objrz <- obj_df[,3] - zmean
+            colnames(obj_df) <- c("objrx","objry","objrz")
+            obj_df$objrx <- obj_df$objrx - xmean
+            obj_df$objry <- obj_df$objry - ymean
+            obj_df$objrz <- obj_df$objrz - zmean
             
-            
-            #get MST edge coordinates
-            mst_infn <- paste0('../',clustype,'/lambda/coords/',infn,'_objconnections_',proj,'.dat')
-            mst_df <- read.table(mst_infn)
-            x0 <- mst_df$V1
-            y0 <- mst_df$V2
-            z0 <- mst_df$V3
-            x1 <- mst_df$V4
-            y1 <- mst_df$V5
-            z1 <- mst_df$V6
-            
+                
             #Make scatter plot of star positions
+                
+            #Get x & y coordinates for plot from 'proj' str
+            xcoord <- substr(proj,1,1)
+            ycoord <- substr(proj,2,2)
             
+            outfn <- sprintf('mst_%02ssnap%04d.png',proj,i) #output file name
+            ##set up output plot
+            png(filename=file.path(outdir,outfn),width = 500, height = 500)#,res=40)
+            
+            if (plotmst) {
+            #get MST edge coordinates
+            mst_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objconnections_',proj,'.dat')
+            mst_df <- read.table(mst_infn)
+            colnames(mst_df) <- c("x0","y0","z0","x1","y1","z1")
+            
+            plotedges <- data.frame(
+              "x0"=eval(parse(text = as.name(paste0("mst_df$",xcoord,"0")))),
+              "y0"=eval(parse(text = as.name(paste0("mst_df$",ycoord,"0")))),
+              "x1"=eval(parse(text = as.name(paste0("mst_df$",xcoord,"1")))),
+              "y1"=eval(parse(text = as.name(paste0("mst_df$",ycoord,"1"))))
+            )
+            }
+            
+            if (plottype=='plot'){
             #Projection:
-            xcoord <- as.name(paste0("r",substr(proj,1,1)))
-            ycoord <- as.name(paste0("r",substr(proj,2,2)))
-            xdat <- eval(parse(text = as.name(xcoord)))
-            ydat <- eval(parse(text = as.name(ycoord)))
+            xdat <- eval(parse(text = as.name(paste0("plotstars_df$r",xcoord)))) #get x coord from 1st field of 'proj' (xy/xz/yz)
+            ydat <- eval(parse(text = as.name(paste0("plotstars_df$r",ycoord)))) #get y coord from second field of 'proj'
             #object stars:
-            xobjcoord <- as.name(paste0("objr",substr(proj,1,1)))
-            yobjcoord <- as.name(paste0("objr",substr(proj,2,2)))
-            xobjdat <- eval(parse(text = as.name(xobjcoord)))
-            yobjdat <- eval(parse(text = as.name(yobjcoord)))
+            xobjdat <- eval(parse(text = as.name(paste0("obj_df$objr",xcoord))))
+            yobjdat <- eval(parse(text = as.name(paste0("obj_df$objr",ycoord))))
             
             
-            #Create empty grid
-            if (length(xcoord)<1) {xdat <- 0; ydat <- 0; xobjdat <- 0; yobjdat <- 0} #Set values to 0 if no points in data frame
             
-            #Add stars:
-            plot(xdat, ydat, col='gray60', cex=0.5, pch=20,
-                 #axes = FALSE,
-                 #ann = FALSE,
-                 xlim=c(-axlim[2],axlim[2]), ylim=c(-axlim[2],axlim[2]), xlab=paste0(as.name(substr(proj,1,1)),' (pc)'),
-                 ylab=paste0(as.name(substr(proj,2,2)),' (pc)'), cex.lab=1)
-            points(xobjdat,yobjdat,col='darkred',cex=1.2,pch=20)
-            minor.tick(nx=2,ny=2,tick.ratio=0.4)
-            
-            if (usefovlim){
-              #add circle for FoV limit (have to do as 2 curves, because R...)
-              curve(sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
-              curve(-sqrt(25-x^2),-5,5,n=200,add=TRUE,type="l",lty=2,col='gray80')
+              #Plot stars using 'plot':
+              plotstars(x=xdat, y=ydat, xobj=xobjdat, yobj=yobjdat,limit=axlim, xvar=xcoord, yvar=ycoord, snap=i, nsnaps=nsnaps,
+                        #plotmst=TRUE, xmst0=plotedges$x0,xmst1=plotedges$x1,ymst0=plotedges$y0,ymst1=plotedges$y1,
+                        plotfov=usefovlim)
+              
+            } else if (plottype=='ggplot'){
+              
+              ggplotstars(stardf=plotstars_df, objdf=obj_df, xvar=xcoord, yvar=ycoord, plotfov=TRUE,fovlim=5,
+                          plotmst=TRUE, edgecoords=plotedges)
+              
             }
-            
-            #use 'segments' to draw a line between pairs of points
-            if (p==1) {
-              segments(x0, y0, x1, y1)#, col = par("fg"), lty = par("lty"), xpd = FALSE)
-            } else if (p==2) {
-              segments(y0, z0, y1, z1)#, col = par("fg"), lty = par("lty"), xpd = FALSE)
-            } else if (p==3) {
-              segments(x0, z0, x1, z1)#, col = par("fg"), lty = par("lty"), xpd = FALSE)
-            }
-            
-            mtext(sprintf('t = %.2f Myr',(i/nsnaps)*10),side=3,adj=1)#,col.main = "gray80",cex.main=0.9)
             
             dev.off() #close plot
             
           }#end of snapshot loop
-        #},video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc_mst.mp4")) #end of video
+        #},video.name=paste0(modeldir,"/movies/",knum,proj,"_",fovlim,"pc_mst.mp4")) #end of video
       }#end of projection loop
     }#end of knum loop
   }#end of qvals loop
