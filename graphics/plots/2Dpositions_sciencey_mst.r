@@ -27,8 +27,12 @@ nkvals <- 10
 
 masterpath <- "/local/cfe/backed_up_on_astro3/fractals/r1p0"
 
-theme_set(theme_bw() + theme(panel.grid.major = element_blank(),
-                             panel.grid.minor = element_blank())) #pre-set the bw theme for ggplots
+# Set up global theme for ggplots:
+theme_set(theme_bw() + #dark-on-light ggplot2 theme
+            theme(panel.grid.major = element_blank(),
+                  panel.grid.minor = element_blank(), #don't draw major & minor grid lines
+                             text = element_text(size=14) #pre-set plot text size
+)) #end of theme setup
 
 for (f in 1:length(fvals)) {
 
@@ -60,6 +64,7 @@ for (f in 1:length(fvals)) {
         ifelse(dynamicallim,
                outdir <- file.path(snapdir, sprintf('%s_dynamical_%s',proj,clustype)), #dynamical limits
                outdir <- file.path(snapdir, sprintf('%s_%s',proj,clustype)))      #fixed limits
+        message(sprintf("\toutput directory: %s",basename(outdir)))
         
         ifelse(!dir.exists(outdir), dir.create(outdir), FALSE)
         
