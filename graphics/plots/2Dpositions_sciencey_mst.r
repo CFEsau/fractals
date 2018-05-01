@@ -13,8 +13,7 @@ axlim_start <- 5       #axis limits for initial plot
 dynamicallim <- FALSE  #increase/decrease axis limits with time
 
 fovlim <- 5        #Field of view limit in pc
-usefovlim <- ifelse(clustype!="all",TRUE,FALSE) #don't restrict massive stars selection
-#to field of view if using 'cluster_all'
+usefovlim <- ifelse(clustype!="all",TRUE,FALSE) #don't restrict massive stars selection to field of view if using 'cluster_all'
 
 ifelse(dynamicallim, plottype <- 'plot', plottype <- 'ggplot') #either plot or ggplot.
                                   #Haven't tested ggplot with dynamical axis limits so don't allow for now
@@ -31,21 +30,24 @@ masterpath <- "/local/cfe/backed_up_on_astro3/fractals/r1p0"
 theme_set(theme_bw() + #dark-on-light ggplot2 theme
             theme(panel.grid.major = element_blank(),
                   panel.grid.minor = element_blank(), #don't draw major & minor grid lines
-                             text = element_text(size=14) #pre-set plot text size
-)) #end of theme setup
+                  text = element_text(size=14) #pre-set plot text size
+            )) #end of theme setup
 
 for (f in 1:length(fvals)) {
-
   fdim <- fstr[f]
   
   for (q in 1:length(qvals)) {
-
     qvir <- qstr[q]
+    
     modeldir <- file.path(masterpath,fbin,paste0(fdim,qvir),'analysis')
     message(file.path(fbin,paste0(fdim,qvir),'analysis')) #print model directory (no prefix)
     
     for (k in 1:nkvals){
-  
+      
+      #set a timer for each k:
+      ksystime1 <- Sys.time()
+      #message(ksystime1)
+      
       knum <- sprintf('k%02d',k)
       message(sprintf("k = %d",k))
       
@@ -57,13 +59,15 @@ for (f in 1:length(fvals)) {
       
       #loop over all projections
       for (p in 1:3){
+        psystime1 <- Sys.time() #note system time (used when finding why code slows down over iterations)
+        #message(psystime1)
         
         proj <- if (p==1) 'xy' else if (p==2) 'yz' else if (p==3) 'xz'
         message(sprintf("\t%s...",proj))
         
         ifelse(dynamicallim,
                outdir <- file.path(snapdir, sprintf('%s_dynamical_%s',proj,clustype)), #dynamical limits
-               outdir <- file.path(snapdir, sprintf('%s_%s',proj,clustype)))      #fixed limits
+               outdir <- file.path(snapdir, sprintf('%s_%s',proj,clustype)))  #defined fixed limits
         message(sprintf("\toutput directory: %s",basename(outdir)))
         
         ifelse(!dir.exists(outdir), dir.create(outdir), FALSE)
@@ -72,22 +76,24 @@ for (f in 1:length(fvals)) {
         #ani.options(interval=0.02,loop=1)
         #saveVideo({
           
-          #loop over all snapshots
+        #loop over all snapshots
+        axlim <- axlim_start #new simulation, so reset axis limits
           for (i in 1:nsnaps){
-            axlim <- axlim_start
+            
             infn <- sprintf('snap%04d',i) #input file name
             
             #read data and save to vectors
             snapdata <- read.table(infn)
             
             #set up data frame with coordinates and masses ordered by decreasing mass
-            star_df <- data.frame("rx_all"=snapdata$V5,"ry_all"=snapdata$V6,"rz_all"=snapdata$V7,
-                                  "mstar_all"=snapdata$V4)[order(-snapdata$V4),]
+            star_df <- data.frame("rx"=snapdata$V5,"ry"=snapdata$V6,"rz"=snapdata$V7,
+                                  "m"=snapdata$V4)[order(-snapdata$V4),]
+            rm(snapdata) #remove snapdata to free up memory
             
             #Define centre of cluster to be at mean x, y, z coordinates
-            xmean <- mean(star_df$rx_all)
-            ymean <- mean(star_df$ry_all)
-            zmean <- mean(star_df$rz_all)
+            xmean <- mean(star_df$rx)
+            ymean <- mean(star_df$ry)
+            zmean <- mean(star_df$rz)
             
             #Get subset of data containing stars within FoV (centred around mean (x,y,z))
             ifelse(usefovlim,
@@ -98,7 +104,9 @@ for (f in 1:length(fvals)) {
                    plotstars_df <- star_df
             )
             
-            colnames(plotstars_df) <- c("rx","ry","rz","mstar")
+            rm(star_df)
+            
+            colnames(plotstars_df) <- c("rx","ry","rz","m")
             #centre stars around mean:
             plotstars_df$rx <- plotstars_df$rx - xmean
             plotstars_df$ry <- plotstars_df$ry - ymean
@@ -116,14 +124,14 @@ for (f in 1:length(fvals)) {
             #get object star positions
             obj_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objpositions_',proj,'.dat')
             obj_df <- read.table(obj_infn)
-            colnames(obj_df) <- c("objrx","objry","objrz")
-            obj_df$objrx <- obj_df$objrx - xmean
-            obj_df$objry <- obj_df$objry - ymean
-            obj_df$objrz <- obj_df$objrz - zmean
+            colnames(obj_df) <- c("rx","ry","rz")
+            obj_df$rx <- obj_df$rx - xmean
+            obj_df$ry <- obj_df$ry - ymean
+            obj_df$rz <- obj_df$rz - zmean
             
-                
+            
             #Make scatter plot of star positions
-                
+            
             #Get x & y coordinates for plot from 'proj' str
             xcoord <- substr(proj,1,1)
             ycoord <- substr(proj,2,2)
@@ -133,17 +141,17 @@ for (f in 1:length(fvals)) {
             png(filename=file.path(outdir,outfn),width = 500, height = 500)#,res=40)
             
             if (plotmst) {
-            #get MST edge coordinates
-            mst_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objconnections_',proj,'.dat')
-            mst_df <- read.table(mst_infn)
-            colnames(mst_df) <- c("x0","y0","z0","x1","y1","z1")
-            
-            plotedges <- data.frame(
-              "x0"=eval(parse(text = as.name(paste0("mst_df$",xcoord,"0")))),
-              "y0"=eval(parse(text = as.name(paste0("mst_df$",ycoord,"0")))),
-              "x1"=eval(parse(text = as.name(paste0("mst_df$",xcoord,"1")))),
-              "y1"=eval(parse(text = as.name(paste0("mst_df$",ycoord,"1"))))
-            )
+              #get MST edge coordinates
+              mst_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objconnections_',proj,'.dat')
+              mst_df <- read.table(mst_infn)
+              colnames(mst_df) <- c("x0","y0","z0","x1","y1","z1")
+              
+              plotedges <- data.frame(
+                "x0"=eval(parse(text = as.name(paste0("mst_df$",xcoord,"0")))),
+                "y0"=eval(parse(text = as.name(paste0("mst_df$",ycoord,"0")))),
+                "x1"=eval(parse(text = as.name(paste0("mst_df$",xcoord,"1")))),
+                "y1"=eval(parse(text = as.name(paste0("mst_df$",ycoord,"1"))))
+              )
             }
             
             if (plottype=='plot'){
@@ -151,8 +159,8 @@ for (f in 1:length(fvals)) {
             xdat <- eval(parse(text = as.name(paste0("plotstars_df$r",xcoord)))) #get x coord from 1st field of 'proj' (xy/xz/yz)
             ydat <- eval(parse(text = as.name(paste0("plotstars_df$r",ycoord)))) #get y coord from second field of 'proj'
             #object stars:
-            xobjdat <- eval(parse(text = as.name(paste0("obj_df$objr",xcoord))))
-            yobjdat <- eval(parse(text = as.name(paste0("obj_df$objr",ycoord))))
+            xobjdat <- eval(parse(text = as.name(paste0("obj_df$r",xcoord))))
+            yobjdat <- eval(parse(text = as.name(paste0("obj_df$r",ycoord))))
             
             
             
@@ -169,10 +177,17 @@ for (f in 1:length(fvals)) {
             }
             
             dev.off() #close plot
+            rm(plotstars_df)
             
           }#end of snapshot loop
         #},video.name=paste0(modeldir,"/movies/",knum,proj,"_",fovlim,"pc_mst.mp4")) #end of video
+        psystime2 <- Sys.time()
+        #message(psystime2)
+        message("Time elapsed in projection loop: ", psystime2-psystime1)
       }#end of projection loop
+      ksystime2 <- Sys.time() #end timer
+      #message(ksystime2)
+      message("Time elapsed in k loop: ", ksystime2-ksystime1)
     }#end of knum loop
   }#end of qvals loop
 }#end of fvals loop
