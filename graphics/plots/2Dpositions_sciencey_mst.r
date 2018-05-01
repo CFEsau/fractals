@@ -21,6 +21,7 @@ ifelse(dynamicallim, plottype <- 'plot', plottype <- 'ggplot') #either plot or g
 fbin <- "fbinary0p0"
 fvals <- c(1.6, 2.0, 2.6, 3.0); fstr <- c("f16", "f20", "f26", "f30")
 qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
+proj <- c('xy','yz','xz')
 
 nkvals <- 10
 
@@ -61,13 +62,15 @@ for (f in 1:length(fvals)) {
       for (p in 1:3){
         psystime1 <- Sys.time() #note system time (used when finding why code slows down over iterations)
         #message(psystime1)
+        message(sprintf("\t%s...",proj[p]))
         
-        proj <- if (p==1) 'xy' else if (p==2) 'yz' else if (p==3) 'xz'
-        message(sprintf("\t%s...",proj))
+        #Get x & y coordinates for plot from 'proj' str
+        xcoord <- substr(proj[p],1,1) #syntax: substr(string, from, to)
+        ycoord <- substr(proj[p],2,2)
         
         ifelse(dynamicallim,
-               outdir <- file.path(snapdir, sprintf('%s_dynamical_%s',proj,clustype)), #dynamical limits
-               outdir <- file.path(snapdir, sprintf('%s_%s',proj,clustype)))  #defined fixed limits
+               outdir <- file.path(snapdir, sprintf('%s_dynamical_%s',proj[p],clustype)), #dynamical limits
+               outdir <- file.path(snapdir, sprintf('%s_%s',proj[p],clustype)))  #defined fixed limits
         message(sprintf("\toutput directory: %s",basename(outdir)))
         
         ifelse(!dir.exists(outdir), dir.create(outdir), FALSE)
@@ -76,8 +79,8 @@ for (f in 1:length(fvals)) {
         #ani.options(interval=0.02,loop=1)
         #saveVideo({
           
-        #loop over all snapshots
-        axlim <- axlim_start #new simulation, so reset axis limits
+          #loop over all snapshots
+          axlim <- axlim_start #new simulation, so reset axis limits
           for (i in 1:nsnaps){
             
             infn <- sprintf('snap%04d',i) #input file name
@@ -114,15 +117,15 @@ for (f in 1:length(fvals)) {
             
             #dynamical axis limits: maximum absolute position coordinate
             if (dynamicallim){
-              maxcoord <- if (proj=='xy') max(abs(c(plotstars_df$rx,plotstars_df$ry))) else if (
-                proj=='yz') max(abs(c(plotstars_df$ry,plotstars_df$rz))) else if (
-                  proj=='xz') max(abs(c(plotstars_df$rx,plotstars_df$rz)))
+              maxcoord <- if (proj[p]=='xy') max(abs(c(plotstars_df$rx,plotstars_df$ry))) else if (
+                proj[p]=='yz') max(abs(c(plotstars_df$ry,plotstars_df$rz))) else if (
+                  proj[p]=='xz') max(abs(c(plotstars_df$rx,plotstars_df$rz)))
               axlim <- ifelse(maxcoord>axlim,maxcoord,axlim)
               #axlim[2] <- ifelse(maxcoord>axlim[1],maxcoord,axlim[1]) #axlim 1 is initial axis limit (i.e. minimum limit)
             }
             
             #get object star positions
-            obj_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objpositions_',proj,'.dat')
+            obj_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objpositions_',proj[p],'.dat')
             obj_df <- read.table(obj_infn)
             colnames(obj_df) <- c("rx","ry","rz")
             obj_df$rx <- obj_df$rx - xmean
@@ -132,17 +135,9 @@ for (f in 1:length(fvals)) {
             
             #Make scatter plot of star positions
             
-            #Get x & y coordinates for plot from 'proj' str
-            xcoord <- substr(proj,1,1)
-            ycoord <- substr(proj,2,2)
-            
-            outfn <- sprintf('mst_%02ssnap%04d.png',proj,i) #output file name
-            ##set up output plot
-            png(filename=file.path(outdir,outfn),width = 500, height = 500)#,res=40)
-            
             if (plotmst) {
               #get MST edge coordinates
-              mst_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objconnections_',proj,'.dat')
+              mst_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objconnections_',proj[p],'.dat')
               mst_df <- read.table(mst_infn)
               colnames(mst_df) <- c("x0","y0","z0","x1","y1","z1")
               
@@ -153,6 +148,11 @@ for (f in 1:length(fvals)) {
                 "y1"=eval(parse(text = as.name(paste0("mst_df$",ycoord,"1"))))
               )
             }
+            
+            
+            outfn <- sprintf('mst_%02ssnap%04d.png',proj[p],i) #output file name
+            #set up output plot
+            png(filename=file.path(outdir,outfn),width = 500, height = 500)#,res=40)
             
             if (plottype=='plot'){
             #Projection:
@@ -180,7 +180,7 @@ for (f in 1:length(fvals)) {
             rm(plotstars_df)
             
           }#end of snapshot loop
-        #},video.name=paste0(modeldir,"/movies/",knum,proj,"_",fovlim,"pc_mst.mp4")) #end of video
+        #},video.name=paste0(modeldir,"/movies/",knum,proj[p],"_",fovlim,"pc_mst.mp4")) #end of video
         psystime2 <- Sys.time()
         #message(psystime2)
         message("Time elapsed in projection loop: ", psystime2-psystime1)
