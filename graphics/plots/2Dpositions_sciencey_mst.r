@@ -94,44 +94,42 @@ for (f in 1:length(fvals)) {
                                   "m"=snapdata$V4)[order(-snapdata$V4),]
             rm(snapdata) #remove snapdata to free up memory
             
-            #Define centre of cluster to be at mean rx/ry/rz
-            xmean <- mean(star_df$rx)
-            ymean <- mean(star_df$ry)
-            zmean <- mean(star_df$rz)
+            #Overwrite star_df with only the projections in 'proj':
+            star_df <- star_df[c(paste0("r",xcoord),paste0("r",ycoord),"m")]
+            
+            #Define centre of cluster to be at mean rx/ry/rz (as required by 'proj')
+            means <- c(mean(star_df[,1]),mean(star_df[,2]))
             
             #Get subset of data containing stars within FoV (centred around mean projection coordinates)
+            inFoV <- sqrt(  (star_df[,1]-means[1])^2  +  (star_df[,2]-means[2])^2  ) < fovlim #logical array: T if in FoV
             ifelse(usefovlim,
-                   plotstars_df <- if (
-                     p==1) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,2]-ymean)^2 ) < fovlim) else if(
-                       p==2) subset(star_df, sqrt( (star_df[,2]-ymean)^2 + (star_df[,3]-zmean)^2 ) < fovlim) else if(
-                         p==3) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,3]-zmean)^2 ) < fovlim),
-                   plotstars_df <- star_df
+                   plotstars_df <- star_df[inFoV,], #plot star when FoV is TRUE
+                   plotstars_df <- star_df #plot all stars
             )
             
-            rm(star_df)
+            rm(inFoV, star_df)
             
-            colnames(plotstars_df) <- c("rx","ry","rz","m")
             #centre stars around mean:
-            plotstars_df$rx <- plotstars_df$rx - xmean
-            plotstars_df$ry <- plotstars_df$ry - ymean
-            plotstars_df$rz <- plotstars_df$rz - zmean
+            plotstars_df[,1] <- plotstars_df[,1] - means[1]
+            plotstars_df[,2] <- plotstars_df[,2] - means[2]
             
             #dynamical axis limits: maximum absolute position coordinate
             if (dynamicallim){
-              maxcoord <- if (proj[p]=='xy') max(abs(c(plotstars_df$rx,plotstars_df$ry))) else if (
-                proj[p]=='yz') max(abs(c(plotstars_df$ry,plotstars_df$rz))) else if (
-                  proj[p]=='xz') max(abs(c(plotstars_df$rx,plotstars_df$rz)))
+              maxcoord <- max(abs(c(plotstars_df[,1],plotstars_df[,2])))
               axlim <- ifelse(maxcoord>axlim,maxcoord,axlim)
-              #axlim[2] <- ifelse(maxcoord>axlim[1],maxcoord,axlim[1]) #axlim 1 is initial axis limit (i.e. minimum limit)
             }
             
             #get object star positions
             obj_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objpositions_',proj[p],'.dat')
             obj_df <- read.table(obj_infn)
             colnames(obj_df) <- c("rx","ry","rz")
-            obj_df$rx <- obj_df$rx - xmean
-            obj_df$ry <- obj_df$ry - ymean
-            obj_df$rz <- obj_df$rz - zmean
+            
+            #again only keep the dimensions in 'proj':
+            obj_df <- obj_df[c(paste0("r",xcoord),paste0("r",ycoord))]
+            
+            #centre stars around mean:
+            obj_df[,1] <- obj_df[,1] - means[1]
+            obj_df[,2] <- obj_df[,2] - means[2]
             
             
             #Make scatter plot of star positions
