@@ -1,6 +1,12 @@
 #!/usr/bin/Rscript
 #www.statmethods.net/advgraphs/layout.html
 #2D plots at given projection
+
+#inputs from 2Dpositions.sh:
+args <- commandArgs()
+#print(args)
+f <- as.numeric(args[6]); q <- as.numeric(args[7])#; k <- as.numeric(args[8])
+
 library(animation)
 library(Hmisc) #for minor tick marks
 source('/local/cfe/backed_up_on_astro3/Github/fractals/graphics/plots/plots2Dfn.r')
@@ -34,11 +40,11 @@ theme_set(theme_bw() + #dark-on-light ggplot2 theme
                   text = element_text(size=14) #pre-set plot text size
             )) #end of theme setup
 
-for (f in 1:length(fvals)) {
+#for (f in 1:length(fvals)) {
   fdim <- fstr[f]
   message("fdim: ", fdim)
   
-  for (q in 1:length(qvals)) {
+  #for (q in 1:length(qvals)) {
     qvir <- qstr[q]
     
     modeldir <- file.path(masterpath,fbin,paste0(fdim,qvir),'analysis')
@@ -106,7 +112,6 @@ for (f in 1:length(fvals)) {
                    plotstars_df <- star_df[inFoV,], #plot star when FoV is TRUE
                    plotstars_df <- star_df #plot all stars
             )
-            
             rm(inFoV, star_df)
             
             #centre stars around mean:
@@ -187,5 +192,5 @@ for (f in 1:length(fvals)) {
       #message(ksystime2)
       message("\n\tTime elapsed in k loop: ", ksystime2-ksystime1)
     }#end of knum loop
-  }#end of qvals loop
-}#end of fvals loop
+#  }#end of qvals loop
+#}#end of fvals loop
