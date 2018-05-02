@@ -41,7 +41,7 @@ ggplotstars <- function(stardf = plotstars_df, objdf=obj_df, xvar, yvar, plotfov
     geom_point(colour = "gray60",size=0.5) +
     
     # overplot 'object' stars:
-    geom_point(data = obj_df, aes_string(x=as.name(paste0("objr",xvar)),y=as.name(paste0("objr",yvar))),colour = "darkred") +
+    geom_point(data = obj_df, aes_string(x=as.name(paste0("r",xvar)),y=as.name(paste0("r",yvar))),colour = "darkred") +
     
     # define tick mark positions:
     scale_x_continuous(breaks=scales::pretty_breaks(n=6)) +
