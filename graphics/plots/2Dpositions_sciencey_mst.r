@@ -36,6 +36,7 @@ theme_set(theme_bw() + #dark-on-light ggplot2 theme
 
 for (f in 1:length(fvals)) {
   fdim <- fstr[f]
+  message("fdim: ", fdim)
   
   for (q in 1:length(qvals)) {
     qvir <- qstr[q]
@@ -80,8 +81,8 @@ for (f in 1:length(fvals)) {
         #saveVideo({
           
           #loop over all snapshots
-          axlim <- axlim_start #new simulation, so reset axis limits
           for (i in 1:nsnaps){
+            axlim <- axlim_start #new snapshot, so reset axis limits (put here in case limits decrease)
             
             infn <- sprintf('snap%04d',i) #input file name
             
@@ -93,12 +94,12 @@ for (f in 1:length(fvals)) {
                                   "m"=snapdata$V4)[order(-snapdata$V4),]
             rm(snapdata) #remove snapdata to free up memory
             
-            #Define centre of cluster to be at mean x, y, z coordinates
+            #Define centre of cluster to be at mean rx/ry/rz
             xmean <- mean(star_df$rx)
             ymean <- mean(star_df$ry)
             zmean <- mean(star_df$rz)
             
-            #Get subset of data containing stars within FoV (centred around mean (x,y,z))
+            #Get subset of data containing stars within FoV (centred around mean projection coordinates)
             ifelse(usefovlim,
                    plotstars_df <- if (
                      p==1) subset(star_df, sqrt( (star_df[,1]-xmean)^2 + (star_df[,2]-ymean)^2 ) < fovlim) else if(
@@ -135,6 +136,10 @@ for (f in 1:length(fvals)) {
             
             #Make scatter plot of star positions
             
+            outfn <- sprintf('mst_%02ssnap%04d.png',proj[p],i) #output file name
+            #set up output plot
+            png(filename=file.path(outdir,outfn),width = 500, height = 500)#,res=40)
+            
             if (plotmst) {
               #get MST edge coordinates
               mst_infn <- paste0('../cluster_',clustype,'/lambda/coords/',infn,'_objconnections_',proj[p],'.dat')
@@ -148,11 +153,6 @@ for (f in 1:length(fvals)) {
                 "y1"=eval(parse(text = as.name(paste0("mst_df$",ycoord,"1"))))
               )
             }
-            
-            
-            outfn <- sprintf('mst_%02ssnap%04d.png',proj[p],i) #output file name
-            #set up output plot
-            png(filename=file.path(outdir,outfn),width = 500, height = 500)#,res=40)
             
             if (plottype=='plot'){
             #Projection:
@@ -187,7 +187,7 @@ for (f in 1:length(fvals)) {
       }#end of projection loop
       ksystime2 <- Sys.time() #end timer
       #message(ksystime2)
-      message("Time elapsed in k loop: ", ksystime2-ksystime1)
+      message("\n\tTime elapsed in k loop: ", ksystime2-ksystime1)
     }#end of knum loop
   }#end of qvals loop
 }#end of fvals loop
