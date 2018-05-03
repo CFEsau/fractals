@@ -39,7 +39,7 @@ plot.stars <- function(x, y, starcol = 'gray60', xobj = NULL, yobj = NULL,
 
 
 
-ggplot.stars <- function(stardf = plotstarsDF, objdf = obj_df, xvar, yvar,
+ggplot.stars <- function(stardf = plotstarsDF, objdf = objDF, xvar, yvar,
                          plotfov= TRUE, fovlim = 5,
                          plotmst = FALSE, edgecoords = NULL){
   
@@ -47,7 +47,7 @@ ggplot.stars <- function(stardf = plotstarsDF, objdf = obj_df, xvar, yvar,
                                  y = as.name(paste0("r", yvar)))) +
     geom_point(colour = "gray60",size=0.5) +
     
-    geom_point(data = obj_df, aes_string(x = as.name(paste0("r", xvar)),
+    geom_point(data = objDF, aes_string(x = as.name(paste0("r", xvar)),
                                          y = as.name(paste0("r", yvar))),
                colour = "darkred") +
     
