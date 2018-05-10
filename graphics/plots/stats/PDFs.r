@@ -17,44 +17,44 @@ outpath <- '/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0/f16q03/analy
 #knum <- 'k03'
 #snapshots <- c(58, 77, 400, 425)
 knum <- 'k10'
-snapshots <- c(25:42, 60:80, 120:135)
+snapshots <- c(25:42)#, 60:80, 120:135)
 
 simpath <- file.path(outpath, paste0('runinv_', knum), cluster)
-plotsdir <- paste0(outpath, '/plots/cdf_', knum) #outputs directory for plots
+plotsdir <- paste0(outpath, '/plots/pdf_', knum) #outputs directory for plots
 #create output directory if it doesn't exist:
 ifelse(!dir.exists(plotsdir), dir.create(plotsdir), FALSE)
 
-nmsts <- 1000
-macro3d <- read.table(file.path(simpath, 'CDFdata/allMSTs_lambar_3D.dat'), row.names = 1, nrows = nmsts)
-macro2d <- read.table(file.path(simpath, 'CDFdata/allMSTs_lambar_xy.dat'), row.names = 1, nrows = nmsts)
+nmsts <- 1000 #don't *need* this, it just helps with memory allocation. Might as well, since it's known
+all_lambdas3d <- read.table(file.path(simpath, 'CDFdata/allMSTs_lambar_3D.dat'), row.names = 1, nrows = nmsts)
+all_lambdas2d <- read.table(file.path(simpath, 'CDFdata/allMSTs_lambar_xy.dat'), row.names = 1, nrows = nmsts)
 
 #get data for each snapshot: nloop lambdas for each snapshot
 # Order: [row, column] - data saved for rows specified in 'snapshots', all columns.
-lambdas3d <- data.matrix(macro3d[snapshots, ])
-lambdas2d <- data.matrix(macro2d[snapshots, ])
+my_lambdas3d <- data.matrix(all_lambdas3d[snapshots, ])
+my_lambdas2d <- data.matrix(all_lambdas2d[snapshots, ])
 
 #kernel density estimates
 #(see https://www.r-bloggers.com/the-density-function/ for good summary)
 for (snap in 1:length(snapshots)){
   
-  df <- data.frame(lambdas3d[snap, ], lambdas2d[snap, ])
-  colnames(df)[1] <- '3D'; colnames(df)[2] <- '2D'
-  df_long <- melt(df) #convert data to long format
+  df_lambdas <- data.frame(my_lambdas3d[snap, ], my_lambdas2d[snap, ])
+  colnames(df_lambdas)[1] <- '3D'; colnames(df_lambdas)[2] <- '2D'
+  df_long <- melt(df_lambdas, variable.name = "Dimension", value.name = "Lambda") #convert data to long format
   
-  pval <- wilcox.test(as.numeric(lambdas3d[snap, ]), as.numeric(lambdas2d[snap, ]), paired = FALSE)$p.value
+  pval <- wilcox.test(as.numeric(my_lambdas3d[snap, ]), as.numeric(my_lambdas2d[snap, ]), paired = FALSE)$p.value
   
   #set up output plot:
   outfn_pdf <- sprintf('pdf%02s_snap%04d.png', proj, snapshots[snap]) # output file name
   png(filename = file.path(plotsdir, outfn_pdf), width = 500, height = 500)#, res=40)
   
   plot(
-    ggplot(df_long, aes(x = value, color = variable)) +
+    ggplot(df_long, aes(x = Lambda, color = Dimension)) +
       geom_line(stat = "density") +
       scale_color_manual(values = c("black", "red")) +
       #lines at median 3D & 2D positions:
-      geom_vline(xintercept = median(lambdas3d[snap, ]), colour = "black") +
-      geom_vline(xintercept = median(lambdas2d[snap, ]), colour = "red", linetype = "dotted") +
-      annotate("rect", xmin = median(lambdas3d[snap, ]) * 0.9, xmax = median(lambdas3d[snap, ]) * 1.1,
+      geom_vline(xintercept = median(my_lambdas3d[snap, ]), colour = "black") +
+      geom_vline(xintercept = median(my_lambdas2d[snap, ]), colour = "red", linetype = "dotted") +
+      annotate("rect", xmin = median(my_lambdas3d[snap, ]) * 0.9, xmax = median(my_lambdas3d[snap, ]) * 1.1,
            ymin = -Inf, ymax = Inf, alpha = .2, fill = "blue") + #shaded region 10% around 3D med
       theme_minimal()  +
       scale_x_continuous(breaks = scales::pretty_breaks(n = 6)) +
@@ -70,8 +70,8 @@ for (snap in 1:length(snapshots)){
 
 #'ecdf': Empirical Cumulative Distribution Function
 #for (snap in 1:length(snapshots)) {
-#  CDF1 <- ecdf(lambdas3d[snap, ])
-#  CDF2 <- ecdf(lambdas2d[snap, ])
+#  CDF1 <- ecdf(my_lambdas3d[snap, ])
+#  CDF2 <- ecdf(my_lambdas2d[snap, ])
 #  outfn_cdf <- sprintf('lambdas%02s_snap%04d.png', proj, snapshots[snap]) # output file name
 #  #set up output plot:
 #  png(filename = file.path(plotsdir, outfn_cdf), width = 500, height = 500)#, res=40)
