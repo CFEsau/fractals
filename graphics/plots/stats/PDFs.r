@@ -25,8 +25,16 @@ plotsdir <- paste0(outpath, '/plots/pdf_', knum) #outputs directory for plots
 ifelse(!dir.exists(plotsdir), dir.create(plotsdir), FALSE)
 
 nmsts <- 1000 #don't *need* this, it just helps with memory allocation. Might as well, since it's known
-all_lambdas3d <- read.table(file.path(simpath, 'CDFdata/allMSTs_lambar_3D.dat'), row.names = 1, nrows = nmsts)
-all_lambdas2d <- read.table(file.path(simpath, 'CDFdata/allMSTs_lambar_xy.dat'), row.names = 1, nrows = nmsts)
+
+nsnaps <- length(readLines(file.path(simpath, 'CDFdata/allMSTs_lambar_3D.dat')))
+
+all_lambdas3d <- read.table(file.path(simpath, 'CDFdata/allMSTs_lambar_3D.dat'),
+                            nrows = nsnaps, row.names = 1, header = FALSE,
+                            col.names = c("snap",sprintf("snap%04d", 1:nmsts)))
+
+all_lambdas2d <- read.table(file.path(simpath, 'CDFdata/allMSTs_lambar_xy.dat'),
+                            nrows = nsnaps, row.names = 1, header = FALSE,
+                            col.names = c("snap",sprintf("snap%04d", 1:nmsts)))
 
 #get data for each snapshot: nloop lambdas for each snapshot
 # Order: [row, column] - data saved for rows specified in 'snapshots', all columns.
