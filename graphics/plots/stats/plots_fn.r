@@ -1,4 +1,4 @@
-#Used in pvals.r
+#Used in agreement.r
 
 timeseries_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
                           bckcols=c("TRUE" = "green", "FALSE" = "red")){
@@ -59,8 +59,8 @@ methods_fn <- function(df,xmin=0,xmax=10,dx=1,ymin=0,ymax=15,dy=2,
 
 
 
-hist_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
-                     xlab="log(p)",ylab="nsnaps",ttest=FALSE){
+hist_fn <-function(df, xmax1 = 1, xmax2 = 1, xmin1 = 1e-40, xmin2 = 1e-12,
+                     xlab = "log(p)", ylab = "nsnaps", ttest = FALSE){
   
   # Plot Wilcoxon/U-test p-val histograms:
   plot1U <- histplot_fn(df,plotdat="U",xmin=xmin1,xmax=xmax1,xlab,ylab)
@@ -72,7 +72,7 @@ hist_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
   # Plot t-test p-val histograms:
   plot1t <- histplot_fn(df,plotdat="t",xmin=xmin1,xmax=xmax1,xlab,ylab)
   plot2t <- histplot_fn(df,plotdat="t",xmin=xmin2,xmax=xmax2,xlab,ylab)
-  histname <- paste0("pvalsUt_",fstr[f],qstr[q],"_k",knum,".png")
+  histname <- paste0("pvals_hist/pvalsUt_",fstr[f],qstr[q],"_k",knum,".png")
   
   # Add plots (ggarrange adds multiple to same page)
   figure <- ggarrange(plot1U, plot1t, plot2U, plot2t,
@@ -85,7 +85,7 @@ hist_fn <-function(df,xmax1=1,xmax2=1,xmin1=1e-40,xmin2=1e-12,
     figure <- ggarrange(plot1U, plot2U, labels = c("U", ""),ncol = 2, nrow = 1)
   }
   
-  png(filename=file.path(statsdir,histname))
+  png(filename=file.path(pvals_histdir,histname))
   plot(figure)
   annotate_figure(figure, top=text_grob(paste0("k",knum), face="bold", size=10))
   dev.off()

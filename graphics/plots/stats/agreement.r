@@ -71,6 +71,9 @@ rootdir <- paste0('/local/cfe/backed_up_on_astro3/fractals/r1p0/', fbin)
 statsdir <- file.path(rootdir, 'stats')
 ifelse(!dir.exists(statsdir), dir.create(statsdir), FALSE)
 
+pvals_histdir <- file.path(statsdir, 'pvals_hist')
+ifelse(!dir.exists(pvals_histdir), dir.create(pvals_histdir), FALSE)
+
 #track instances where lambda doesn't reach 2.0 to cross reference with NaN results in 'agreement':
 notused <- data.frame(fdim = double(), qvir = double(), k = integer(),
                       method = character(), stringsAsFactors = FALSE)
@@ -187,7 +190,6 @@ for (f in 1:length(fvals)) {
       #Count the number of times each method is used using 'find_agreement' function.
       #Pass in data frame columns containing method types and T/F, and one method type
       
-      
       frac_p <- find_agreement(snaps_test$method, snaps_test$in_agreement, 'pval',
                                fvals[f], qvals[q], k, notused)
       frac_10pc <- find_agreement(snaps_test$method, snaps_test$in_agreement, '10%',
@@ -284,14 +286,16 @@ tot_agreement[, 3] <- sapply(tot_agreement[, 3], as.integer) #Change column 3 (k
 table_fmt <- c(rep("%.1f", 2), "%2d", rep("%.3f", 4)) #Set formatting
 
 agreement_fmt <- tot_agreement    #Copy df so unformatted one not overwritten
-agreement_fmt[] <- mapply(sprintf, table_format, tot_agreement) #Make new formatted df
+agreement_fmt[] <- mapply(sprintf, table_fmt, tot_agreement) #Make new formatted df
 
 
 #Output dataframe as table with p-vals to 4 d.p.
+#NaN values when there are no values of lambda above the 10% / 20% tolerances (all low lambda)
 write.table(agreement_fmt, file = file.path(statsdir, "pvals.dat"),
             quote = FALSE, row.names = FALSE, sep = "\t")
 
 #box plots:
+#Read in pvals.dat as tot_agreement if 'allboxplots' needs regenerating)
 #melt 'tot_agreement' to fdim | qvir | total
 agreement.m <- melt(tot_agreement[, c("fdim", "qvir", "total")], id=c("fdim", "qvir", "total"))
 
@@ -303,7 +307,7 @@ plot(
              y = total)) +  #y-axis variables
     geom_boxplot(alpha = 0.7,
                  aes(fill = as.character(qvir)), #colour boxes depending on qvir
-                 coef = 20,    #include outliers in whiskers (arbitrary large-ish number)
+                 #coef = 20,    #include outliers in whiskers (arbitrary large-ish number)
                  position = position_dodge(width = 0.85), #add space between boxes
                  width = 0.8) + #change width of boxes
     theme_bw() +
