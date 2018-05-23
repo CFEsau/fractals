@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+#Plot CDFs for different MSTs
+
 import os
 import sys
 import matplotlib.pyplot as plt
