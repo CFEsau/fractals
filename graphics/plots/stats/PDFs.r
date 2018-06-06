@@ -139,6 +139,7 @@ for (snapi in 1:length(snapshots)){
   
   #Find y-values at given x-value at various points to find any snaps that don't overlap
   #(to check whether 2D & 3D 'agree' for paper purposes)
+  
   # Get coordinates of density function for 3D & 2D lambdas
   dens3D <- density(lambdas_df$'3D')
   dens2D <- density(lambdas_df$'2D')
@@ -152,48 +153,50 @@ for (snapi in 1:length(snapshots)){
     
     #First, 'NULL' objects in case they were set in the previous iteration:
     # (code works if this isn't done, but can lead to confusion in debugging)
-    denspoints_3D <- NULL; denspoints_2D <- NULL
+    density_3D <- NULL; density_2D <- NULL
     
     #compare y-values of 2D & 3D density plots at max, min, median, quartiles, & 1/6, 5/6 quantiles:
-    denspoints_3D <- c(#dens3D_fn(min(lambdas_df$'3D')),
-                       dens3D_fn(quantile(lambdas_df$'3D', .17)),
-                       #dens3D_fn(quantile(lambdas_df$'3D', .25)),
-                       #dens3D_fn(median(lambdas_df$'3D')),
-                       #dens3D_fn(quantile(lambdas_df$'3D', .75)),
-                       dens3D_fn(quantile(lambdas_df$'3D', .83))#,
-                       #dens3D_fn(max(lambdas_df$'3D'))
+    density_3D <- c(y_0pc = dens3D_fn(min(lambdas_df$'3D')),
+                       y_17pc = dens3D_fn(quantile(lambdas_df$'3D', .17)),
+                       y_25pc = dens3D_fn(quantile(lambdas_df$'3D', .25)),
+                       y_50pc = dens3D_fn(median(lambdas_df$'3D')),
+                       y_75pc = dens3D_fn(quantile(lambdas_df$'3D', .75)),
+                       y_83pc = dens3D_fn(quantile(lambdas_df$'3D', .83)),
+                       y_100pc = dens3D_fn(max(lambdas_df$'3D'))
     )
     #keep lambdas_df$'3D' for 2D check as x-values need to be the same:
-    denspoints_2D <- c(#dens2D_fn(min(lambdas_df$'3D')),
-                       dens2D_fn(quantile(lambdas_df$'3D', .17)),
-                       #dens2D_fn(quantile(lambdas_df$'3D', .25)),
-                       #dens2D_fn(median(lambdas_df$'3D')),
-                       #dens2D_fn(quantile(lambdas_df$'3D', .75)),
-                       dens2D_fn(quantile(lambdas_df$'3D', .83))#,
-                       #dens2D_fn(max(lambdas_df$'3D'))
+    density_2D <- c(y_0pc = dens2D_fn(min(lambdas_df$'3D')),
+                      y_17pc = dens2D_fn(quantile(lambdas_df$'3D', .17)),
+                       y_25pc = dens2D_fn(quantile(lambdas_df$'3D', .25)),
+                       y_50pc = dens2D_fn(median(lambdas_df$'3D')),
+                       y_75pc = dens2D_fn(quantile(lambdas_df$'3D', .75)),
+                       y_83pc = dens2D_fn(quantile(lambdas_df$'3D', .83)),
+                       y_100pc = dens2D_fn(max(lambdas_df$'3D'))
     )
     
     #replace any 'NA' values with 0:
-    denspoints_3D[is.na(denspoints_3D)] <- 0; denspoints_2D[is.na(denspoints_2D)] <- 0
+    density_3D[is.na(density_3D)] <- 0; density_2D[is.na(density_2D)] <- 0
     
     #Find whether the spread of one PDF is encompassed within the other:
-    if (all(denspoints_3D >= denspoints_2D) 
-        || all(denspoints_3D <= denspoints_2D)){
+    if (all(density_3D >= density_2D) 
+        || all(density_3D <= density_2D)){
       
       #NULL any objects that may have been set for a previous snapshot
       x1_3D <- NULL; x2_3D <- NULL; y1 <- NULL; y2 <- NULL
+      x1_2D <- NULL; x2_2D <- NULL
       laglead_df3D <- NULL; laglead_df2D <- NULL
-      indices3D <- NULL; indices2D <- NULL
+      indices2D <- NULL
       
       #Either one PDF is within the other or the max tail of one overlaps the min tail of the other.
       #Ensure 3Dx1 > 2Dx1 &  3Dx2 < 2Dx2 or vice versa:
       #3D is easy since the 3D distribution is used as benchmark
       x1_3D <- quantile(lambdas_df$'3D', 0.17)
       x2_3D <- quantile(lambdas_df$'3D', 0.83)
+      
       #2D is trickier.
-      #Find the y-values of the relevant quantiles of the 3D distribution:
-      y1 <- dens3D_fn(quantile(lambdas_df$'3D', 0.17))
-      y2 <- dens3D_fn(quantile(lambdas_df$'3D', 0.83))
+      #Get the y-values of the relevant quantiles of the 3D distribution:
+      y1 <- density_3D["y_17pc"]
+      y2 <- density_3D["y_83pc"]
       
       #and their corresponding x-values for the 2D distribution;
       #say x1_2D is the first time y1 is reached and x2_2D is the last time y2 is reached.
@@ -204,29 +207,30 @@ for (snapi in 1:length(snapshots)){
       laglead_df2D <- data.frame(dens = dens2D$y, lag = lag(dens2D$y), lead = lead(dens2D$y))
       
       #(y1 > lag & y1 < lead) finds indices on positive gradients, (y2 < lag & y2 > lead) for negative
-      indices3D <- which(with(laglead_df3D, (y1 > lag & y1 < lead) | (y2 < lag & y2 > lead) ))
       indices2D <- which(with(laglead_df2D, (y1 > lag & y1 < lead) | (y2 < lag & y2 > lead) ))
       
       #If there are more than 4 values (2 either side of y1, y2), stop code
       # & figure out which to take (only implement if needed)
-      if (length(indices3D) > 4 || length(indices2D) > 4) {
+      if (length(indices2D) > 4) {
         stop("2D pdf intersects y1 with positive gradient
              or y2 with negative gradient more than once")
       }
       
       # Take min index as the point to the left of y1 and max index to the right of y2
-      indices3D <- c(min(indices3D), max(indices3D))
       indices2D <- c(min(indices2D), max(indices2D))
+      x1_2D <- dens2D$x[indices2D[1]]
+      x2_2D <- dens2D$x[indices2D[2]]
+      #######
       #check values:
-      indices3D; indices2D
-      dens3D$x[indices3D]; dens2D$x[indices2D]
+      indices2D; dens2D$x[indices2D]
+      #######
       
       if (
-        (dens3D$x[indices3D][1] < dens3D$x[indices2D][1] &&
-         dens3D$x[indices3D][2] > dens3D$x[indices2D][2])
+        (x1_3D < dens3D$x[indices2D][1] &&
+         x2_3D > dens3D$x[indices2D][2])
         ||
-        (dens3D$x[indices3D][1] > dens3D$x[indices2D][1] &&
-         dens3D$x[indices3D][2] < dens3D$x[indices2D][2])
+        (x1_3D > dens3D$x[indices2D][1] &&
+         x2_3D < dens3D$x[indices2D][2])
       ){
         compare.spread <- c(compare.spread, snapi)
         
@@ -239,29 +243,25 @@ for (snapi in 1:length(snapshots)){
         points(median(lambdas_df$'3D'), dens3D_fn(median(lambdas_df$'3D')),
               cex=1.2, pch=20, col="green")
         ##min & max:
-        #points(min(lambdas_df$'3D'), dens3D_fn(min(lambdas_df$'3D')),
+        #points(min(lambdas_df$'3D'), density_3D["y_0pc"]),
         #      cex=1.2, pch=20, col="blue")
-        #points(max(lambdas_df$'3D'), dens3D_fn(max(lambdas_df$'3D')),
+        #points(max(lambdas_df$'3D'), density_3D["y_100pc"]),
         #      cex=1.2, pch=20, col="blue")
         #1/6 & 5/6 quantiles (0.17, 0.83):
-        points(quantile(lambdas_df$'3D', 0.17), dens3D_fn(quantile(lambdas_df$'3D', 0.17)),
-              cex=1.2, pch=20, col="green")
-        points(quantile(lambdas_df$'3D', 0.83), dens3D_fn(quantile(lambdas_df$'3D', 0.83)),
-              cex=1.2, pch=20, col="green")
+        points(x1_3D, y1, cex=1.2, pch=20, col="green")
+        points(x2_3D, y2, cex=1.2, pch=20, col="green")
         ##quartiles (0.17, 0.83):
-        #points(quantile(lambdas_df$'3D', 0.25), dens3D_fn(quantile(lambdas_df$'3D', 0.25)),
+        #points(quantile(lambdas_df$'3D', 0.25), density_3D["y_25pc"],
         #      cex=1.2, pch=20, col="blue")
-        #points(quantile(lambdas_df$'3D', 0.75), dens3D_fn(quantile(lambdas_df$'3D', 0.75)),
+        #points(quantile(lambdas_df$'3D', 0.75), density_3D["y_75pc"],
         #      cex=1.2, pch=20, col="blue")
         
         #draw 2D density function:
         lines(dens2D, col="black", lwd=2)
-        text(x=max(dens3D$x,dens2D$x)*0.5,y=max(dens3D$y,dens2D$y),labels=sprintf('snap%04d',snapi))
+        text(x=max(dens3D$x,dens2D$x)*0.7,y=max(dens3D$y,dens2D$y),labels=sprintf('snap%04d',snapi))
         #1/6 & 5/6 quantiles (0.17, 0.83):
-        points(quantile(lambdas_df$'2D', 0.17), dens3D_fn(quantile(lambdas_df$'3D', 0.17)),
-               cex=1.2, pch=4, col="green")
-        points(quantile(lambdas_df$'2D', 0.83), dens3D_fn(quantile(lambdas_df$'3D', 0.83)),
-               cex=1.2, pch=4, col="green")
+        points(x1_2D, y1, cex=1.2, pch=4, col="green")
+        points(x2_2D, y2, cex=1.2, pch=4, col="green")
         #dev.off()
         
       } #end of 'one within other'
