@@ -372,7 +372,7 @@ def lambda_k(thiscluster):
         #n-1 minor ticks:
         ax.xaxis.set_minor_locator(AutoMinorLocator(4))
         plt.xlim(0,plotconfig.duration)
-        plt.ylim(ymax = 15, ymin = 0)
+        plt.ylim(ymax = 10, ymin = 0)
         plt.annotate("fdim = "+plotconfig.fdim+
                      ", qvir = "+plotconfig.qvir,
                      xy=(1.0, -0.09),xycoords='axes fraction',
@@ -388,8 +388,10 @@ def lambda_k(thiscluster):
                 kval = simname.split("_")[1] #get k01, k02, etc
                 filename = (plotconfig.outpath + '/' + simname + '/' +
                         thiscluster + '/lambda/MST_'+thislambda+'_3D.dat')
+                
                 #check file exists:
-                if os.path.isfile(filename):
+                #if os.path.isfile(filename):
+                if (kval=='k01') or (kval=='k02') or (kval=='k03') or (kval=='k07'):
                     nsnap = np.loadtxt(filename)[:,0]
                     time = (nsnap/nsnap[-1])*plotconfig.duration
                     lambda_data = np.loadtxt(filename)[:,3]
@@ -402,9 +404,9 @@ def lambda_k(thiscluster):
                     ax.plot(time,lambda_data,label=kval)
                     #plt.show()
                     
-                else:
+                '''else:
                     print "WARNING: file for %s doesn't exist. Skipping." \
-                        % (thislambda)
+                        % (thislambda)'''
         handles, labels = ax.get_legend_handles_labels()
         #sort order of legend by labels
         import operator
@@ -413,7 +415,7 @@ def lambda_k(thiscluster):
         ax.legend(handles, labels, loc="upper right", fontsize=10)
         #plt.show()
         saveplot = (plotconfig.outpath + '/plots/'+thislambda+'_'+ctype+
-                    '_comparek.pdf')
+                    '_comparek_paper.pdf')
         plt.tight_layout()
         plt.savefig(saveplot, bbox_inches='tight')
         #print ("         ",thislambda,"_",ctype,"_comparek.pdf",sep="")

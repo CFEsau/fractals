@@ -11,6 +11,7 @@ plotconfig.errorbars = 'n' #plot error bars on lambda?
 plotconfig.duration = 10   #Duration of simulation (Myr - for axis limits)
 
 #Haven't made 'projection' a variable. Change manually. 3D at the moment.
+#(I've made it a global in 'plotconfig', it's just not implemented yet)
 
 plotconfig.fbin = ''
 while not plotconfig.fbin:
@@ -71,7 +72,8 @@ print (plotconfig.outpath)
 
 #get different types of cluster (all, FoV, etc):
 plotconfig.clustertypes = []
-filehandling.getclusters() # get list of cluster types
+#filehandling.getclusters() # get list of cluster types
+plotconfig.clustertypes.append('cluster_FoV5pc')
 print ("Cluster list:",plotconfig.clustertypes)
 
 #Make 'plots' directory if it doesn't exist:
@@ -125,32 +127,35 @@ for thiscluster in plotconfig.clustertypes:
     # Lambda projections
     #--------------------
     #saved as plots/k##_cluster_lambdatype.pdf before merging
+
+    
     
     lambd.lambdaprojections(thiscluster) #compare projections for each lambda
-    filehandling.mergefiles() #merge plots into one document
-    print "\n"
-    
-    #plot 2D projections relative to 3D for each lambda:
-    #saved as plots/k##_cluster_lambdatype_proj.pdf before merging
-    lambd.projectioncompare(thiscluster)
-    filehandling.mergefiles() #merge plots into one document
-    print "\n"
-    
-    #Measure divergence from 3D
-    
-    #--------------------
-    #   Lambda methods
-    #--------------------
-    lambd.lambdacompare(thiscluster) #compare lambda methods (uses 3D)
-    filehandling.mergefiles()
-    print "\n"
-    
-    #--------------------
-    #    k comparisons
-    #--------------------
-    #compare simulations (k##)
-    lambd.lambda_k(thiscluster) #compare simulations (k## together)
-    print "\n"
+#    filehandling.mergefiles() #merge plots into one document
+#    print "\n"
+#    
+#    #plot 2D projections relative to 3D for each lambda:
+#    #saved as plots/k##_cluster_lambdatype_proj.pdf before merging
+#    lambd.projectioncompare(thiscluster)
+#    filehandling.mergefiles() #merge plots into one document
+#    print "\n"
+#    
+#    #Measure divergence from 3D
+#    
+#    #--------------------
+#    #   Lambda methods
+#    #--------------------
+#    lambd.lambdacompare(thiscluster) #compare lambda methods (uses 3D)
+#    filehandling.mergefiles()
+#    print "\n"
+#    
+#    #--------------------
+#    #    k comparisons
+#    #--------------------
+#    
+#    #compare simulations (k##)
+#    lambd.lambda_k(thiscluster) #compare simulations (k## together)
+#    print "\n"
 
 
 #print (timeit.default_timer() - start_time)

@@ -23,12 +23,12 @@ masterdir <- "/local/cfe/backed_up_on_astro3/fractals/r1p0"
 for (f in 1:length(fvals)) {
   fdim <- fstr[f]
   
-  for (q in 1:length(qvals)) {
+for (q in 1:length(qvals)) {
     qvir <- qstr[q]
     outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
     message(file.path(fbin,paste0(fdim,qvir),'analysis')) #print model directory (no prefix)
     
-    for (k in 1:nkvals){
+for (k in 1:nkvals){
       knum <- sprintf('k%02d',k)
       message(sprintf("k = %d",k))
       
@@ -45,6 +45,7 @@ for (f in 1:length(fvals)) {
       
       #loop over all snapshots
       for (i in 1:nsnaps){
+        #for (i in 860:995){
         
         #set input and output filenames
         infn <- sprintf('snap%04d',i)
@@ -99,9 +100,7 @@ for (f in 1:length(fvals)) {
             axlim[2] <- 40.0
           } else if (maxcoord >= 40.0 & maxcoord < 60.0){
             axlim[2] <- 60.0
-          } else if (maxcoord >= 60.0 & maxcoord < 70.0){
-            axlim[2] <- 80.0
-          } else if (maxcoord >= 70.0 & maxcoord < 100.0){
+          } else if (maxcoord >= 60.0 & maxcoord < 100.0){
             axlim[2] <- 100.0
           } else if (maxcoord >= 100.0 & maxcoord < 150.0){
             axlim[2] <- 150.0

@@ -128,15 +128,15 @@ PROGRAM reduce
 
 ! Find energy, c of m, rhalf, mass segregation for stars
 ! within a field of view of FoV_lim pc:
-  FoV_lim = 5
-  CALL reduce_FoV(nstars(1))
+!  FoV_lim = 5
+!  CALL reduce_FoV(nstars(1))
 
 ! Find energy, c of m, rhalf, mass segregation for stars
 ! within rfac*r_halfmass(1:4,nsnaps) of all stars:
-  rfac = 2
-  CALL reduce_rhalf(nstars(1))
-  rfac = 3
-  CALL reduce_rhalf(nstars(1))
+!  rfac = 2
+!  CALL reduce_rhalf(nstars(1))
+!  rfac = 3
+!  CALL reduce_rhalf(nstars(1))
 !
 !  
 !*************************!

@@ -6,6 +6,9 @@ library(animation)
 library(Hmisc) #for minor tick marks
 library("plotrix") #for draw.circle
 
+# !!! NEED TO TEST WITH DYNAMICAL AXIS LIMITS - haven't checked since changing to ggplot2 !!!
+# Also to do: add minor tick marks if possible (might be hard with dynamical axes)
+
 
 #function for drawing a circle on plot:
 #(if using plot instead of ggplot could just use draw.circle, but 'plot' doesn't
@@ -31,8 +34,7 @@ qvals <- c(0.3, 0.5); qstr <- c("q03", "q05")
 masterdir <- "/local/cfe/backed_up_on_astro3/fractals/r1p0"
 
 #use larger axis limits if using all stars in cluster
-axlim <- c(5.0,5.0) #c(10,10)  #1st & current limit (not x & y!) Used for dynamicallim. 
-                    #limits not working... 4.7 actually gives ~5
+axlim <- c(5.0,5.0) #c(10,10)  #1st & current limit (not x & y!) Used for dynamicallim.
 dynamicallim <- FALSE  #increase/decrease axis limits with time? Initial limits given by axlim
 fovlim <- 5.0         #Field of view limit in pc
 usefovlim <- ifelse(clustype!="cluster_all",TRUE,FALSE) #don't restrict massive stars selection
@@ -47,16 +49,14 @@ for (f in 1:length(fvals)) {
   
   for (q in 1:length(qvals)) {
     qvir <- qstr[q]
-    outdir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
+    modeldir <- file.path(masterdir,fbin,paste0(fdim,qvir),'analysis')
     message(file.path(fbin,paste0(fdim,qvir),'analysis')) #print model directory (no prefix)
     
     for (k in 1:nkvals){
       knum <- sprintf('k%02d',k)
       message(sprintf("k = %d",k))
       
-      kdir <- file.path(outdir,paste0('runinv_',knum))
-      snapdir <- file.path(kdir,"snapshots")
-      clusterdir <- file.path(kdir,clustype)
+      snapdir <- file.path(modeldir,paste0('runinv_',knum),"snapshots")
       setwd(snapdir)
       
       #find number of snapshots
@@ -68,12 +68,15 @@ for (f in 1:length(fvals)) {
         proj <- if (p==1) 'xy' else if (p==2) 'yz' else if (p==3) 'xz'
         message(sprintf("\t%s...",proj))
         
-        ifelse(!dir.exists(file.path(snapdir, proj)),
-               dir.create(file.path(snapdir, proj)), FALSE)
+        ifelse(dynamicallim,
+               outdir <- file.path(snapdir, paste0(proj,'_dynamical')),
+               outdir <- file.path(snapdir, proj))
+        
+        ifelse(!dir.exists(outdir), dir.create(outdir), FALSE)
         
         #Movie: Set delay between frames when replaying
-        ani.options(interval=0.02,loop=1)
-        saveVideo({
+        #ani.options(interval=0.02,loop=1)
+        #saveVideo({
           
           #loop over all snapshots
           for (i in 1:nsnaps){
@@ -91,10 +94,6 @@ for (f in 1:length(fvals)) {
             ymean <- mean(star_df$ry_all)
             zmean <- mean(star_df$rz_all)
             
-            outfn <- sprintf('%02ssnap%04d.png',proj,i) #output file name
-            #set up output plot
-            #png(filename=file.path(proj,outfn),width = 500, height = 500)#,res=40)
-            
             #Get subset of data containing stars within FoV (centred around mean (x,y,z))
             ifelse(usefovlim,
                    plotstars_df <- if (
@@ -105,6 +104,7 @@ for (f in 1:length(fvals)) {
             )
             
             colnames(plotstars_df) <- c("rx","ry","rz","mstar")
+            #centre stars around mean:
             plotstars_df$rx <- plotstars_df$rx - xmean
             plotstars_df$ry <- plotstars_df$ry - ymean
             plotstars_df$rz <- plotstars_df$rz - zmean
@@ -126,13 +126,15 @@ for (f in 1:length(fvals)) {
             obj_df$objrz <- obj_df$objrz - zmean
             
             
+            outfn <- sprintf('%02ssnap%04d.png',proj,i) #output file name
+            #set up output plot
+            #png(filename=file.path(proj,outfn),width = 500, height = 500)#,res=40)
+            
             #Make scatter plot of star positions
             #Plot stars:
-            gg <- ggplot(plotstars_df,aes(
-              x=eval(parse(text=
-                             as.name(paste0("plotstars_df$r",substr(proj,1,1))))), #get x coord from 1st field of 'proj' (rx/ry/rz)
-              y=eval(parse(text=
-                             as.name(paste0("plotstars_df$r",substr(proj,2,2))))) #get y coord from second field of 'proj'
+            gg <- ggplot(plotstars_df,aes_string(
+              x=as.name(paste0("r",substr(proj,1,1))),
+              y=as.name(paste0("r",substr(proj,2,2)))
             )) +
               geom_point(colour = "gray60",size=0.5) +
               
@@ -163,7 +165,7 @@ for (f in 1:length(fvals)) {
             #dev.off() #close plot
             
           }#end of snapshot loop
-        },video.name=paste0(outdir,"/movies/",knum,proj,"_",fovlim,"pc_test2.mp4")) #end of video
+        #},video.name=paste0(modeldir,"/movies/",knum,proj,"_",fovlim,"pc_test2.mp4")) #end of video
       }#end of projection loop
     }#end of knum loop
   }#end of qvals loop
