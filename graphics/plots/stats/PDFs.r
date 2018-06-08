@@ -1,10 +1,52 @@
 #Produce probability density functions for user-defined snapshots
 
+###########################
+#       _ ___      _   _
+# |\/| |_  |  |_| / \ | \
+# |  | |_  |  | | \_/ |_/
+############################
+
+# - Set up directory structure, file name for lambda data, & other variables
+# - Read number of lines in fn3d to get number of snapshots
+# - Read in lambda data: columns are lambda values, rows are snapshot number
+# - Select snapshot range using 'snapshots' variable
+# - medians_2d/3d: calculate the median lambda for each row using rowMedians
+#       and remove special caracters for passing into plotting function
+# Loop over snapshots:
+#   - get data frame of 3D & 2D lambda values for this snapshot
+#   - perform wilcoxon test to get p value for snapshot
+#   - Call plotting functions for PDF & time series
+#
+#   ########################################################################
+#   # Find whether one of the PDFs falls within the extremes of the other:
+#   # Pick a couple of points on 3D PDF & see if the x-values of the 2D PDF
+#   # for these y values box fall interior/exterior to 3D PDF.
+#   - Get (x,y) coordinates at various points on the
+#         density functions for the 3D & 2D projections.
+#         Saved in dens3D/2D. Get list of coords using e.g. dens3D$x
+#   - Get an approximate function for each density curve using approxfun.
+#         Saved in dens3D/2D_fn. e.g. dens3D_fn(x) returns y for given x.
+# => dens3D/2D are lists of discrete values.
+# => dens2D/3D_fn is a continuous interpolated function that takes any value.
+#   - Only test for overlap when median lambda of one PDF < 2
+#               and p < 1e-3.
+#     - Get y-values of various points of interest from 3D plot
+#       (e.g. max, min, median, various quantiles)
+#     - 
+
+
+
+###########################
+#           ___
+# |\/|  /\   |  |\ |
+# |  | /--\ _|_ | \|
+############################
+
 library(ggplot2)
 library(reshape2)
 library(matrixStats) # for rowMedians
 library(dplyr) # for 'lag' and 'lead'
-
+ 
 #------------
 # Functions:
 #------------
@@ -76,8 +118,17 @@ cluster <- 'cluster_FoV5pc' # use 5 pc field of view
 
 rootdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0'
 
-k <- sprintf("k%02d",1:10)
-for(knum in k){
+#Set up data frame for error bars that fall within one another:
+forestplt <- data.frame(k = character(),
+                         snapshot = integer(),
+                         dimension = character(),
+                         median = double(),
+                         lower = double(),
+                         upper = double(),
+                         stringsAsFactors = FALSE)
+
+for(knum in sprintf("k%02d",1:10)){
+  print(knum)
 
 #input (data) and output (plots) directories:
 inpath <- file.path(rootdir, paste0(fstr, qstr, '/analysis/runinv_', knum), cluster)
@@ -120,6 +171,7 @@ medians_2d <- gsub("c|\\(|\\)|\n|,", "", medians_2d) #remove c, parentheses, \n,
 #(see https://www.r-bloggers.com/the-density-function/ for good summary)
 for (snapi in 1:length(snapshots)){
   print(snapshots[snapi])
+  
   #'t' function transposes row from table into column for data frame
   lambdas_df <- data.frame(t(all_lambdas3d[snapshots[snapi], ]), t(all_lambdas2d[snapshots[snapi], ]))
   colnames(lambdas_df)[1] <- '3D'; colnames(lambdas_df)[2] <- '2D'
@@ -182,6 +234,16 @@ for (snapi in 1:length(snapshots)){
         ){
       
       compare.spread <- c(compare.spread, snapi)
+      
+      #Prepare data for forest plot normalised to median value for each PDF
+      forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "3D",
+                                          denspoints_3D["50%","x"]/denspoints_3D["50%","x"],
+                                          denspoints_3D["17%","x"]/denspoints_3D["50%","x"],
+                                          denspoints_3D["83%","x"]/denspoints_3D["50%","x"])
+      forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "2D",
+                                          denspoints_2D["50%","x"]/denspoints_2D["50%","x"],
+                                          denspoints_2D["17%","x"]/denspoints_2D["50%","x"],
+                                          denspoints_2D["83%","x"]/denspoints_2D["50%","x"])
         
       #draw 3D histogram & density function:
       #hist(lambdas_df$'3D', freq = F,
@@ -215,6 +277,20 @@ for (snapi in 1:length(snapshots)){
 } #end of snapshots loop
 print(compare.spread)
 } #end of knum loop
+
+forestplt$median <- as.numeric(forestplt$median)
+forestplt$lower <- as.numeric(forestplt$lower)
+forestplt$upper <- as.numeric(forestplt$upper)
+
+fp <- ggplot(data=forestplt[1:10, ], aes(x=as.numeric(median), y=row.names(forestplt[1:10,]),
+                                         color = dimension)) +
+  scale_color_manual(values = c("black", "red")) +
+  geom_errorbarh(aes(xmin = lower, xmax = upper)) +
+  geom_point() +
+  theme_bw() #+
+  #scale_x_continuous(limits=c(0,3), breaks=seq(0,3,by=0.2))
+print(fp)
+
 
 #'ecdf': Empirical Cumulative Distribution Function
 #for (snapi in 1:length(snapshots)) {
