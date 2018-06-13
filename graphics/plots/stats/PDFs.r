@@ -235,15 +235,15 @@ for (snapi in 1:length(snapshots)){
       
       compare.spread <- c(compare.spread, snapi)
       
-      #Prepare data for forest plot normalised to median value for each PDF
+      #Prepare data for forest plot normalised to median 3D value for each PDF
       forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "3D",
                                           denspoints_3D["50%","x"]/denspoints_3D["50%","x"],
                                           denspoints_3D["17%","x"]/denspoints_3D["50%","x"],
                                           denspoints_3D["83%","x"]/denspoints_3D["50%","x"])
       forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "2D",
-                                          denspoints_2D["50%","x"]/denspoints_2D["50%","x"],
-                                          denspoints_2D["17%","x"]/denspoints_2D["50%","x"],
-                                          denspoints_2D["83%","x"]/denspoints_2D["50%","x"])
+                                          denspoints_2D["50%","x"]/denspoints_3D["50%","x"],
+                                          denspoints_2D["17%","x"]/denspoints_3D["50%","x"],
+                                          denspoints_2D["83%","x"]/denspoints_3D["50%","x"])
         
       #draw 3D histogram & density function:
       #hist(lambdas_df$'3D', freq = F,
@@ -282,7 +282,7 @@ forestplt$median <- as.numeric(forestplt$median)
 forestplt$lower <- as.numeric(forestplt$lower)
 forestplt$upper <- as.numeric(forestplt$upper)
 
-fp <- ggplot(data=forestplt[1:10, ], aes(x=as.numeric(median), y=row.names(forestplt[1:10,]),
+fp <- ggplot(data = forestplt[1:40, ], aes(x = as.numeric(median), y=as.numeric(row.names(forestplt[1:40,])),
                                          color = dimension)) +
   scale_color_manual(values = c("black", "red")) +
   geom_errorbarh(aes(xmin = lower, xmax = upper)) +
