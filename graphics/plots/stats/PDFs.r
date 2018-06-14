@@ -237,13 +237,13 @@ for (snapi in 1:length(snapshots)){
       
       #Prepare data for forest plot normalised to median 3D value for each PDF
       forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "3D",
-                                          denspoints_3D["50%","x"]/denspoints_3D["50%","x"],
-                                          denspoints_3D["17%","x"]/denspoints_3D["50%","x"],
-                                          denspoints_3D["83%","x"]/denspoints_3D["50%","x"])
+                                          denspoints_3D["50%","x"],# / denspoints_3D["50%","x"],
+                                          denspoints_3D["17%","x"],# / denspoints_3D["50%","x"],
+                                          denspoints_3D["83%","x"]) # / denspoints_3D["50%","x"])
       forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "2D",
-                                          denspoints_2D["50%","x"]/denspoints_3D["50%","x"],
-                                          denspoints_2D["17%","x"]/denspoints_3D["50%","x"],
-                                          denspoints_2D["83%","x"]/denspoints_3D["50%","x"])
+                                          denspoints_2D["50%","x"],# / denspoints_3D["50%","x"],
+                                          denspoints_2D["17%","x"],# / denspoints_3D["50%","x"],
+                                          denspoints_2D["83%","x"]) # / denspoints_3D["50%","x"])
         
       #draw 3D histogram & density function:
       #hist(lambdas_df$'3D', freq = F,
@@ -278,18 +278,93 @@ for (snapi in 1:length(snapshots)){
 print(compare.spread)
 } #end of knum loop
 
+
 forestplt$median <- as.numeric(forestplt$median)
 forestplt$lower <- as.numeric(forestplt$lower)
 forestplt$upper <- as.numeric(forestplt$upper)
 
-fp <- ggplot(data = forestplt[1:40, ], aes(x = as.numeric(median), y=as.numeric(row.names(forestplt[1:40,])),
-                                         color = dimension)) +
-  scale_color_manual(values = c("black", "red")) +
-  geom_errorbarh(aes(xmin = lower, xmax = upper)) +
-  geom_point() +
-  theme_bw() #+
-  #scale_x_continuous(limits=c(0,3), breaks=seq(0,3,by=0.2))
-print(fp)
+#fp <- ggplot(data = forestplt[1:40, ], aes(x = as.numeric(median), y=as.numeric(row.names(forestplt[1:40,])),
+#                                           color = dimension)) +
+#  scale_color_manual(values = c("black", "red")) +
+#  geom_errorbarh(aes(xmin = lower, xmax = upper)) +
+#  geom_point() +
+#  theme_bw() #+
+##scale_x_continuous(limits=c(0,3), breaks=seq(0,3,by=0.2))
+#print(fp)
+
+
+#Set up arguments for 'forestplot' function:
+#list of row names; lists of median, lower, and upper values; alignment vector for table columns
+ktext <- ifelse(duplicated(forestplt[, 1])[forestplt$dimension=="3D"],
+                " ",
+                forestplt[, 1][forestplt$dimension=="3D"]) #white space if knum is repeated
+
+forestmed <- cbind(forestplt$median[forestplt$dimension == "3D"],
+                    forestplt$median[forestplt$dimension == "2D"])
+forestlo <- cbind(forestplt$lower[forestplt$dimension == "3D"],
+                   forestplt$lower[forestplt$dimension == "2D"])
+foresthi <- cbind(forestplt$upper[forestplt$dimension == "3D"],
+                  forestplt$upper[forestplt$dimension == "2D"])
+
+plotrange <- c(1:30)
+#forestplot(ktext, forestmed, forestlo, foresthi,
+forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+           legend = c("3D", "2D"),
+           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+           boxsize = 0.2, #size of median point markers
+           line.margin = .2,
+           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+           #lwd.ci=3,
+           xlab="Lambda")
+
+plotrange <- c(31:60)
+#forestplot(ktext, forestmed, forestlo, foresthi,
+forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+           legend = c("3D", "2D"),
+           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+           boxsize = 0.2, #size of median point markers
+           line.margin = .2,
+           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+           #lwd.ci=3,
+           xlab="Lambda")
+
+plotrange <- c(61:90)
+#forestplot(ktext, forestmed, forestlo, foresthi,
+forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+           legend = c("3D", "2D"),
+           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+           boxsize = 0.2, #size of median point markers
+           line.margin = .2,
+           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+           #lwd.ci=3,
+           xlab="Lambda")
+
+plotrange <- c(91:120)
+#forestplot(ktext, forestmed, forestlo, foresthi,
+forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+           legend = c("3D", "2D"),
+           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+           boxsize = 0.2, #size of median point markers
+           line.margin = .2,
+           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+           #lwd.ci=3,
+           xlab="Lambda")
+
+plotrange <- c(121:length(ktext))
+#forestplot(ktext, forestmed, forestlo, foresthi,
+forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+           legend = c("3D", "2D"),
+           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+           boxsize = 0.2, #size of median point markers
+           line.margin = .2,
+           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+           #lwd.ci=3,
+           xlab="Lambda")
 
 
 #'ecdf': Empirical Cumulative Distribution Function
