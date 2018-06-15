@@ -356,7 +356,7 @@ if (all(ci == c("17%", "83%"))){
 
 for (i in 1:length(plotrange)){
   thisrange = unlist(plotrange[i])
-#  plotfp(datrange = ktext[thisrange], medpoint = forestmed[thisrange, ],
-#         confint.lo = forestlo[thisrange, ], confint.hi = foresthi[thisrange, ],
-#         ncall = i)
+  plotfp(datrange = ktext[thisrange], medpoint = forestmed[thisrange, ],
+         confint.lo = forestlo[thisrange, ], confint.hi = foresthi[thisrange, ],
+         ncall = i)
 }
