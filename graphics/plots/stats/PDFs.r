@@ -360,17 +360,3 @@ for (i in 1:length(plotrange)){
 #         confint.lo = forestlo[thisrange, ], confint.hi = foresthi[thisrange, ],
 #         ncall = i)
 }
-
-
-#'ecdf': Empirical Cumulative Distribution Function
-#for (snapi in 1:length(snapshots)) {
-#  CDF1 <- ecdf(all_lambdas3d[snapshots[snapi], ])
-#  CDF2 <- ecdf(all_lambdas2d[snapshots[snapi], ])
-#  outfn_cdf <- sprintf('lambdas%02s_snap%04d.png', proj, snapshots[snapi]) # output file name
-#  #set up output plot:
-#  png(filename = file.path(outpath, outfn_cdf), width = 500, height = 500)#, res=40)
-#  plot(CDF1, do.points = FALSE) #plot CDF1
-#  lines(CDF2, col='red', do.points = FALSE) #overplot CDF2
-#  legend("topleft", legend = c("3D", "xy"), col = c('black', 'red'), lty = c(1, 1))
-#  dev.off() #close plot
-#}
