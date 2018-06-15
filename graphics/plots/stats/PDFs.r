@@ -327,15 +327,6 @@ forestplt$median <- as.numeric(forestplt$median)
 forestplt$lower <- as.numeric(forestplt$lower)
 forestplt$upper <- as.numeric(forestplt$upper)
 
-#fp <- ggplot(data = forestplt[1:40, ], aes(x = as.numeric(median), y=as.numeric(row.names(forestplt[1:40,])),
-#                                           color = dimension)) +
-#  scale_color_manual(values = c("black", "red")) +
-#  geom_errorbarh(aes(xmin = lower, xmax = upper)) +
-#  geom_point() +
-#  theme_bw() #+
-##scale_x_continuous(limits=c(0,3), breaks=seq(0,3,by=0.2))
-#print(fp)
-
 
 #Set up arguments for 'forestplot' function:
 #list of row names; lists of median, lower, and upper values; alignment vector for table columns
