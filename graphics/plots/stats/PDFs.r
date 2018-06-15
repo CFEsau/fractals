@@ -366,67 +366,6 @@ for (i in 1:length(plotrange)){
 #         ncall = i)
 }
 
-#plotfp(datrange = c(1:30))
-#plotrange <- c(1:30)
-##forestplot(ktext, forestmed, forestlo, foresthi,
-#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-#           legend = c("3D", "2D"),
-#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-#           boxsize = 0.2, #size of median point markers
-#           line.margin = .2,
-#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-#           #lwd.ci=3,
-#           xlab="Lambda")
-
-#plotrange <- c(31:60)
-##forestplot(ktext, forestmed, forestlo, foresthi,
-#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-#           legend = c("3D", "2D"),
-#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-#           boxsize = 0.2, #size of median point markers
-#           line.margin = .2,
-#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-#           #lwd.ci=3,
-#           xlab="Lambda")
-
-#plotrange <- c(61:90)
-##forestplot(ktext, forestmed, forestlo, foresthi,
-#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-#           legend = c("3D", "2D"),
-#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-#           boxsize = 0.2, #size of median point markers
-#           line.margin = .2,
-#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-#           #lwd.ci=3,
-#           xlab="Lambda")
-
-#plotrange <- c(91:120)
-##forestplot(ktext, forestmed, forestlo, foresthi,
-#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-#           legend = c("3D", "2D"),
-#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-#           boxsize = 0.2, #size of median point markers
-#           line.margin = .2,
-#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-#           #lwd.ci=3,
-#           xlab="Lambda")
-
-#plotrange <- c(121:length(ktext))
-##forestplot(ktext, forestmed, forestlo, foresthi,
-#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-#           legend = c("3D", "2D"),
-#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-#           boxsize = 0.2, #size of median point markers
-#           line.margin = .2,
-#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-#           #lwd.ci=3,
-#           xlab="Lambda")
-
 
 #'ecdf': Empirical Cumulative Distribution Function
 #for (snapi in 1:length(snapshots)) {
