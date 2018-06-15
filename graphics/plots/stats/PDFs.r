@@ -169,7 +169,7 @@ ifelse(!dir.exists(outpath.fp), dir.create(outpath.fp), FALSE)
 
 #Plot ranges above will vary with data set and quantiles. Automate in future if needed.
 
-for(knum in sprintf("k%02d", 5:5)){
+for(knum in sprintf("k%02d", 1:10)){
   print(knum)
 
 #input (data) and output (plots) directories:
