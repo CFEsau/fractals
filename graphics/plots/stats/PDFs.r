@@ -52,7 +52,7 @@ library(dplyr) # for 'lag' and 'lead'
 #------------
 plotPDF <- function(snap, dat3D, dat2D){
   
-  alldata <- data.frame(dat3D,dat2D)
+  alldata <- data.frame(dat3D, dat2D)
   colnames(alldata)[1] <- '3D'; colnames(alldata)[2] <- '2D'
   #convert data to long format
   lambdas_melt <- melt(alldata, variable.name = "Dimension", value.name = "Lambda")
@@ -102,6 +102,37 @@ plottimeseries <- function(snap, dat3D, dat2D){
   ), wait=FALSE)
 }
 
+
+plotfp <- function(datrange, medpoint, confint.lo, confint.hi, ncall){
+  #Produce a forest plot showing medians & ranges when either
+  #the 3D or 2D range falls entirely within the other
+  
+  #set up output plot filename:
+  outfn.fp <- sprintf('ci_%02d-%02d_%01d.png',
+                      as.numeric(sub("%", "", ci[1])),
+                      as.numeric(sub("%", "", ci[2])),
+                      ncall) # output file name
+  png(filename = file.path(outpath.fp, outfn.fp),
+      width = 700, height = 600, res = 100)
+  
+  forestplot(datrange, medpoint, confint.lo, confint.hi,
+             legend = c("3D", "2D"),
+             legend_args = fpLegend(pos = list(x = .1, y = 0.85),
+                                    gp = gpar(col = "#CCCCCC", fill = "#F9F9F9")),
+             boxsize = 0.1, #size of median point markers
+             line.margin = .2,
+             col = fpColors(box = c("black", "darkred"), lines = c("black", "darkred")),
+             clip = c(0.5, 3.4),
+             xticks = c(seq(from = 0.5, to = 3.0, by = 0.5)),
+             xlab="Lambda",
+             txt_gp = fpTxtGp(label = gpar(cex = 0.8),
+                              ticks = gpar(cex = 0.8),
+                              xlab = gpar(cex = 0.8))
+  )
+  
+  dev.off() #close plot
+}
+
 #--------
 # Main:
 #--------
@@ -127,7 +158,14 @@ forestplt <- data.frame(k = character(),
                          upper = double(),
                          stringsAsFactors = FALSE)
 
-for(knum in sprintf("k%02d",1:10)){
+ci <- c("17%", "83%") #confidence interval for forest plots e.g. 17%, 83% for 1/6, 5/6
+
+outpath.fp <- file.path(rootdir, 'stats', 'forestplots')
+ifelse(!dir.exists(outpath.fp), dir.create(outpath.fp), FALSE)
+
+#Plot ranges above will vary with data set and quantiles. Automate in future if needed.
+
+for(knum in sprintf("k%02d", 5:5)){
   print(knum)
 
 #input (data) and output (plots) directories:
@@ -137,7 +175,7 @@ ifelse(!dir.exists(outpath), dir.create(outpath), FALSE)
 
 nmsts <- 1000 #(only used for memory allocation)
 
-nsnaps <- length(readLines(file.path(inpath, 'CDFdata',fn3d)))
+nsnaps <- length(readLines(file.path(inpath, 'CDFdata', fn3d)))
 
 #Read in lambda data
 all_lambdas3d <- read.table(file.path(inpath, 'CDFdata/allMSTs_lambar_3D.dat'),
@@ -156,7 +194,7 @@ snapshots <- c(1:nsnaps)
 #snapshots <- c(520:649)  #k = 7
 #snapshots <- c(25:42, 60:80, 120:135)  #k = 10
 
-if (nsnaps < tail(snapshots,1)){
+if (nsnaps < tail(snapshots, 1)){
   stop("maximum values in 'snapshots' exceeds max snapshot number")
 }
 compare.spread <- NULL #list of snapshots to take a closer look at
@@ -228,47 +266,53 @@ for (snapi in 1:length(snapshots)){
     
     
     #Find whether the spread of one PDF is encompassed within the other:
-    if((denspoints_3D["17%","x"] < denspoints_2D["17%","x"] && denspoints_3D["83%","x"] > denspoints_2D["83%","x"])
+    if((denspoints_3D[ci[1], "x"] < denspoints_2D[ci[1], "x"] && 
+        denspoints_3D[ci[2], "x"] > denspoints_2D[ci[2], "x"])
         ||
-       (denspoints_3D["17%","x"] > denspoints_2D["17%","x"] && denspoints_3D["83%","x"] < denspoints_2D["83%","x"])
+       (denspoints_3D[ci[1], "x"] > denspoints_2D[ci[1], "x"] && 
+        denspoints_3D[ci[2], "x"] < denspoints_2D[ci[2], "x"])
         ){
       
       compare.spread <- c(compare.spread, snapi)
       
       #Prepare data for forest plot normalised to median 3D value for each PDF
       forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "3D",
-                                          denspoints_3D["50%","x"],# / denspoints_3D["50%","x"],
-                                          denspoints_3D["17%","x"],# / denspoints_3D["50%","x"],
-                                          denspoints_3D["83%","x"]) # / denspoints_3D["50%","x"])
+                                          denspoints_3D["50%", "x"], #/ denspoints_3D["50%", "x"],
+                                          denspoints_3D[ci[1],"x"], #/ denspoints_3D["50%", "x"],
+                                          denspoints_3D[ci[2],"x"]) #/ denspoints_3D["50%", "x"])
       forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "2D",
-                                          denspoints_2D["50%","x"],# / denspoints_3D["50%","x"],
-                                          denspoints_2D["17%","x"],# / denspoints_3D["50%","x"],
-                                          denspoints_2D["83%","x"]) # / denspoints_3D["50%","x"])
+                                          denspoints_2D["50%","x"], #/ denspoints_3D["50%", "x"],
+                                          denspoints_2D[ci[1],"x"], #/ denspoints_3D["50%", "x"],
+                                          denspoints_2D[ci[2],"x"]) #/ denspoints_3D["50%", "x"])
         
       #draw 3D histogram & density function:
+      out.fn <- sprintf('snap%04dpdf_%02s_quantiles.png', snapi, proj) # output file name
+      png(filename = file.path(outpath, out.fn), width = 500, height = 500)#, res=40)
+      
       #hist(lambdas_df$'3D', freq = F,
        #    xlim = c(min(dens3D$x, dens2D$x), max(dens3D$x, dens2D$x)), ylim = c(0, max(dens3D$y, dens2D$y)))
       plot(dens3D, col="black", lwd=2)
       
-      abline(v=median(lambdas_df$'3D'), lty=2)
-      points(denspoints_3D["50%","x"], denspoints_3D["50%","y"],
-             cex=1.2, pch=20, col="blue") #median
-      points(denspoints_3D["17%","x"], denspoints_3D["17%","y"],
-             cex=1.2, pch=20, col="blue") #1/6 quantile
-      points(denspoints_3D["83%","x"], denspoints_3D["83%","y"],
-             cex=1.2, pch=20, col="blue") #5/6 quantile
+      abline(v = median(lambdas_df$'3D'), lty = 2)
+      points(denspoints_3D["50%", "x"], denspoints_3D["50%", "y"],
+             cex = 1.2, pch = 20, col = "blue") #median
+      points(denspoints_3D[ci[1], "x"], denspoints_3D[ci[1], "y"],
+             cex = 1.2, pch = 20, col = "blue") # lower quantile / confidence interval
+      points(denspoints_3D[ci[2], "x"], denspoints_3D[ci[2], "y"],
+             cex = 1.2, pch = 20, col = "blue") # upper quantile / confidence interval
       
       #draw 2D histogram & density function:
       #hist(lambdas_df$'2D', border = "red", freq = F, add=T)
-      lines(dens2D, col="red", lwd=2)
-      text(x=max(dens3D$x,dens2D$x)*0.7,y=max(dens3D$y,dens2D$y),labels=sprintf('snap%04d',snapi))
-      points(denspoints_2D["50%","x"], denspoints_2D["50%","y"],
-             cex=1.2, pch=4, col="blue") #median
-      points(denspoints_2D["17%","x"], denspoints_2D["17%","y"],
-             cex=1.2, pch=4, col="blue") #median
-      points(denspoints_2D["83%","x"], denspoints_2D["83%","y"],
-             cex=1.2, pch=4, col="blue") #1/6 quantile
-      #dev.off()
+      lines(dens2D, col = "red", lwd = 2)
+      text(x = max(dens3D$x, dens2D$x)*0.7, y = max(dens3D$y, dens2D$y),labels = sprintf('snap%04d', snapi))
+      text(x = max(dens3D$x[1], dens2D$x[1]), y = max(dens3D$y, dens2D$y), labels = knum)
+      points(denspoints_2D["50%", "x"], denspoints_2D["50%", "y"],
+             cex=1.2, pch=4, col = "blue") #median
+      points(denspoints_2D[ci[1], "x"], denspoints_2D[ci[1], "y"],
+             cex = 1.2, pch = 4, col = "blue") #lower quantile / confidence interval
+      points(denspoints_2D[ci[2], "x"], denspoints_2D[ci[2], "y"],
+             cex = 1.2, pch = 4, col = "blue") #upper quantile / confidence interval
+      dev.off()
       
       # Forest plot to check
       
@@ -295,9 +339,9 @@ forestplt$upper <- as.numeric(forestplt$upper)
 
 #Set up arguments for 'forestplot' function:
 #list of row names; lists of median, lower, and upper values; alignment vector for table columns
-ktext <- ifelse(duplicated(forestplt[, 1])[forestplt$dimension=="3D"],
+ktext <- ifelse(duplicated(forestplt[, 1])[forestplt$dimension == "3D"],
                 " ",
-                forestplt[, 1][forestplt$dimension=="3D"]) #white space if knum is repeated
+                forestplt[, 1][forestplt$dimension == "3D"]) #white space if knum is repeated
 
 forestmed <- cbind(forestplt$median[forestplt$dimension == "3D"],
                     forestplt$median[forestplt$dimension == "2D"])
@@ -306,65 +350,82 @@ forestlo <- cbind(forestplt$lower[forestplt$dimension == "3D"],
 foresthi <- cbind(forestplt$upper[forestplt$dimension == "3D"],
                   forestplt$upper[forestplt$dimension == "2D"])
 
-plotrange <- c(1:30)
-#forestplot(ktext, forestmed, forestlo, foresthi,
-forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-           legend = c("3D", "2D"),
-           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-           boxsize = 0.2, #size of median point markers
-           line.margin = .2,
-           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-           #lwd.ci=3,
-           xlab="Lambda")
+if (all(ci == c("17%", "83%"))){
+  plotrange <- list(c(1:30), c(31:60), c(61:90), c(91:120), c(121:length(ktext))) #for 1/6, 5/6
+} else if (all(ci == c("25%", "75%"))){
+  plotrange <- list(c(1:length(ktext)))
+} else {
+  print("WARNING: no range defined for forest plot. Defaulting to all.")
+  plotrange <- list(c(1:length(ktext)))
+}
 
-plotrange <- c(31:60)
-#forestplot(ktext, forestmed, forestlo, foresthi,
-forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-           legend = c("3D", "2D"),
-           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-           boxsize = 0.2, #size of median point markers
-           line.margin = .2,
-           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-           #lwd.ci=3,
-           xlab="Lambda")
+for (i in 1:length(plotrange)){
+  thisrange = unlist(plotrange[i])
+#  plotfp(datrange = ktext[thisrange], medpoint = forestmed[thisrange, ],
+#         confint.lo = forestlo[thisrange, ], confint.hi = foresthi[thisrange, ],
+#         ncall = i)
+}
 
-plotrange <- c(61:90)
-#forestplot(ktext, forestmed, forestlo, foresthi,
-forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-           legend = c("3D", "2D"),
-           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-           boxsize = 0.2, #size of median point markers
-           line.margin = .2,
-           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-           #lwd.ci=3,
-           xlab="Lambda")
+#plotfp(datrange = c(1:30))
+#plotrange <- c(1:30)
+##forestplot(ktext, forestmed, forestlo, foresthi,
+#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+#           legend = c("3D", "2D"),
+#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+#           boxsize = 0.2, #size of median point markers
+#           line.margin = .2,
+#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+#           #lwd.ci=3,
+#           xlab="Lambda")
 
-plotrange <- c(91:120)
-#forestplot(ktext, forestmed, forestlo, foresthi,
-forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-           legend = c("3D", "2D"),
-           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-           boxsize = 0.2, #size of median point markers
-           line.margin = .2,
-           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-           #lwd.ci=3,
-           xlab="Lambda")
+#plotrange <- c(31:60)
+##forestplot(ktext, forestmed, forestlo, foresthi,
+#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+#           legend = c("3D", "2D"),
+#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+#           boxsize = 0.2, #size of median point markers
+#           line.margin = .2,
+#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+#           #lwd.ci=3,
+#           xlab="Lambda")
 
-plotrange <- c(121:length(ktext))
-#forestplot(ktext, forestmed, forestlo, foresthi,
-forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
-           legend = c("3D", "2D"),
-           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
-                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
-           boxsize = 0.2, #size of median point markers
-           line.margin = .2,
-           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
-           #lwd.ci=3,
-           xlab="Lambda")
+#plotrange <- c(61:90)
+##forestplot(ktext, forestmed, forestlo, foresthi,
+#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+#           legend = c("3D", "2D"),
+#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+#           boxsize = 0.2, #size of median point markers
+#           line.margin = .2,
+#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+#           #lwd.ci=3,
+#           xlab="Lambda")
+
+#plotrange <- c(91:120)
+##forestplot(ktext, forestmed, forestlo, foresthi,
+#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+#           legend = c("3D", "2D"),
+#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+#           boxsize = 0.2, #size of median point markers
+#           line.margin = .2,
+#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+#           #lwd.ci=3,
+#           xlab="Lambda")
+
+#plotrange <- c(121:length(ktext))
+##forestplot(ktext, forestmed, forestlo, foresthi,
+#forestplot(ktext[plotrange], forestmed[plotrange, ], forestlo[plotrange, ], foresthi[plotrange, ],
+#           legend = c("3D", "2D"),
+#           legend_args = fpLegend(pos = list(x=.1, y = 0.85),
+#                                  gp = gpar(col="#CCCCCC", fill = "#F9F9F9")),
+#           boxsize = 0.2, #size of median point markers
+#           line.margin = .2,
+#           col=fpColors(box=c("black","darkred"),lines=c("black","darkred")),
+#           #lwd.ci=3,
+#           xlab="Lambda")
 
 
 #'ecdf': Empirical Cumulative Distribution Function
