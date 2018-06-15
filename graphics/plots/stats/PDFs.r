@@ -50,6 +50,8 @@ library(dplyr) # for 'lag' and 'lead'
 #------------
 # Functions:
 #------------
+#================================================================================
+
 plotPDF <- function(snap, dat3D, dat2D){
   
   alldata <- data.frame(dat3D, dat2D)
@@ -81,6 +83,7 @@ plotPDF <- function(snap, dat3D, dat2D){
   )
   #dev.off() #close plot
 }
+#================================================================================
 
 plottimeseries <- function(snap, dat3D, dat2D){
   #Plot lambda time-series showing this snapshot using python script
@@ -101,7 +104,7 @@ plottimeseries <- function(snap, dat3D, dat2D){
                '--sixths2d', sixths2d
   ), wait=FALSE)
 }
-
+#================================================================================
 
 plotfp <- function(datrange, medpoint, confint.lo, confint.hi, ncall){
   #Produce a forest plot showing medians & ranges when either
@@ -132,6 +135,7 @@ plotfp <- function(datrange, medpoint, confint.lo, confint.hi, ncall){
   
   dev.off() #close plot
 }
+#================================================================================
 
 #--------
 # Main:
