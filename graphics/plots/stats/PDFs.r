@@ -46,6 +46,7 @@ library(ggplot2)
 library(reshape2)
 library(matrixStats) # for rowMedians
 library(dplyr) # for 'lag' and 'lead'
+library(forestplot)
  
 #------------
 # Functions:
@@ -115,8 +116,8 @@ plotfp <- function(datrange, medpoint, confint.lo, confint.hi, ncall){
                       as.numeric(sub("%", "", ci[1])),
                       as.numeric(sub("%", "", ci[2])),
                       ncall) # output file name
-  png(filename = file.path(outpath.fp, outfn.fp),
-      width = 700, height = 600, res = 100)
+  #png(filename = file.path(outpath.fp, outfn.fp),
+  #    width = 700, height = 600, res = 100)
   
   forestplot(datrange, medpoint, confint.lo, confint.hi,
              legend = c("3D", "2D"),
@@ -133,7 +134,7 @@ plotfp <- function(datrange, medpoint, confint.lo, confint.hi, ncall){
                               xlab = gpar(cex = 0.8))
   )
   
-  dev.off() #close plot
+  #dev.off() #close plot
 }
 #================================================================================
 
@@ -355,7 +356,7 @@ if (all(ci == c("17%", "83%"))){
 }
 
 for (i in 1:length(plotrange)){
-  thisrange = unlist(plotrange[i])
+  thisrange <- unlist(plotrange[i])
   plotfp(datrange = ktext[thisrange], medpoint = forestmed[thisrange, ],
          confint.lo = forestlo[thisrange, ], confint.hi = foresthi[thisrange, ],
          ncall = i)
