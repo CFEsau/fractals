@@ -113,7 +113,7 @@ plotfp <- function(datlabel, medpoint, confint.lo, confint.hi, snapnum, snapcoun
   
   #set up output plot filename and forestplot options:
   if(length(snapnum) == 1){
-    outfn.fp <- sprintf('ci_%02d-%02d_%ssnap%04d.png',
+    outfn.fp <- sprintf('ci%02d-%02d_%ssnap%04d.png', #ci for confidence interval
                         as.numeric(sub("%", "", ci[1])),
                         as.numeric(sub("%", "", ci[2])),
                         datlabel[2,1],
@@ -122,7 +122,7 @@ plotfp <- function(datlabel, medpoint, confint.lo, confint.hi, snapnum, snapcoun
     plotsize <- c(700, 200)
     xlims <- c(0.5, 2.5)
   } else {
-    outfn.fp <- sprintf('ci_%02d-%02d_%01d.png',
+    outfn.fp <- sprintf('ci%02d-%02d_%01d.png',
                         as.numeric(sub("%", "", ci[1])),
                         as.numeric(sub("%", "", ci[2])),
                         snapcount) # use plot number if more than one snapshot
@@ -180,14 +180,14 @@ forestplt <- data.frame(k = character(),
                         stringsAsFactors = FALSE)
 
 ci <- c("17%", "83%") #confidence interval for forest plots e.g. 17%, 83% for 1/6, 5/6
+#ci <- c("25%", "75%")
 
 outpath.fp <- file.path(rootdir, 'stats', 'forestplots')
 ifelse(!dir.exists(outpath.fp), dir.create(outpath.fp), FALSE)
 
 #Plot ranges above will vary with data set and quantiles. Automate in future if needed.
 
-for(knum in sprintf("k%02d", 5:5)){
-  #for(knum in sprintf("k%02d", 1:10)){
+for(knum in sprintf("k%02d", 1:10)){
   cat("\nknum: ", knum) #print knum
   
   #input (data) and output (plots) directories:
@@ -209,14 +209,7 @@ for(knum in sprintf("k%02d", 5:5)){
                               col.names = c("snap", sprintf("MST%04d", 1:nmsts)))
   
   #select snapshots
-  #snapshots <- c(1:nsnaps)
-  
-  snapshots <- c(520:520)
-  #snapshots <- c(1:220, 315:349) #k = 1
-  #snapshots <- c(490:520)  #k = 2
-  #snapshots <- c(58, 77, 400, 425)  #k = 3
-  #snapshots <- c(520:649)  #k = 7
-  #snapshots <- c(25:42, 60:80, 120:135)  #k = 10
+  snapshots <- c(1:nsnaps)
   
   if (nsnaps < tail(snapshots, 1)){
     stop("maximum values in 'snapshots' exceeds max snapshot number")
@@ -233,7 +226,7 @@ for(knum in sprintf("k%02d", 5:5)){
   #(see https://www.r-bloggers.com/the-density-function/ for good summary)
   print("\nDoing snapshot...")
   for (snapi in 1:length(snapshots)){
-    #print(snapshots[snapi])
+    print(snapshots[snapi])
     
     #'t' function transposes row from table into column for data frame
     lambdas_df <- data.frame(t(all_lambdas3d[snapshots[snapi], ]), t(all_lambdas2d[snapshots[snapi], ]))
@@ -340,8 +333,6 @@ for(knum in sprintf("k%02d", 5:5)){
                cex = 1.2, pch = 4, col = "blue") #upper quantile / confidence interval
         #dev.off()
         
-        # Forest plot to check
-        
       } #end of 'points of one within points of other'
     } #end of 'if median lambdas less than 2' & pval > 0.01
   } #end of snapshots loop
@@ -368,17 +359,16 @@ foresthi <- cbind(forestplt$upper[forestplt$dimension == "3D"],
                   forestplt$upper[forestplt$dimension == "2D"])
 forestsnap <- cbind(forestplt$snapshot[forestplt$dimension == "3D"])
 
-#if (all(ci == c("17%", "83%"))){
-#  plotrange <- list(c(1:30), c(31:60), c(61:90), c(91:120), c(121:length(ktext))) #for 1/6, 5/6
-#} else if (all(ci == c("25%", "75%"))){
-#  plotrange <- list(c(1:length(ktext)))
-#} else {
-#  print("WARNING: no range defined for forest plot. Defaulting to all.")
-plotrange <- list(c(1:length(ktext)))
-#}
+if (all(ci == c("17%", "83%"))){
+  plotrange <- list(c(1:30), c(31:60), c(61:90), c(91:120), c(121:length(ktext))) #for 1/6, 5/6
+} else if (all(ci == c("25%", "75%"))){
+  plotrange <- list(c(1:length(ktext)))
+} else {
+  print("WARNING: no range defined for forest plot. Defaulting to all.")
+}
 
-for (i in 1:length(plotrange)){ #plotrange is the number of snapshots plotted in this forest plot
-  # to prevent over-crowding
+for (i in 1:length(plotrange)){ #'plotrange' is the number of snapshots plotted in
+                                # this forest plot to prevent over-crowding
   thisrange <- unlist(plotrange[i])
   plotfp(datlabel = cbind(c("knum", ktext[thisrange]), c("snap", forestsnap[thisrange])),
          medpoint = rbind(NA, forestmed[thisrange, ]),
