@@ -47,7 +47,7 @@ library(reshape2)
 library(matrixStats) # for rowMedians
 library(dplyr) # for 'lag' and 'lead'
 library(forestplot)
- 
+
 #------------
 # Functions:
 #------------
@@ -107,7 +107,7 @@ plottimeseries <- function(snap, dat3D, dat2D){
 }
 #================================================================================
 
-plotfp <- function(datrange, medpoint, confint.lo, confint.hi, ncall){
+plotfp <- function(datlabel, medpoint, confint.lo, confint.hi, snapnum, snapcount){
   #Produce a forest plot showing medians & ranges when either
   #the 3D or 2D range falls entirely within the other
   
@@ -115,13 +115,27 @@ plotfp <- function(datrange, medpoint, confint.lo, confint.hi, ncall){
   outfn.fp <- sprintf('ci_%02d-%02d_%01d.png',
                       as.numeric(sub("%", "", ci[1])),
                       as.numeric(sub("%", "", ci[2])),
-                      ncall) # output file name
-  #png(filename = file.path(outpath.fp, outfn.fp),
-  #    width = 700, height = 600, res = 100)
+                      snapcount) # output file name
   
-  forestplot(datrange, medpoint, confint.lo, confint.hi,
+  #if (class(medpoint) == "numeric") { #arguments passed in as numeric if there's only one snapshot
+  #  medpoint <- as.matrix(t(medpoint))
+  #  confint.lo <- as.matrix(t(confint.lo))
+  #  confint.hi <- as.matrix(t(confint.hi))
+  #  outfn.fp <- sprintf('ci_%02d-%02d_snap%04d.png',       #use different fn if just one snapshot
+  #                      as.numeric(sub("%", "", ci[1])),
+  #                      as.numeric(sub("%", "", ci[2])),
+  #                      as.numeric(snapnum)) # output file name
+  #}
+  
+  cat("\nSaving forest plot as ", file.path(outpath.fp, outfn.fp))
+  #png(filename = file.path(outpath.fp, outfn.fp),
+      #width = 700, height = 600, res = 100)
+  
+  forestplot(datlabel, medpoint, confint.lo, confint.hi,
+             is.summary = c(TRUE, rep(FALSE, length(datlabel)-1)),
              legend = c("3D", "2D"),
-             legend_args = fpLegend(pos = list(x = .1, y = 0.85),
+             legend_args = fpLegend(pos = list(x = 0.85, y = 0.5),
+             #legend_args = fpLegend(pos = list(x = 0.95, y = 0.85),
                                     gp = gpar(col = "#CCCCCC", fill = "#F9F9F9")),
              boxsize = 0.1, #size of median point markers
              line.margin = .2,
@@ -156,12 +170,12 @@ rootdir <- '/local/cfe/backed_up_on_astro3/fractals/r1p0/fbinary0p0'
 
 #Set up data frame for error bars that fall within one another:
 forestplt <- data.frame(k = character(),
-                         snapshot = integer(),
-                         dimension = character(),
-                         median = double(),
-                         lower = double(),
-                         upper = double(),
-                         stringsAsFactors = FALSE)
+                        snapshot = integer(),
+                        dimension = character(),
+                        median = double(),
+                        lower = double(),
+                        upper = double(),
+                        stringsAsFactors = FALSE)
 
 ci <- c("17%", "83%") #confidence interval for forest plots e.g. 17%, 83% for 1/6, 5/6
 
@@ -170,161 +184,166 @@ ifelse(!dir.exists(outpath.fp), dir.create(outpath.fp), FALSE)
 
 #Plot ranges above will vary with data set and quantiles. Automate in future if needed.
 
-for(knum in sprintf("k%02d", 1:10)){
-  print(knum)
-
-#input (data) and output (plots) directories:
-inpath <- file.path(rootdir, paste0(fstr, qstr, '/analysis/runinv_', knum), cluster)
-outpath <- file.path(rootdir, 'stats', paste0('pdf_', fstr, qstr, '_', knum))
-ifelse(!dir.exists(outpath), dir.create(outpath), FALSE)
-
-nmsts <- 1000 #(only used for memory allocation)
-
-nsnaps <- length(readLines(file.path(inpath, 'CDFdata', fn3d)))
-
-#Read in lambda data
-all_lambdas3d <- read.table(file.path(inpath, 'CDFdata/allMSTs_lambar_3D.dat'),
-                            nrows = nsnaps, row.names = 1, header = FALSE,
-                            col.names = c("snap", sprintf("MST%04d", 1:nmsts)))
-
-all_lambdas2d <- read.table(file.path(inpath, 'CDFdata/allMSTs_lambar_xy.dat'),
-                            nrows = nsnaps, row.names = 1, header = FALSE,
-                            col.names = c("snap", sprintf("MST%04d", 1:nmsts)))
-
-#select snapshots
-snapshots <- c(1:nsnaps)
-#snapshots <- c(1:220, 315:349) #k = 1
-#snapshots <- c(490:520)  #k = 2
-#snapshots <- c(58, 77, 400, 425)  #k = 3
-#snapshots <- c(520:649)  #k = 7
-#snapshots <- c(25:42, 60:80, 120:135)  #k = 10
-
-if (nsnaps < tail(snapshots, 1)){
-  stop("maximum values in 'snapshots' exceeds max snapshot number")
-}
-compare.spread <- NULL #list of snapshots to take a closer look at
-
-medians_3d <- data.frame(rowMedians(as.matrix(all_lambdas3d)))
-medians_3d <- gsub("c|\\(|\\)|\n|,", "", medians_3d) #remove c, parentheses, \n, and commas from string
-medians_2d <- data.frame(rowMedians(as.matrix(all_lambdas2d)))
-medians_2d <- gsub("c|\\(|\\)|\n|,", "", medians_2d) #remove c, parentheses, \n, and commas from string
-
-
-#kernel density estimates
-#(see https://www.r-bloggers.com/the-density-function/ for good summary)
-for (snapi in 1:length(snapshots)){
-  print(snapshots[snapi])
+for(knum in sprintf("k%02d", 5:5)){
+  #for(knum in sprintf("k%02d", 1:10)){
+  cat("\nknum: ", knum) #print knum
   
-  #'t' function transposes row from table into column for data frame
-  lambdas_df <- data.frame(t(all_lambdas3d[snapshots[snapi], ]), t(all_lambdas2d[snapshots[snapi], ]))
-  colnames(lambdas_df)[1] <- '3D'; colnames(lambdas_df)[2] <- '2D'
+  #input (data) and output (plots) directories:
+  inpath <- file.path(rootdir, paste0(fstr, qstr, '/analysis/runinv_', knum), cluster)
+  outpath <- file.path(rootdir, 'stats', paste0('pdf_', fstr, qstr, '_', knum))
+  ifelse(!dir.exists(outpath), dir.create(outpath), FALSE)
   
-  pval <- wilcox.test(as.numeric(lambdas_df$'3D'), as.numeric(lambdas_df$'2D'), paired = FALSE)$p.value
+  nmsts <- 1000 #(only used for memory allocation)
   
-  #Call plotting functions defined above:
-  #plotPDF(snap = snapshots[snapi], dat3D = lambdas_df$'3D', dat2D = lambdas_df$'2D')
-  #plottimeseries(snap = snapshots[snapi], dat3D = lambdas_df$'3D', dat2D = lambdas_df$'2D')
+  nsnaps <- length(readLines(file.path(inpath, 'CDFdata', fn3d)))
+  
+  #Read in lambda data
+  all_lambdas3d <- read.table(file.path(inpath, 'CDFdata/allMSTs_lambar_3D.dat'),
+                              nrows = nsnaps, row.names = 1, header = FALSE,
+                              col.names = c("snap", sprintf("MST%04d", 1:nmsts)))
+  
+  all_lambdas2d <- read.table(file.path(inpath, 'CDFdata/allMSTs_lambar_xy.dat'),
+                              nrows = nsnaps, row.names = 1, header = FALSE,
+                              col.names = c("snap", sprintf("MST%04d", 1:nmsts)))
+  
+  #select snapshots
+  #snapshots <- c(1:nsnaps)
+  
+  snapshots <- c(520:520)
+  #snapshots <- c(1:220, 315:349) #k = 1
+  #snapshots <- c(490:520)  #k = 2
+  #snapshots <- c(58, 77, 400, 425)  #k = 3
+  #snapshots <- c(520:649)  #k = 7
+  #snapshots <- c(25:42, 60:80, 120:135)  #k = 10
+  
+  if (nsnaps < tail(snapshots, 1)){
+    stop("maximum values in 'snapshots' exceeds max snapshot number")
+  }
+  compare.spread <- NULL #list of snapshots to take a closer look at
+  
+  medians_3d <- data.frame(rowMedians(as.matrix(all_lambdas3d)))
+  medians_3d <- gsub("c|\\(|\\)|\n|,", "", medians_3d) #remove c, parentheses, \n, and commas from string
+  medians_2d <- data.frame(rowMedians(as.matrix(all_lambdas2d)))
+  medians_2d <- gsub("c|\\(|\\)|\n|,", "", medians_2d) #remove c, parentheses, \n, and commas from string
   
   
-  #Find y-values at given x-value at various points to find any snaps that don't overlap
-  #(to check whether 2D & 3D 'agree' for paper purposes)
-  
-  # Get coordinates of density function for 3D & 2D lambdas
-  dens3D <- density(lambdas_df$'3D')
-  dens2D <- density(lambdas_df$'2D')
-  #2D & 3D densities as a function of x (e.g. dens3D_fn(x) returns y for given x):
-  dens3D_fn <- approxfun(dens3D$x, dens3D$y)
-  dens2D_fn <- approxfun(dens2D$x, dens2D$y)
-  
-  #For lambda values < than 2 with low p-val ('disagree'), get various density values to compare 2D and 3D.
-  if ((median(lambdas_df$'3D') < 2 || median(lambdas_df$'2D') < 2) &&
-      (pval < 1.e-3)){
+  #kernel density estimates
+  #(see https://www.r-bloggers.com/the-density-function/ for good summary)
+  print("\nDoing snapshot...")
+  for (snapi in 1:length(snapshots)){
+    print(snapshots[snapi])
     
-    #First, 'NULL' objects in case they were set in the previous iteration:
-    # (code works if this isn't done, but can lead to confusion in debugging)
-    denspoints_3D <- NULL; denspoints_2D <- NULL
+    #'t' function transposes row from table into column for data frame
+    lambdas_df <- data.frame(t(all_lambdas3d[snapshots[snapi], ]), t(all_lambdas2d[snapshots[snapi], ]))
+    colnames(lambdas_df)[1] <- '3D'; colnames(lambdas_df)[2] <- '2D'
+    
+    pval <- wilcox.test(as.numeric(lambdas_df$'3D'), as.numeric(lambdas_df$'2D'), paired = FALSE)$p.value
+    
+    #Call plotting functions defined above:
+    #plotPDF(snap = snapshots[snapi], dat3D = lambdas_df$'3D', dat2D = lambdas_df$'2D')
+    #plottimeseries(snap = snapshots[snapi], dat3D = lambdas_df$'3D', dat2D = lambdas_df$'2D')
     
     
-    denspoints_3D <- data.frame(x = c(quantile(lambdas_df$'3D', 0), #min
-                                      quantile(lambdas_df$'3D', 0.17),
-                                      quantile(lambdas_df$'3D', 0.25),
-                                      quantile(lambdas_df$'3D', 0.50), #median
-                                      quantile(lambdas_df$'3D', 0.75),
-                                      quantile(lambdas_df$'3D', 0.83),
-                                      quantile(lambdas_df$'3D', 1.0)) #max
-    )
-    denspoints_3D$y <- dens3D_fn(denspoints_3D$x)
+    #Find y-values at given x-value at various points to find any snaps that don't overlap
+    #(to check whether 2D & 3D 'agree' for paper purposes)
     
-    denspoints_2D <- data.frame(x = c(quantile(lambdas_df$'2D', 0), #min
-                                      quantile(lambdas_df$'2D', 0.17),
-                                      quantile(lambdas_df$'2D', 0.25),
-                                      quantile(lambdas_df$'2D', 0.50), #median
-                                      quantile(lambdas_df$'2D', 0.75),
-                                      quantile(lambdas_df$'2D', 0.83),
-                                      quantile(lambdas_df$'2D', 1.0)) #max
-    )
-    denspoints_2D$y <- dens2D_fn(denspoints_2D$x)
-    #If any values are 'NA', stop:
-    if(any(is.na(denspoints_3D)) || any(is.na(denspoints_2D))){
-      stop("At least one value in denspoints is 'NA'")
-    }
+    # Get coordinates of density function for 3D & 2D lambdas
+    dens3D <- density(lambdas_df$'3D')
+    dens2D <- density(lambdas_df$'2D')
+    #2D & 3D densities as a function of x (e.g. dens3D_fn(x) returns y for given x):
+    dens3D_fn <- approxfun(dens3D$x, dens3D$y)
+    dens2D_fn <- approxfun(dens2D$x, dens2D$y)
     
-    
-    #Find whether the spread of one PDF is encompassed within the other:
-    if((denspoints_3D[ci[1], "x"] < denspoints_2D[ci[1], "x"] && 
-        denspoints_3D[ci[2], "x"] > denspoints_2D[ci[2], "x"])
-        ||
-       (denspoints_3D[ci[1], "x"] > denspoints_2D[ci[1], "x"] && 
-        denspoints_3D[ci[2], "x"] < denspoints_2D[ci[2], "x"])
-        ){
+    #For lambda values < than 2 with low p-val ('disagree'), get various density values to compare 2D and 3D.
+    if ((median(lambdas_df$'3D') < 2 || median(lambdas_df$'2D') < 2) &&
+        (pval < 1.e-3)){
       
-      compare.spread <- c(compare.spread, snapi)
+      #First, 'NULL' objects in case they were set in the previous iteration:
+      # (code works if this isn't done, but can lead to confusion in debugging)
+      denspoints_3D <- NULL; denspoints_2D <- NULL
       
-      #Prepare data for forest plot normalised to median 3D value for each PDF
-      forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "3D",
-                                          denspoints_3D["50%", "x"], #/ denspoints_3D["50%", "x"],
-                                          denspoints_3D[ci[1],"x"], #/ denspoints_3D["50%", "x"],
-                                          denspoints_3D[ci[2],"x"]) #/ denspoints_3D["50%", "x"])
-      forestplt[nrow(forestplt)+1, ] <- c(knum, snapi, "2D",
-                                          denspoints_2D["50%","x"], #/ denspoints_3D["50%", "x"],
-                                          denspoints_2D[ci[1],"x"], #/ denspoints_3D["50%", "x"],
-                                          denspoints_2D[ci[2],"x"]) #/ denspoints_3D["50%", "x"])
+      
+      denspoints_3D <- data.frame(x = c(quantile(lambdas_df$'3D', 0), #min
+                                        quantile(lambdas_df$'3D', 0.17),
+                                        quantile(lambdas_df$'3D', 0.25),
+                                        quantile(lambdas_df$'3D', 0.50), #median
+                                        quantile(lambdas_df$'3D', 0.75),
+                                        quantile(lambdas_df$'3D', 0.83),
+                                        quantile(lambdas_df$'3D', 1.0)) #max
+      )
+      denspoints_3D$y <- dens3D_fn(denspoints_3D$x)
+      
+      denspoints_2D <- data.frame(x = c(quantile(lambdas_df$'2D', 0), #min
+                                        quantile(lambdas_df$'2D', 0.17),
+                                        quantile(lambdas_df$'2D', 0.25),
+                                        quantile(lambdas_df$'2D', 0.50), #median
+                                        quantile(lambdas_df$'2D', 0.75),
+                                        quantile(lambdas_df$'2D', 0.83),
+                                        quantile(lambdas_df$'2D', 1.0)) #max
+      )
+      denspoints_2D$y <- dens2D_fn(denspoints_2D$x)
+      #If any values are 'NA', stop:
+      if(any(is.na(denspoints_3D)) || any(is.na(denspoints_2D))){
+        stop("At least one value in denspoints is 'NA'")
+      }
+      
+      
+      #Find whether the spread of one PDF is encompassed within the other:
+      if((denspoints_3D[ci[1], "x"] < denspoints_2D[ci[1], "x"] && 
+          denspoints_3D[ci[2], "x"] > denspoints_2D[ci[2], "x"])
+         ||
+         (denspoints_3D[ci[1], "x"] > denspoints_2D[ci[1], "x"] && 
+          denspoints_3D[ci[2], "x"] < denspoints_2D[ci[2], "x"])
+      ){
         
-      #draw 3D histogram & density function:
-      out.fn <- sprintf('snap%04dpdf_%02s_quantiles.png', snapi, proj) # output file name
-      png(filename = file.path(outpath, out.fn), width = 500, height = 500)#, res=40)
-      
-      #hist(lambdas_df$'3D', freq = F,
-       #    xlim = c(min(dens3D$x, dens2D$x), max(dens3D$x, dens2D$x)), ylim = c(0, max(dens3D$y, dens2D$y)))
-      plot(dens3D, col="black", lwd=2)
-      
-      abline(v = median(lambdas_df$'3D'), lty = 2)
-      points(denspoints_3D["50%", "x"], denspoints_3D["50%", "y"],
-             cex = 1.2, pch = 20, col = "blue") #median
-      points(denspoints_3D[ci[1], "x"], denspoints_3D[ci[1], "y"],
-             cex = 1.2, pch = 20, col = "blue") # lower quantile / confidence interval
-      points(denspoints_3D[ci[2], "x"], denspoints_3D[ci[2], "y"],
-             cex = 1.2, pch = 20, col = "blue") # upper quantile / confidence interval
-      
-      #draw 2D histogram & density function:
-      #hist(lambdas_df$'2D', border = "red", freq = F, add=T)
-      lines(dens2D, col = "red", lwd = 2)
-      text(x = max(dens3D$x, dens2D$x)*0.7, y = max(dens3D$y, dens2D$y),labels = sprintf('snap%04d', snapi))
-      text(x = max(dens3D$x[1], dens2D$x[1]), y = max(dens3D$y, dens2D$y), labels = knum)
-      points(denspoints_2D["50%", "x"], denspoints_2D["50%", "y"],
-             cex=1.2, pch=4, col = "blue") #median
-      points(denspoints_2D[ci[1], "x"], denspoints_2D[ci[1], "y"],
-             cex = 1.2, pch = 4, col = "blue") #lower quantile / confidence interval
-      points(denspoints_2D[ci[2], "x"], denspoints_2D[ci[2], "y"],
-             cex = 1.2, pch = 4, col = "blue") #upper quantile / confidence interval
-      dev.off()
-      
-      # Forest plot to check
-      
-    } #end of 'points of one within points of other'
-  } #end of 'if median lambdas less than 2' & pval > 0.01
-} #end of snapshots loop
-print(compare.spread)
+        compare.spread <- c(compare.spread, snapshots[snapi])
+        
+        #Prepare data for forest plot normalised to median 3D value for each PDF
+        forestplt[nrow(forestplt)+1, ] <- c(knum, snapshots[snapi], "3D",
+                                            denspoints_3D["50%", "x"], #/ denspoints_3D["50%", "x"],
+                                            denspoints_3D[ci[1],"x"], #/ denspoints_3D["50%", "x"],
+                                            denspoints_3D[ci[2],"x"]) #/ denspoints_3D["50%", "x"])
+        forestplt[nrow(forestplt)+1, ] <- c(knum, snapshots[snapi], "2D",
+                                            denspoints_2D["50%","x"], #/ denspoints_3D["50%", "x"],
+                                            denspoints_2D[ci[1],"x"], #/ denspoints_3D["50%", "x"],
+                                            denspoints_2D[ci[2],"x"]) #/ denspoints_3D["50%", "x"])
+        
+        #draw 3D histogram & density function:
+        out.fn <- sprintf('snap%04dpdf_%02s_quantiles.png', snapshots[snapi], proj) # output file name
+        #png(filename = file.path(outpath, out.fn), width = 500, height = 500)#, res=40)
+        
+        #hist(lambdas_df$'3D', freq = F,
+        #    xlim = c(min(dens3D$x, dens2D$x), max(dens3D$x, dens2D$x)), ylim = c(0, max(dens3D$y, dens2D$y)))
+        plot(dens3D, col="black", lwd=2)
+        
+        abline(v = median(lambdas_df$'3D'), lty = 2)
+        points(denspoints_3D["50%", "x"], denspoints_3D["50%", "y"],
+               cex = 1.2, pch = 20, col = "blue") #median
+        points(denspoints_3D[ci[1], "x"], denspoints_3D[ci[1], "y"],
+               cex = 1.2, pch = 20, col = "blue") # lower quantile / confidence interval
+        points(denspoints_3D[ci[2], "x"], denspoints_3D[ci[2], "y"],
+               cex = 1.2, pch = 20, col = "blue") # upper quantile / confidence interval
+        
+        #draw 2D histogram & density function:
+        #hist(lambdas_df$'2D', border = "red", freq = F, add=T)
+        lines(dens2D, col = "red", lwd = 2)
+        text(x = max(dens3D$x, dens2D$x)*0.7, y = max(dens3D$y, dens2D$y),
+             labels = sprintf('snap%04d', snapshots[snapi]))
+        text(x = max(dens3D$x[1], dens2D$x[1]), y = max(dens3D$y, dens2D$y), labels = knum)
+        points(denspoints_2D["50%", "x"], denspoints_2D["50%", "y"],
+               cex=1.2, pch=4, col = "blue") #median
+        points(denspoints_2D[ci[1], "x"], denspoints_2D[ci[1], "y"],
+               cex = 1.2, pch = 4, col = "blue") #lower quantile / confidence interval
+        points(denspoints_2D[ci[2], "x"], denspoints_2D[ci[2], "y"],
+               cex = 1.2, pch = 4, col = "blue") #upper quantile / confidence interval
+        #dev.off()
+        
+        # Forest plot to check
+        
+      } #end of 'points of one within points of other'
+    } #end of 'if median lambdas less than 2' & pval > 0.01
+  } #end of snapshots loop
+  cat("List of snapshots for forest plot: ", compare.spread)
 } #end of knum loop
 
 
@@ -336,28 +355,34 @@ forestplt$upper <- as.numeric(forestplt$upper)
 #Set up arguments for 'forestplot' function:
 #list of row names; lists of median, lower, and upper values; alignment vector for table columns
 ktext <- ifelse(duplicated(forestplt[, 1])[forestplt$dimension == "3D"],
-                " ",
-                forestplt[, 1][forestplt$dimension == "3D"]) #white space if knum is repeated
+                " ",       #white space if knum is repeated
+                forestplt[, 1][forestplt$dimension == "3D"]) #otherwise keep knum label (col. 1)
 
 forestmed <- cbind(forestplt$median[forestplt$dimension == "3D"],
-                    forestplt$median[forestplt$dimension == "2D"])
+                   forestplt$median[forestplt$dimension == "2D"])
 forestlo <- cbind(forestplt$lower[forestplt$dimension == "3D"],
-                   forestplt$lower[forestplt$dimension == "2D"])
+                  forestplt$lower[forestplt$dimension == "2D"])
 foresthi <- cbind(forestplt$upper[forestplt$dimension == "3D"],
                   forestplt$upper[forestplt$dimension == "2D"])
+forestsnap <- cbind(forestplt$snapshot[forestplt$dimension == "3D"])
 
-if (all(ci == c("17%", "83%"))){
-  plotrange <- list(c(1:30), c(31:60), c(61:90), c(91:120), c(121:length(ktext))) #for 1/6, 5/6
-} else if (all(ci == c("25%", "75%"))){
-  plotrange <- list(c(1:length(ktext)))
-} else {
-  print("WARNING: no range defined for forest plot. Defaulting to all.")
-  plotrange <- list(c(1:length(ktext)))
-}
+#if (all(ci == c("17%", "83%"))){
+#  plotrange <- list(c(1:30), c(31:60), c(61:90), c(91:120), c(121:length(ktext))) #for 1/6, 5/6
+#} else if (all(ci == c("25%", "75%"))){
+#  plotrange <- list(c(1:length(ktext)))
+#} else {
+#  print("WARNING: no range defined for forest plot. Defaulting to all.")
+plotrange <- list(c(1:length(ktext)))
+#}
 
-for (i in 1:length(plotrange)){
+for (i in 1:length(plotrange)){ #plotrange is the number of snapshots plotted in this forest plot
+                                # to prevent over-crowding
   thisrange <- unlist(plotrange[i])
-  plotfp(datrange = ktext[thisrange], medpoint = forestmed[thisrange, ],
-         confint.lo = forestlo[thisrange, ], confint.hi = foresthi[thisrange, ],
-         ncall = i)
+  plotfp(datlabel = cbind(c("knum", ktext[thisrange]), c("snap", forestsnap[thisrange])),
+         medpoint = rbind(NA, forestmed[thisrange, ]),
+         confint.lo = rbind(NA, forestlo[thisrange, ]), confint.hi = rbind(NA, foresthi[thisrange, ]),
+         snapnum = forestsnap, snapcount = i)
+  #plotfp(datlabel = cbind(ktext[thisrange],forestsnap[thisrange]), medpoint = forestmed[thisrange, ],
+  #       confint.lo = forestlo[thisrange, ], confint.hi = foresthi[thisrange, ],
+  #       snapnum = forestsnap, snapcount = i)
 }
