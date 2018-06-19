@@ -111,44 +111,46 @@ plotfp <- function(datlabel, medpoint, confint.lo, confint.hi, snapnum, snapcoun
   #Produce a forest plot showing medians & ranges when either
   #the 3D or 2D range falls entirely within the other
   
-  #set up output plot filename:
-  outfn.fp <- sprintf('ci_%02d-%02d_%01d.png',
-                      as.numeric(sub("%", "", ci[1])),
-                      as.numeric(sub("%", "", ci[2])),
-                      snapcount) # output file name
+  #set up output plot filename and forestplot options:
+  if(length(snapnum) == 1){
+    outfn.fp <- sprintf('ci_%02d-%02d_%ssnap%04d.png',
+                        as.numeric(sub("%", "", ci[1])),
+                        as.numeric(sub("%", "", ci[2])),
+                        datlabel[2,1],
+                        as.numeric(snapnum)) #use knum & snapshot if just one
+    
+    plotsize <- c(700, 200)
+    xlims <- c(0.5, 2.5)
+  } else {
+    outfn.fp <- sprintf('ci_%02d-%02d_%01d.png',
+                        as.numeric(sub("%", "", ci[1])),
+                        as.numeric(sub("%", "", ci[2])),
+                        snapcount) # use plot number if more than one snapshot
+    plotsize <- c(700, 500)
+    xlims <- c(0.5, 3.0)
+  }
   
-  #if (class(medpoint) == "numeric") { #arguments passed in as numeric if there's only one snapshot
-  #  medpoint <- as.matrix(t(medpoint))
-  #  confint.lo <- as.matrix(t(confint.lo))
-  #  confint.hi <- as.matrix(t(confint.hi))
-  #  outfn.fp <- sprintf('ci_%02d-%02d_snap%04d.png',       #use different fn if just one snapshot
-  #                      as.numeric(sub("%", "", ci[1])),
-  #                      as.numeric(sub("%", "", ci[2])),
-  #                      as.numeric(snapnum)) # output file name
-  #}
-  
-  cat("\nSaving forest plot as ", file.path(outpath.fp, outfn.fp))
-  #png(filename = file.path(outpath.fp, outfn.fp),
-      #width = 700, height = 600, res = 100)
+  png(filename = file.path(outpath.fp, outfn.fp),
+      width = plotsize[1], height = plotsize[2], res = 100)
   
   forestplot(datlabel, medpoint, confint.lo, confint.hi,
              is.summary = c(TRUE, rep(FALSE, length(datlabel)-1)),
              legend = c("3D", "2D"),
-             legend_args = fpLegend(pos = list(x = 0.85, y = 0.5),
-             #legend_args = fpLegend(pos = list(x = 0.95, y = 0.85),
+             legend_args = fpLegend(pos = list(x = 0.9, y = 0.5),
+                                    #legend_args = fpLegend(pos = list(x = 0.95, y = 0.85),
                                     gp = gpar(col = "#CCCCCC", fill = "#F9F9F9")),
              boxsize = 0.1, #size of median point markers
              line.margin = .2,
              col = fpColors(box = c("black", "darkred"), lines = c("black", "darkred")),
              clip = c(0.5, 3.4),
-             xticks = c(seq(from = 0.5, to = 3.0, by = 0.5)),
+             xticks = c(seq(from = xlims[1], to = xlims[2], by = 0.5)),
              xlab="Lambda",
              txt_gp = fpTxtGp(label = gpar(cex = 0.8),
                               ticks = gpar(cex = 0.8),
                               xlab = gpar(cex = 0.8))
   )
   
-  #dev.off() #close plot
+  dev.off() #close plot
 }
 #================================================================================
 
@@ -231,7 +233,7 @@ for(knum in sprintf("k%02d", 5:5)){
   #(see https://www.r-bloggers.com/the-density-function/ for good summary)
   print("\nDoing snapshot...")
   for (snapi in 1:length(snapshots)){
-    print(snapshots[snapi])
+    #print(snapshots[snapi])
     
     #'t' function transposes row from table into column for data frame
     lambdas_df <- data.frame(t(all_lambdas3d[snapshots[snapi], ]), t(all_lambdas2d[snapshots[snapi], ]))
@@ -376,13 +378,10 @@ plotrange <- list(c(1:length(ktext)))
 #}
 
 for (i in 1:length(plotrange)){ #plotrange is the number of snapshots plotted in this forest plot
-                                # to prevent over-crowding
+  # to prevent over-crowding
   thisrange <- unlist(plotrange[i])
   plotfp(datlabel = cbind(c("knum", ktext[thisrange]), c("snap", forestsnap[thisrange])),
          medpoint = rbind(NA, forestmed[thisrange, ]),
          confint.lo = rbind(NA, forestlo[thisrange, ]), confint.hi = rbind(NA, foresthi[thisrange, ]),
          snapnum = forestsnap, snapcount = i)
-  #plotfp(datlabel = cbind(ktext[thisrange],forestsnap[thisrange]), medpoint = forestmed[thisrange, ],
-  #       confint.lo = forestlo[thisrange, ], confint.hi = foresthi[thisrange, ],
-  #       snapnum = forestsnap, snapcount = i)
 }
