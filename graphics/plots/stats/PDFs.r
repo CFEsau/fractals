@@ -95,6 +95,7 @@ plottimeseries <- function(snap, dat3D, dat2D){
   #concaternate 'quantile' vector to one string:
   sixths3d <- paste(quantile(lambdas_df$'3D', probs = seq(0, 1, 1/6)), collapse = ' ')
   sixths2d <- paste(quantile(lambdas_df$'2D', probs = seq(0, 1, 1/6)), collapse = ' ')
+
   
   system(paste('python PDFs_lambda.py', outpath, knum, cluster, snap, #model variables
                '--medians3d', medians_3d,
@@ -188,7 +189,7 @@ ifelse(!dir.exists(outpath.fp), dir.create(outpath.fp), FALSE)
 #Plot ranges above will vary with data set and quantiles. Automate in future if needed.
 
 for(knum in sprintf("k%02d", 1:10)){
-  cat("\nknum: ", knum) #print knum
+  cat("\nknum: ", knum, "\n") #print knum
   
   #input (data) and output (plots) directories:
   inpath <- file.path(rootdir, paste0(fstr, qstr, '/analysis/runinv_', knum), cluster)
@@ -224,7 +225,7 @@ for(knum in sprintf("k%02d", 1:10)){
   
   #kernel density estimates
   #(see https://www.r-bloggers.com/the-density-function/ for good summary)
-  print("\nDoing snapshot...")
+  print("Doing snapshot...")
   for (snapi in 1:length(snapshots)){
     print(snapshots[snapi])
     
@@ -233,11 +234,6 @@ for(knum in sprintf("k%02d", 1:10)){
     colnames(lambdas_df)[1] <- '3D'; colnames(lambdas_df)[2] <- '2D'
     
     pval <- wilcox.test(as.numeric(lambdas_df$'3D'), as.numeric(lambdas_df$'2D'), paired = FALSE)$p.value
-    
-    #Call plotting functions defined above:
-    #plotPDF(snap = snapshots[snapi], dat3D = lambdas_df$'3D', dat2D = lambdas_df$'2D')
-    #plottimeseries(snap = snapshots[snapi], dat3D = lambdas_df$'3D', dat2D = lambdas_df$'2D')
-    
     
     #Find y-values at given x-value at various points to find any snaps that don't overlap
     #(to check whether 2D & 3D 'agree' for paper purposes)
@@ -290,6 +286,12 @@ for(knum in sprintf("k%02d", 1:10)){
          (denspoints_3D[ci[1], "x"] > denspoints_2D[ci[1], "x"] && 
           denspoints_3D[ci[2], "x"] < denspoints_2D[ci[2], "x"])
       ){
+        
+        
+        #Call plotting functions defined above:
+        #plotPDF(snap = snapshots[snapi], dat3D = lambdas_df$'3D', dat2D = lambdas_df$'2D')
+        plottimeseries(snap = snapshots[snapi], dat3D = lambdas_df$'3D', dat2D = lambdas_df$'2D')
+        Sys.sleep(1) #pause when plotting time series as python print statements lag behind R
         
         compare.spread <- c(compare.spread, snapshots[snapi])
         
@@ -370,8 +372,8 @@ if (all(ci == c("17%", "83%"))){
 for (i in 1:length(plotrange)){ #'plotrange' is the number of snapshots plotted in
                                 # this forest plot to prevent over-crowding
   thisrange <- unlist(plotrange[i])
-  plotfp(datlabel = cbind(c("knum", ktext[thisrange]), c("snap", forestsnap[thisrange])),
-         medpoint = rbind(NA, forestmed[thisrange, ]),
-         confint.lo = rbind(NA, forestlo[thisrange, ]), confint.hi = rbind(NA, foresthi[thisrange, ]),
-         snapnum = forestsnap, snapcount = i)
+#  plotfp(datlabel = cbind(c("knum", ktext[thisrange]), c("snap", forestsnap[thisrange])),
+#         medpoint = rbind(NA, forestmed[thisrange, ]),
+#         confint.lo = rbind(NA, forestlo[thisrange, ]), confint.hi = rbind(NA, foresthi[thisrange, ]),
+#         snapnum = forestsnap, snapcount = i)
 }
